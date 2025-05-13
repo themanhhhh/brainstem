@@ -8,7 +8,7 @@
     width: 100%;
     padding-block: 1.5rem;
     position: relative;
-    z-index: 2;
+    z-index: 1000;
     background-color: transparent;
     border-bottom: 0.1px solid var(--icons-color);
 } 
@@ -118,6 +118,7 @@
     cursor: pointer;
     display: flex;
     align-items: center;
+    z-index: 10000000;
 }
 .navbar_container_right_profile{
     border-radius: 50%;
@@ -138,6 +139,8 @@
   align-items: center;
   margin-right: 20px;
   text-decoration: none;
+  position: relative;
+  z-index: 10000000;
 }
 
 .sideBar{
@@ -153,6 +156,12 @@
 
 .sideBar::-webkit-scrollbar{
     display: none;
+}
+
+.navbar_container_right_login {
+  position: relative;
+  cursor: pointer;
+  z-index: 10000000;
 }
 
 @media screen and (min-device-width: 320px) and (max-device-width:  768px) {

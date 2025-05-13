@@ -1,13 +1,13 @@
 .heroSection_body {
     background-color: transparent;
     position: relative;
-    z-index: 2;
+    z-index: 1;
 }
 .heroSection{
     width: 95%;
     margin: 3rem auto;
     position: relative;
-    z-index: 2;
+    z-index: 1;
 }
 
 .heroSection_box{
@@ -70,8 +70,8 @@
     border: 7px solid #fff; 
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
     top: 20%;  
-    right: 110px;
-    z-index: 111111;
+    right: 5%;
+    z-index: 11;
 }
 
 .heroSection_box_right_ellipse_circle2{
@@ -83,8 +83,8 @@
     border: 7px solid #fff; 
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
     bottom: 10%;  
-    left: 970px; 
-    z-index: 111111; 
+    left: 55%; 
+    z-index: 11; 
 }
 
 .heroSection_box_right_ellipse_small_image{

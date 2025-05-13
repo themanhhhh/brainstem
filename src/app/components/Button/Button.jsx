@@ -5,13 +5,14 @@ import { TiArrowRightThick } from "react-icons/ti";
 
 import Style from "./Button.module.css";
 
-const Button = ({btnName, classStyle, type, disabled}) => {
+const Button = ({btnName, classStyle, type, disabled, onClick}) => {
   return (
     <div className={Style.box}>
         <button 
           className={`${Style.button} ${classStyle}`}
           type={type}
           disabled={disabled}
+          onClick={onClick}
         >
           <span className={Style.btnText}>{btnName} </span>
         </button>

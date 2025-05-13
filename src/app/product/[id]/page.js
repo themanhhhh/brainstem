@@ -1,13 +1,14 @@
 "use client"
 
 import React, { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import styles from "../../styles/product.module.css";
 import Price from "../productprice/productprice";
 import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 import Banner from '../banner/Banner';
-import { Footer } from '../../components/componentsindex';
+import { Footer, Button } from '../../components/componentsindex';
 import Image from "next/image";
 import images from "../../img/index";
 
@@ -16,6 +17,8 @@ export default function ProductDetail() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const { user } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -39,7 +42,7 @@ export default function ProductDetail() {
 
   function handleAddToCart() {
     if (product) {
-      addToCart({
+      const success = addToCart({
         id: product.id,
         name: product.name,
         price: product.price,
@@ -47,15 +50,21 @@ export default function ProductDetail() {
         quantity: 1,
       });
       
-      toast.success("Added to cart!", {
-        duration: 2000,
-        position: "top-center"
-      });
+      if (success) {
+        toast.success("Added to cart!", {
+          duration: 2000,
+          position: "top-center"
+        });
 
-      setTimeout(() => {
-        window.location.href = '/menu';
-      }, 1000);
+        setTimeout(() => {
+          window.location.href = '/menu';
+        }, 1000);
+      }
     }
+  }
+
+  function handleLoginRedirect() {
+    router.push('/login');
   }
 
   if (loading) {
@@ -98,12 +107,24 @@ export default function ProductDetail() {
               name={product.name}
               options={product.options}
             />
-            <button 
-              className={styles.addToCartButton}
-              onClick={handleAddToCart}
-            >
-              Add to Cart
-            </button>
+            {user ? (
+              <button 
+                className={styles.addToCartButton}
+                onClick={handleAddToCart}
+              >
+                Add to Cart
+              </button>
+            ) : (
+              <div className={styles.loginRequiredBox}>
+                <p className={styles.loginMessage}>Please login to add to cart</p>
+                <button 
+                  className={styles.loginButton}
+                  onClick={handleLoginRedirect}
+                >
+                  Login
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

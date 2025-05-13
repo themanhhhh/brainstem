@@ -1,8 +1,8 @@
 import React from "react";
-import Banner from "./banner/Banner";
+import Banner from "./Banner/Banner";
 import Approach from "./approach/approach";
-import { Footer , FAQ} from "../components/componentsindex";
-import {Brand, Reserve , Daily, Card} from "../components/componentsindex";
+import { Footer, FAQ, ChefTeam } from "../components/componentsindex";
+import { Brand, Reserve, Daily, Card } from "../components/componentsindex";
 import Style from "../styles/aboutus.module.css";
 import images from "./../img/index";
 
@@ -18,18 +18,10 @@ const page = () => {
   return (
     <div className={Style.aboutus}>
       <Banner/>
-      <Brand page="aboutus"/>
+      <Brand />
       <Approach/>
       <Daily/>
-      {
-        teamArray.map((el,i) => {
-          <Card
-            key={i} 
-            el={el}
-          />
-      })
-      }
-      <Card/>
+      <ChefTeam/>
       <FAQ/>
       <Reserve/>
       <Footer/>

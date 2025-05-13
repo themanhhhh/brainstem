@@ -9,7 +9,6 @@ import {
   Category,
   Filter,
   Collection,
-  FollowerTab,
   Slider,
   Brand,
   Loader,

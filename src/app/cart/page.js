@@ -1,7 +1,9 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import { useRouter } from 'next/navigation';
 import styles from '../styles/cart.module.css';
 import { FaTrash, FaShoppingCart, FaArrowLeft, FaTag } from 'react-icons/fa';
 import Link from 'next/link';
@@ -14,6 +16,20 @@ const CartPage = () => {
   const [discountCode, setDiscountCode] = useState('');
   const [discountApplied, setDiscountApplied] = useState(false);
   const [discountError, setDiscountError] = useState('');
+  const { user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    // Kiểm tra xem người dùng đã đăng nhập chưa
+    if (!user) {
+      router.push('/login');
+    }
+  }, [user, router]);
+
+  // Nếu người dùng chưa đăng nhập, không hiển thị nội dung trang
+  if (!user) {
+    return <div className={styles.loading}>Redirecting to login...</div>;
+  }
 
   const handleApplyDiscount = () => {
     // Mock discount codes - in real app, these would be validated against a backend
@@ -46,18 +62,22 @@ const CartPage = () => {
 
   if (cartItems.length === 0) {
     return (
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={styles.cartEmpty}
-      >
-        <FaShoppingCart size={64} className={styles.emptyCartIcon} />
-        <h2>Your cart is empty</h2>
-        <p>Looks like you haven't added anything to your cart yet.</p>
-        <Link href="/menu" className={styles.continueShopping}>
-          <FaArrowLeft /> Continue Shopping
-        </Link>
-      </motion.div>
+      <>
+        <Navbar />
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={styles.cartEmpty}
+        >
+          <FaShoppingCart size={64} className={styles.emptyCartIcon} />
+          <h2>Your cart is empty</h2>
+          <p>Looks like you haven't added anything to your cart yet.</p>
+          <Link href="/menu" className={styles.continueShopping}>
+            <FaArrowLeft /> Continue Shopping
+          </Link>
+        </motion.div>
+        <Footer />
+      </>
     );
   }
 

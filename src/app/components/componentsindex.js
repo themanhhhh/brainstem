@@ -8,19 +8,19 @@ import Title from "./Title/Title";
 import Category from "./Category/Category";
 import Filter from "./Filter/Filter";
 import Collection from "./Collection/Collection";
-import LikeProfile from "./LikeProfile/LikeProfile";
-import Slider from "./Slider/Slider";
-import Brand from "./Brand/Brand";
-import Loader from "./Loader/Loader";
 import Error from "./Error/Error";
-import Daily from "./Daily/Daily";
-import Menu from "./Menu/Menu";
-import Adv from "./Adv/Adv";
-import Reserve from "./Reserve/Reserve";
-import Card from "./Card/Card";
-import Blog from "./Blog/Blog";
+import Loader from "./Loader/Loader";
+import MenuCard from "./Menu/MenuCard/MenuCard";
+import Brand from "./Brand/Brand";
 import FAQ from "./FAQ/FAQ";
-import Price from "./Price/price";
+import Reserve from "./Reserve/Reserve";
+import Daily from "./Daily/Daily";
+import Card from "./Card/Card";
+import ChefTeam from "./ChefTeam/ChefTeam";
+import Adv from "./Adv/Adv";
+import Slider from "./Slider/Slider";
+import Blog from "./Blog/Blog";
+import Menu from "./Menu/Menu";
 
 export {
     Button,
@@ -33,17 +33,17 @@ export {
     Category,
     Filter,
     Collection,
-    LikeProfile,
-    Slider,
-    Brand,
-    Loader,
     Error,
-    Daily,
-    Menu,
-    Adv,
-    Reserve,
-    Card,
-    Blog,
+    Loader,
+    MenuCard,
+    Brand,
     FAQ,
-    Price
+    Reserve,
+    Daily,
+    Card,
+    ChefTeam,
+    Adv,
+    Slider,
+    Blog,
+    Menu
 };

@@ -2,11 +2,12 @@
   position: relative;
   cursor: pointer;
   padding: 0.5rem;
+  z-index: 10000000;
 }
 
 .icon {
   font-size: 1.5rem;
-  color: #333;
+  color: #A6A182;
   transition: color 0.2s;
 }
 

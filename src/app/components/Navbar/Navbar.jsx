@@ -16,6 +16,7 @@ import {Discover,HelpCenter,Notification,Profile,SideBar} from "./index"
 import {Button,Error} from "../componentsindex";
 import images from "../../img";
 import CartIcon from "./CartIcon/CartIcon";
+import { useAuth } from "../../context/AuthContext";
 
 // Import from smart contract
 
@@ -26,6 +27,8 @@ const Navbar = () => {
     const [notification , setNotification] = useState(false);
     const [profile , setProfile] = useState(false);
     const [openSideMenu , setOpenSideMenu] = useState(false);
+    const { user, logout } = useAuth();
+    const router = useRouter();
 
     const openHelp = () => {
         if(!help){
@@ -58,7 +61,9 @@ const Navbar = () => {
         }
     };
 
-    const router=useRouter();
+    const handleLoginClick = () => {
+        router.push('/login');
+    };
 
     return  (
         <div className={Style.navbar}>
@@ -71,14 +76,20 @@ const Navbar = () => {
                 <div className={Style.navbar_container_right}>
                     <div className={Style.navbar_container_right_discover}>
                         {/*About us*/}
-                        <p>About us</p>
+                        <Link href="/aboutus">
+                            <p>About us</p>
+                        </Link>
                     </div>
                     <div className={Style.navbar_container_right_services}>
                         {/*Services*/}
-                        <p>Services</p>                        
+                        <Link href="/service">
+                            <p>Services</p>
+                        </Link>
                     </div>
                     <div className={Style.navbar_container_right_menu}>          
-                        <p>Menu</p>
+                        <Link href="/menu">
+                            <p>Menu</p>
+                        </Link>
                     </div>
                     {/*Help Center*/}
                     <div className={Style.navbar_container_right_help}>
@@ -97,20 +108,26 @@ const Navbar = () => {
                     </div>
           
                     {/*Cart Icon*/}
-                    <Link href="/cart" className={Style.navbar_container_right_cart}>
+                    <Link href="/cart" className={Style.navbar_container_right_cart} style={{zIndex: 10000000}}>
                         <CartIcon />
                     </Link>
 
-                    {/*User profile*/}
-                    <div className={Style.navbar_container_right_profile_box}>
-                        <div className={Style.navbar_container_right_profile}>
-                            <Image src={images.user} alt="Profile" width={40} height={40}
-                            onClick={()=> openProfile()}
-                            className={Style.navbar_container_right_profile}
-                            />
-                            {profile && <Profile />}
+                    {/*User profile hoặc Login Button*/}
+                    {user ? (
+                        <div className={Style.navbar_container_right_profile_box} style={{zIndex: 10000000}}>
+                            <div className={Style.navbar_container_right_profile}>
+                                <Image src={images.user} alt="Profile" width={40} height={40}
+                                onClick={()=> openProfile()}
+                                className={Style.navbar_container_right_profile}
+                                />
+                                {profile && <Profile />}
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        <div className={Style.navbar_container_right_login}>
+                            <Button btnName="Login" onClick={handleLoginClick} />
+                        </div>
+                    )}
 
                     {/*Menu button*/}
                     <div className={Style.navbar_container_right_menuBtn}>

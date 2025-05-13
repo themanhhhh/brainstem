@@ -3,6 +3,8 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import axios from 'axios';
+import { useAuth } from './AuthContext';
+import { toast } from 'react-hot-toast';
 
 const CartContext = createContext();
 const CART_COOKIE_KEY = 'cart_items';
@@ -11,6 +13,7 @@ export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
   const [error, setError] = useState("");
   const [openError, setOpenError] = useState(false);
+  const { user } = useAuth();
 
   // Load cart from cookies when component mounts
   useEffect(() => {
@@ -57,6 +60,14 @@ export function CartProvider({ children }) {
   };
 
   const addToCart = (product) => {
+    if (!user) {
+      // Nếu người dùng chưa đăng nhập, hiển thị thông báo và từ chối thêm vào giỏ hàng
+      setError("Please login to add items to cart");
+      setOpenError(true);
+      toast?.error("Please login to add items to cart");
+      return false;
+    }
+
     setCartItems(prevItems => {
       const existingItem = prevItems.find(item => item.id === product.id);
       
@@ -72,6 +83,7 @@ export function CartProvider({ children }) {
         return [...prevItems, { ...product, quantity: 1 }];
       }
     });
+    return true;
   };
 
   const removeFromCart = (productId) => {

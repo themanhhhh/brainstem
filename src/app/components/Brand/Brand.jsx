@@ -17,7 +17,7 @@ import { motion } from "framer-motion";
 
 
 
-const Brand = ({page}) => {
+const Brand = () => {
     const router = useRouter();
   return (
     <div className={Style.Brand}>
