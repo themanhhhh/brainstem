@@ -1,0 +1,87 @@
+const API_URL = 'http://dev.quyna.online/project_4/restaurant';
+
+const getToken = () => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; token=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+};
+
+export const discountService = {
+  getDiscounts: async (page = 0, pageSize = 8) => {
+    const token = getToken();
+    if (!token) throw new Error('No authentication token found');
+
+    const response = await fetch(`${API_URL}/discount?page=${page}&pageSize=${pageSize}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      method: 'GET',
+    });
+
+    return response.json();
+  },
+
+  getDiscountById: async (id) => {
+    const token = getToken();
+    if (!token) throw new Error('No authentication token found');
+
+    const response = await fetch(`${API_URL}/discount/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      method: 'GET',
+    });
+
+    return response.json(); 
+  },
+
+  addDiscount: async (discount) => {
+    const token = getToken();
+    if (!token) throw new Error('No authentication token found');
+
+    const response = await fetch(`${API_URL}/discount`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+      body: JSON.stringify(discount),
+    });
+
+    return response.json();
+  },
+
+  updateDiscount: async (id, discount) => {
+    const token = getToken();
+    if (!token) throw new Error('No authentication token found');
+
+    const response = await fetch(`${API_URL}/discount/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      method: 'PUT',
+      body: JSON.stringify(discount),
+    });
+
+    return response.json(); 
+  },
+
+  deleteDiscount: async (id) => {
+    const token = getToken();
+    if (!token) throw new Error('No authentication token found');       
+
+    const response = await fetch(`${API_URL}/discount/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      method: 'DELETE',
+    });
+
+    return response.json();
+  },
+}; 

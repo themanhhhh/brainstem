@@ -1,0 +1,277 @@
+.container {
+  background-color: var(--bgSoft);
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 20px;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.addButton {
+  padding: 10px;
+  background-color: #5d57c9;
+  color: var(--text);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.table {
+  width: 100%;
+}
+
+.table td {
+  padding: 10px;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.button {
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: var(--text);
+  border: none;
+  cursor: pointer;
+}
+
+.edit {
+  background-color: teal;
+}
+
+.delete {
+  background-color: crimson;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: var(--bgSoft);
+  padding: 20px;
+  border-radius: 10px;
+  width: 500px;
+  max-width: 90%;
+}
+
+.modal h2 {
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.formGroup {
+  margin-bottom: 15px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--text);
+}
+
+.formGroup input,
+.formGroup textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--bg);
+  border-radius: 5px;
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+.formGroup textarea {
+  height: 100px;
+  resize: vertical;
+}
+
+.modalButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.saveButton {
+  padding: 10px;
+  background-color: #5d57c9;
+  color: var(--text);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.cancelButton {
+  padding: 10px;
+  background-color: var(--bg);
+  color: var(--text);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.deleteButton {
+  padding: 10px;
+  background-color: crimson;
+  color: var(--text);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  color: var(--text);
+}
+
+.error {
+  color: crimson;
+  text-align: center;
+  padding: 20px;
+  background-color: var(--bgSoft);
+  border-radius: 5px;
+  margin: 20px 0;
+}
+
+.topRight {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Search styles */
+.searchContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  padding: 8px 12px;
+  width: 300px;
+}
+
+.searchIcon {
+  color: #666;
+  margin-right: 8px;
+}
+
+.searchInput {
+  border: none;
+  background: none;
+  outline: none;
+  width: 100%;
+  font-size: 14px;
+  color: #333;
+}
+
+.searchInput::placeholder {
+  color: #999;
+}
+
+/* Table styles */
+.table thead td {
+
+  color: #FFFFFF;
+ 
+}
+
+/* Pagination styles */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.paginationButton {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  background-color: white;
+  color: #333;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+}
+
+.paginationButton:hover:not(:disabled) {
+  background-color: #f5f5f5;
+  border-color: #999;
+}
+
+.paginationButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.paginationButton.active {
+  background-color: #2196F3;
+  color: white;
+  border-color: #2196F3;
+}
+
+.detailContent {
+  padding: 20px;
+}
+
+.detailItem {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.detailItem label {
+  font-weight: bold;
+  color: var(--textSoft);
+}
+
+.detailItem span {
+  color: var(--text);
+}
+
+.view {
+  background-color: #5d57c9;
+}
+
+.searchInfo {
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  color: #495057;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.searchInfo strong {
+  color: #0066cc;
+  margin: 0 5px;
+}
+
+.darkBg {
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+} 

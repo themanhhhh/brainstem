@@ -1,0 +1,45 @@
+.MenuCard {
+    width: 500px;
+    height: 150px;
+    display: grid;
+    grid-template-columns: 25% 75%;
+    border-radius: 8px;
+    padding: 16px;
+}
+.MenuCard_left {
+    display: flex;
+    align-items: center;
+}
+.MenuCard_right {
+    display: grid;
+    grid-template-rows: 25% 75%;
+}
+.MenuCard_right_name_price{
+    align-items: center;
+    display: grid;
+    grid-template-columns: 1.0fr 1.5fr;
+}
+.MenuCard_description {
+    color: var(--font--color);
+}
+.MenuCard_right_price_box {
+    margin-left: 20px;
+    width: 80px;
+    height: 30px;
+    border-radius: 5rem;
+    background-color: var(--icons-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.MenuCard_price{
+    display: grid;
+    grid-template-columns: 75% 25%;
+}
+.MenuCard_right_price_line{
+    display: grid;
+    grid-template-rows: 50% 50%;
+}
+.MenuCard_right_price_line_up{
+    border-bottom: 1px solid var(--icons-color);
+}

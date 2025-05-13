@@ -1,0 +1,36 @@
+.Banner_img{
+    z-index: 1;
+}
+
+.Banner_img::before{
+    content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 75%;
+  background-image: url('../../img/background.jpg'); 
+  background-size: cover;
+  background-position: center;
+ 
+  z-index: -1; 
+  opacity: 0.3; 
+}
+
+.content {
+  position: relative;
+  text-align: center;
+  z-index: 1;
+  margin-top: 8rem;
+  margin-bottom: 10rem;
+}
+
+.title {
+  font-size: 4.5rem;
+  margin-bottom: 1rem;
+}
+
+.content p{
+  color: var(--font--color);
+  font-size: 1.2rem;
+}

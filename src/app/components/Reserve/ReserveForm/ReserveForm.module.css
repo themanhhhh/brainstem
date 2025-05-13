@@ -1,0 +1,164 @@
+
+.Form{
+    border-radius: 15px;
+    width: 100%;
+    background-color: azure;
+    padding: 20px;
+}
+
+.Form_box_input{
+    margin-top: 2rem;
+}
+.Form_box_contact{
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    align-items: center;
+}
+
+.Form_box_contact_input{
+    margin-top: 2rem;
+}
+
+.Form_box_input label{
+    display: block;
+    width: 100%;
+    margin-left: 1rem;
+    font-weight: 350;
+    font-size: 1.0rem;
+    color: black;
+}
+
+.Form_box_contact_input label{
+    display: block;
+    width: 100%;
+    margin-left: 1rem;
+    font-weight: 350;
+    font-size: 1.0rem;
+    color: black;
+}
+
+
+.Form_box_input_userName{
+    width: 96%;
+    border: 1px solid var(--icons-color);
+    padding: 1rem;
+    border-radius: 1rem;
+    background-color: transparent;
+    margin-top: .5rem;
+    outline: none;
+    color: var(--icons-color);
+}
+
+
+.Form_box_input::placeholder{
+    font-size: 1.2rem;
+    color: var(--icons-color);
+}
+
+.Form_box_input_box{
+    width: 100%;
+    border: 1px solid var(--icons-color);
+    border-radius: 1rem;
+    align-items: center;
+    display: flex;
+    gap: 1rem;
+    overflow: hidden;
+}
+
+.Form_box_contact_input_box{
+    width: 250px;
+    border: 1px solid var(--icons-color);
+    border-radius: 1rem;
+    align-items: center;
+    display: flex;
+    gap: 1rem;
+    overflow: hidden;
+}
+
+.Form_box_contact_input_box input{
+    width: 90%;
+    border: 0;
+    color: var(--icons-color);
+    background-color: transparent;
+    outline: none;
+}
+
+.Form_box_input_box_icon{
+    font-size: 1.5rem;
+    background-color: var(--icons-color);
+    padding: .5rem 1rem;
+    color: var(--main-bg-color);
+    display: grid;
+    cursor: pointer;
+}
+
+.Form_box_input_box input{
+    width: 90%;
+    border: 0;
+    color: var(--icons-color);
+    background-color: transparent;
+    outline: none;
+}
+
+
+.Form_box_input_social{
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 1rem;
+}
+
+.Form_box_btn{
+    margin: 4rem 0;
+}
+
+
+.button {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--icons-color);
+    padding: 1rem 2rem;
+    border: 1px solid var(--icons-color);
+    border-radius: 2rem;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all .2s ease-in;
+    width: 500px;
+    height: 50px;
+  }
+  .btnText {
+      position: relative;
+      z-index: 3;
+      transition: 0.5s;
+      color: azure;
+    }
+  .button .icon {
+    position: relative;
+    color: #262626;
+    transition: 0.5s;
+    z-index: 3;
+  }
+  
+  .button:before {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: azure; 
+    transition: 0.5s;
+    z-index: 2;
+  }
+  
+  .button:hover:before {
+    top: 0;
+  }
+  
+  .button:hover .icon {
+    transform: rotateY(360deg);
+    color: #fff;
+  }
+  .button:hover .btnText {
+      color: black;
+    }
+  

@@ -1,0 +1,81 @@
+
+.slider {
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    background: #000; /* Tạm màu nền đen */
+    color: #fff;
+  }
+  
+  .slider_box {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 60px 20px;
+    position: relative;
+  }
+  
+  .Story_box_title p {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+  }
+  
+  .Story_box_title h1 {
+    font-size: 2.5rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  
+  /* Khung chứa toàn bộ track */
+  .slider_container {
+    width: 100%;
+    overflow: hidden; /* Ẩn phần bị tràn */
+    position: relative;
+    /* Chiều cao tuỳ vào nội dung slide */
+  }
+  
+  
+  .slider_track {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+  }
+  
+  .slider_item {
+    flex: 0 0 100%;
+    box-sizing: border-box;
+    padding: 20px;
+  }
+  
+
+  .navigation {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none; /* Để icon có thể bấm được, ta bật pointer-events riêng cho icon */
+  }
+  
+  .navigation svg {
+    pointer-events: auto;
+    cursor: pointer;
+    font-size: 2rem;
+    opacity: 0.8;
+    margin: 0 20px;
+    transition: 0.3s;
+  }
+  
+  .navigation svg:hover {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+
+  .hightlight{
+    color: var(--icons-color);
+  }
+  
