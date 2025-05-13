@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import Style from "./ordertable.module.css";
+import Style from "./table.module.css";
 import { Pagination, Search } from "../../ui/dashboard/dashboardindex";
 import ordertableService from "../../../api/ordertable/ordertableService";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";

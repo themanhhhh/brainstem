@@ -55,8 +55,8 @@ const menuItems = [
         icon: <MdAttachMoney />,
       },
       {
-        title: "Order Table",
-        path: "/admin/dashboard/ordertable",
+        title: "Table",
+        path: "/admin/dashboard/table",
         icon: <MdTableRestaurant />,
       },
     ],
