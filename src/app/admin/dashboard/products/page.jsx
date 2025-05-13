@@ -26,7 +26,7 @@ const Page = () => {
     foodState: ''
   });
   const [showViewModal, setShowViewModal] = useState(false);
-  const [itemsPerPage, setItemsPerPage] = useState(8);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   
   // Thêm debounce cho việc tìm kiếm
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");

@@ -17,7 +17,7 @@ const Page = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState('all');
-  const [itemsPerPage, setItemsPerPage] = useState(8);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [formData, setFormData] = useState({
     name: '',
     numberOfChair: 0,
@@ -201,32 +201,6 @@ const Page = () => {
         </div>
       </div>
 
-      <div className={Style.tabs}>
-        <button 
-          className={`${Style.tab} ${activeTab === 'all' ? Style.activeTab : ''}`}
-          onClick={() => {
-            setActiveTab('all');
-            // Reset về trang đầu tiên khi chuyển tab
-            const params = new URLSearchParams(searchParams);
-            params.set("page", "0");
-            replace(`${pathname}?${params}`);
-          }}
-        >
-          All Tables
-        </button>
-        <button 
-          className={`${Style.tab} ${activeTab === 'active' ? Style.activeTab : ''}`}
-          onClick={() => {
-            setActiveTab('active');
-            // Reset về trang đầu tiên khi chuyển tab
-            const params = new URLSearchParams(searchParams);
-            params.set("page", "0");
-            replace(`${pathname}?${params}`);
-          }}
-        >
-          Active Tables
-        </button>
-      </div>
 
       {/* Hiển thị kết quả tìm kiếm */}
       {debouncedSearchTerm && (

@@ -13,7 +13,9 @@ import {
   MdHelpCenter,
   MdLogout,
   MdLocalOffer,
+  
 } from "react-icons/md";
+import { RiListOrdered } from "react-icons/ri";
 import { IoFastFoodOutline } from "react-icons/io5";
 import { BiCategoryAlt } from "react-icons/bi";
 import { MdTableRestaurant } from "react-icons/md";
@@ -58,6 +60,11 @@ const menuItems = [
         title: "Table",
         path: "/admin/dashboard/table",
         icon: <MdTableRestaurant />,
+      },
+      {
+        title: "Order",
+        path: "/admin/dashboard/order",
+        icon: <RiListOrdered />,
       },
     ],
   },

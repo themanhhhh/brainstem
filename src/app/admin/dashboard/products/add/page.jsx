@@ -3,17 +3,23 @@ import React, { useState, useEffect } from "react";
 import styles from "./add.module.css";
 import { foodService } from "../../../../api/food/foodService";
 import { useRouter } from "next/navigation";
+import { useCart } from "../../../../context/CartContext";
 
 const AddFoodPage = () => {
   const router = useRouter();
+  const { uploadToPinata, error, openError } = useCart();
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [itemsPerPage] = useState(10);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     price: '',
+    image: null,
     imgUrl: '',
     categoryId: '',
-    foodState: 'ACTIVE'
+    foodState: 'AVAILABLE',
+    quantity: 1
   });
 
   useEffect(() => {
@@ -22,7 +28,7 @@ const AddFoodPage = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await foodService.getCategories();
+      const response = await foodService.getCategories(0, itemsPerPage);
       const categoryData = Array.isArray(response) ? response : response.data || [];
       setCategories(categoryData);
     } catch (err) {
@@ -38,37 +44,55 @@ const AddFoodPage = () => {
     }));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    setFormData(prev => ({
+      ...prev,
+      image: file
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+
     try {
-      
       const price = parseFloat(formData.price);
       if (isNaN(price)) {
         throw new Error('Price must be a valid number');
       }
 
-     
-      if (!formData.name || !formData.description || !formData.imgUrl || !formData.categoryId) {
+      if (!formData.name || !formData.description || !formData.categoryId) {
         throw new Error('Please fill in all required fields');
+      }
+
+      let imgUrl = formData.imgUrl;
+      if (formData.image) {
+        imgUrl = await uploadToPinata(formData.image);
+      }
+
+      const quantity = parseInt(formData.quantity);
+      if (isNaN(quantity) || quantity < 0) {
+        throw new Error('Quantity must be a valid positive number');
       }
 
       await foodService.addFood(
         formData.name,
         formData.description,
         price,
-        formData.imgUrl,
+        imgUrl,
         formData.categoryId,
-        formData.foodState
+        formData.foodState,
+        quantity
       );
 
-    
       alert('Food item added successfully!');
-      
-      // Redirect to products page
       router.push('/admin/dashboard/products');
     } catch (error) {
       console.error('Error adding food:', error);
       alert(error.message || 'Failed to add food. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -113,13 +137,24 @@ const AddFoodPage = () => {
         </div>
 
         <div className={styles.formGroup}>
-          <label>Image URL:</label>
+          <label>Quantity:</label>
           <input
-            type="text"
-            name="imgUrl"
-            value={formData.imgUrl}
+            type="number"
+            name="quantity"
+            value={formData.quantity}
             onChange={handleChange}
-            placeholder="Enter image URL"
+            placeholder="Enter quantity"
+            min="0"
+            required
+          />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label>Image:</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
             required
           />
         </div>
@@ -149,13 +184,15 @@ const AddFoodPage = () => {
             onChange={handleChange}
             required
           >
-            <option value="ACTIVE">ACTIVE</option>
-            <option value="INACTIVE">INACTIVE</option>
+            <option value="AVAILABLE">AVAILABLE</option>
+            <option value="INAVAILABLE">INAVAILABLE</option>
           </select>
         </div>
 
         <div className={styles.buttonGroup}>
-          <button type="submit" className={styles.submitButton}>Add Food</button>
+          <button type="submit" className={styles.submitButton} disabled={loading}>
+            {loading ? 'Adding...' : 'Add Food'}
+          </button>
           <button 
             type="button" 
             className={styles.cancelButton}
@@ -164,6 +201,8 @@ const AddFoodPage = () => {
             Cancel
           </button>
         </div>
+
+        {openError && <div className={styles.error}>{error}</div>}
       </form>
     </div>
   );

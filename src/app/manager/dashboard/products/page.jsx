@@ -26,7 +26,7 @@ const Page = () => {
     foodState: ''
   });
   const [showViewModal, setShowViewModal] = useState(false);
-  const [itemsPerPage, setItemsPerPage] = useState(8);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   
   // Thêm debounce cho việc tìm kiếm
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -189,7 +189,8 @@ const Page = () => {
       <div className={Style.top}>
           <Suspense fallback={<div>Loading...</div>}>
             <Search 
-              onSearch={handleSearch} 
+              onSearch={handleSearch}
+              onChange={handleSearch}
               placeholder="Tìm kiếm theo tên, mô tả hoặc danh mục món ăn..."
             />
           </Suspense>
@@ -225,7 +226,7 @@ const Page = () => {
                 <div className={Style.imageContainer}>
                   <Image 
                     src={food.imgUrl || '/placeholder.png'}
-                    
+                    alt={food.name || 'Food image'}
                     width={50}
                     height={50}
                     className={Style.foodImage}
@@ -389,7 +390,7 @@ const Page = () => {
               <div className={Style.detailImage}>
                 <Image 
                   src={selectedFood?.imgUrl || '/placeholder.png'}
-                  alt={selectedFood?.name}
+                  alt={selectedFood?.name || 'Food detail image'}
                   width={200}
                   height={200}
                   className={Style.foodImage}

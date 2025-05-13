@@ -21,7 +21,7 @@ const Page = () => {
     name: '',
     description: ''
   });
-  const [itemsPerPage, setItemsPerPage] = useState(8);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   
   // Lấy tham số từ URL
   const searchParams = useSearchParams();

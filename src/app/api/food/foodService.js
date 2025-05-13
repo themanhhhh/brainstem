@@ -8,11 +8,11 @@ const getToken = () => {
 };
 
 export const foodService = {
-    getFoods: async (page = 0, pageSize = 8) => {
+    getFoods: async (page = 0, size = 10) => {
         const token = getToken();
         if (!token) throw new Error('No authentication token found');
 
-        const response = await fetch(`${API_URL}/food?page=${page}&pageSize=${pageSize}`, {
+        const response = await fetch(`${API_URL}/food?page=${page}&pageSize=${size}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ export const foodService = {
     },
 
     // Thêm món ăn mới
-    addFood: async (name, description, price, imgUrl, categoryId, foodState) => {
+    addFood: async (name, description, price, imgUrl, categoryId, foodState, quantity)  => {
         const token = getToken();
         if (!token) throw new Error('No authentication token found');
 
@@ -54,14 +54,15 @@ export const foodService = {
                 price,
                 imgUrl,
                 categoryId,
-                foodState
+                foodState,
+                quantity
             }),
         });
         return response.json();
     },
 
     // Cập nhật thông tin món ăn
-    updateFood: async (id, name, description, price, imgUrl, categoryId, foodState) => {
+    updateFood: async (id, name, description, price, imgUrl, categoryId, foodState, quantity) => {
         const token = getToken();
         if (!token) throw new Error('No authentication token found');
 
@@ -77,7 +78,8 @@ export const foodService = {
                 price,
                 imgUrl,
                 categoryId,
-                foodState
+                foodState,
+                quantity
             }),
         });
         return response.json();

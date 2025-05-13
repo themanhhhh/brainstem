@@ -2,12 +2,15 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import Cookies from 'js-cookie';
+import axios from 'axios';
 
 const CartContext = createContext();
 const CART_COOKIE_KEY = 'cart_items';
 
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
+  const [error, setError] = useState("");
+  const [openError, setOpenError] = useState(false);
 
   // Load cart from cookies when component mounts
   useEffect(() => {
@@ -25,6 +28,33 @@ export function CartProvider({ children }) {
   useEffect(() => {
     Cookies.set(CART_COOKIE_KEY, JSON.stringify(cartItems), { expires: 7 }); // Expires in 7 days
   }, [cartItems]);
+
+  const uploadToPinata = async(file) => {
+    if(file){
+      try {
+        const formData = new FormData();
+        formData.append("file",file);
+
+        const response = await axios({
+          method: "post",
+          url: "https://api.pinata.cloud/pinning/pinFileToIPFS",
+          data: formData,
+          headers: {
+            pinata_api_key:`5b9afb41a6a64bcad1f7`,
+            pinata_secret_api_key:`080a3e13f1c8a9527e3ff8faaeb9871b5df53900099d88edba2259f98be701ec`,
+            "Content-Type": "multipart/form-data",
+          }
+        });
+
+        const ImgHash = `https://gateway.pinata.cloud/ipfs/${response.data.IpfsHash}`;
+        return ImgHash;
+      } catch (error) {
+        setError("Unable to upload image to Pinata");
+        setOpenError(true);
+        throw error;
+      }
+    }
+  };
 
   const addToCart = (product) => {
     setCartItems(prevItems => {
@@ -76,7 +106,12 @@ export function CartProvider({ children }) {
       removeFromCart,
       updateQuantity,
       clearCart,
-      getCartTotal
+      getCartTotal,
+      uploadToPinata,
+      error,
+      setError,
+      openError,
+      setOpenError
     }}>
       {children}
     </CartContext.Provider>

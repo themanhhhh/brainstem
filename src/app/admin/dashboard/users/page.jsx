@@ -27,7 +27,7 @@ const Page = () => {
     state: ''
   });
   const [showViewModal, setShowViewModal] = useState(false);
-  const [itemsPerPage, setItemsPerPage] = useState(8);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   
   // Thêm debounce cho việc tìm kiếm
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -61,10 +61,10 @@ const Page = () => {
     };
   }, [searchTerm, pathname, replace, searchParams]);
 
-  const fetchUsers = async (page, pageSize) => {
+  const fetchUsers = async (page, size) => {
     try {
       setLoading(true);
-      const response = await userService.getUser(page, pageSize);
+      const response = await userService.getUser(page, size);
       
       // Kiểm tra và xử lý dữ liệu từ API
       if (response.data && Array.isArray(response.data)) {
