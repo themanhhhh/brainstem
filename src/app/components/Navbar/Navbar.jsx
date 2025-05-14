@@ -12,7 +12,7 @@ import { FaAngleDown } from "react-icons/fa6";
 
 // Internal import
 import Style from "./Navbar.module.css";
-import {Discover,HelpCenter,Notification,Profile,SideBar} from "./index"
+import {Discover,HelpCenter,Profile,SideBar} from "./index"
 import {Button,Error} from "../componentsindex";
 import images from "../../img";
 import CartIcon from "./CartIcon/CartIcon";
@@ -30,17 +30,6 @@ const Navbar = () => {
     const { user, logout } = useAuth();
     const router = useRouter();
 
-    const openHelp = () => {
-        if(!help){
-            setDiscover(false);
-            setHelp(true);
-            setProfile(false);
-            setNotification(false);
-        }
-        else{
-            setHelp(false)
-        }
-    };
 
     const openSideBar = () => {
         if(!openSideMenu){
@@ -76,6 +65,12 @@ const Navbar = () => {
                 <div className={Style.navbar_container_right}>
                     <div className={Style.navbar_container_right_discover}>
                         {/*About us*/}
+                        <Link href="/">
+                            <p>Home</p>
+                        </Link>
+                    </div>
+                    <div className={Style.navbar_container_right_discover}>
+                        {/*About us*/}
                         <Link href="/aboutus">
                             <p>About us</p>
                         </Link>
@@ -91,17 +86,7 @@ const Navbar = () => {
                             <p>Menu</p>
                         </Link>
                     </div>
-                    {/*Help Center*/}
-                    <div className={Style.navbar_container_right_help}>
-                        <p onClick={()=>openHelp()}>Help Center <FaAngleDown/></p>
-                        {
-                            help && (
-                                <div className={Style.navbar_container_right_help_box}>
-                                    <HelpCenter setHelp={setHelp}/>
-                                </div>
-                            )
-                        }
-                    </div>
+                    
 
                     <div className={Style.navbar_container_right_button}>
                         <Button btnName="Book a table"/>

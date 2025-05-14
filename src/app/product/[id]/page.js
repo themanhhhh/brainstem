@@ -19,6 +19,9 @@ export default function ProductDetail() {
   const { addToCart } = useCart();
   const { user } = useAuth();
   const router = useRouter();
+  const [quantity, setQuantity] = useState(1);
+  const [selectedOption, setSelectedOption] = useState(0);
+  const [totalPrice, setTotalPrice] = useState(0);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -30,6 +33,7 @@ export default function ProductDetail() {
         const data = await response.json();
         data.price = parseFloat(data.price.replace('$', ''));
         setProduct(data);
+        setTotalPrice(data.price);
       } catch (error) {
         console.error("Error fetching product:", error);
       } finally {
@@ -40,18 +44,54 @@ export default function ProductDetail() {
     fetchProduct();
   }, [id]);
 
-  function handleAddToCart() {
+  // Cập nhật tổng giá khi thay đổi số lượng hoặc tùy chọn
+  useEffect(() => {
     if (product) {
+      const optionPrice = product.options 
+        ? product.options[selectedOption].additionalPrice 
+        : 0;
+      setTotalPrice(quantity * (product.price + optionPrice));
+    }
+  }, [quantity, selectedOption, product]);
+
+  // Hàm xử lý khi số lượng thay đổi
+  const handleQuantityChange = (newQuantity) => {
+    setQuantity(newQuantity);
+  };
+
+  // Hàm xử lý khi tùy chọn thay đổi
+  const handleOptionChange = (newSelectedOption) => {
+    setSelectedOption(newSelectedOption);
+  };
+
+  function handleAddToCart() {
+    if (!user) {
+      toast.error("Vui lòng đăng nhập để thêm vào giỏ hàng", {
+        duration: 2000,
+        position: "top-center"
+      });
+      
+      setTimeout(() => {
+        router.push('/login');
+      }, 1000);
+      return;
+    }
+    
+    if (product) {
+      const option = product.options ? product.options[selectedOption] : null;
+      
       const success = addToCart({
         id: product.id,
         name: product.name,
         price: product.price,
         image: product.image,
-        quantity: 1,
+        quantity: quantity,
+        option: option?.title,
+        additionalPrice: option?.additionalPrice
       });
       
       if (success) {
-        toast.success("Added to cart!", {
+        toast.success("Đã thêm vào giỏ hàng!", {
           duration: 2000,
           position: "top-center"
         });
@@ -106,25 +146,10 @@ export default function ProductDetail() {
               id={product.id} 
               name={product.name}
               options={product.options}
+              onQuantityChange={handleQuantityChange}
+              onOptionChange={handleOptionChange}
+              onAddToCart={handleAddToCart}
             />
-            {user ? (
-              <button 
-                className={styles.addToCartButton}
-                onClick={handleAddToCart}
-              >
-                Add to Cart
-              </button>
-            ) : (
-              <div className={styles.loginRequiredBox}>
-                <p className={styles.loginMessage}>Please login to add to cart</p>
-                <button 
-                  className={styles.loginButton}
-                  onClick={handleLoginRedirect}
-                >
-                  Login
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@ import "./styles/globals.css";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 import { Suspense } from "react";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,6 +18,7 @@ function ClientLayout({ children }) {
     <Suspense fallback={<div>Loading...</div>}>
       <AuthProvider>
         <CartProvider>
+          <Toaster position="top-center" />
           {children}
         </CartProvider>
       </AuthProvider>

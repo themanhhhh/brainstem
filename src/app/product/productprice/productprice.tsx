@@ -12,9 +12,12 @@ type Props = {
   id: number;
   name: string;
   options?: { title: string; additionalPrice: number }[];
+  onQuantityChange?: (quantity: number) => void;
+  onOptionChange?: (selectedOption: number) => void;
+  onAddToCart?: () => void;
 };
 
-const Price = ({ price, id, name, options }: Props) => {
+const Price = ({ price, id, name, options, onQuantityChange, onOptionChange, onAddToCart }: Props) => {
   const [total, setTotal] = useState(price);
   const [quantity, setQuantity] = useState(1);
   const [selected, setSelected] = useState(0);
@@ -27,19 +30,35 @@ const Price = ({ price, id, name, options }: Props) => {
     );
   }, [quantity, selected, options, price]);
 
+  // Thông báo thay đổi số lượng lên component cha
+  useEffect(() => {
+    if (onQuantityChange) {
+      onQuantityChange(quantity);
+    }
+  }, [quantity, onQuantityChange]);
+
+  // Thông báo thay đổi tùy chọn lên component cha
+  useEffect(() => {
+    if (onOptionChange) {
+      onOptionChange(selected);
+    }
+  }, [selected, onOptionChange]);
+
+  // Hàm cập nhật số lượng
+  const handleQuantityChange = (newQuantity: number) => {
+    setQuantity(newQuantity);
+  };
+
+  // Hàm cập nhật tùy chọn đã chọn
+  const handleOptionSelected = (index: number) => {
+    setSelected(index);
+  };
+
+  // Hàm xử lý khi click vào nút Thêm vào giỏ hàng
   const handleAddToCart = () => {
-    const selectedOption = options ? options[selected] : null;
-    
-    addToCart({
-      id,
-      name,
-      price,
-      quantity,
-      option: selectedOption?.title,
-      additionalPrice: selectedOption?.additionalPrice
-    });
-    
-    toast.success("Added to cart!");
+    if (onAddToCart) {
+      onAddToCart();
+    }
   };
 
   return (
@@ -54,40 +73,41 @@ const Price = ({ price, id, name, options }: Props) => {
             className={`${styles.Price_optionButton} ${
               selected === index ? styles.Price_optionButtonSelected : ""
             }`}
-            onClick={() => setSelected(index)}
+            onClick={() => handleOptionSelected(index)}
           >
             {option.title}
           </button>
         ))}
       </div>
 
-      {/* QUANTITY AND ADD BUTTON CONTAINER */}
+      {/* QUANTITY CONTAINER */}
       <div className={styles.Price_actionsContainer}>
         {/* QUANTITY */}
         <div className={styles.Price_quantityContainer}>
-          <span>Quantity</span>
+          <span>Số lượng</span>
           <div className={styles.Price_quantityControls}>
             <button className={styles.Price_setquantity}
-              onClick={() => setQuantity((prev) => (prev > 1 ? prev - 1 : 1))}
+              onClick={() => handleQuantityChange(quantity > 1 ? quantity - 1 : 1)}
             >
               {"<"}
             </button>
             <span>{quantity}</span>
             <button className={styles.Price_setquantity}
-              onClick={() => setQuantity((prev) => (prev < 9 ? prev + 1 : 9))}
+              onClick={() => handleQuantityChange(quantity < 9 ? quantity + 1 : 9)}
             >
               {">"}
             </button>
           </div>
         </div>
-        {/* CART BUTTON */}
-        <button 
-          className={styles.Price_cartButton}
-          onClick={handleAddToCart}
-        >
-          Add to Cart
-        </button>
       </div>
+
+      {/* ADD TO CART BUTTON */}
+      <button 
+        className={styles.Price_cartButton}
+        onClick={handleAddToCart}
+      >
+        Thêm vào giỏ hàng
+      </button>
     </div>
   );
 };

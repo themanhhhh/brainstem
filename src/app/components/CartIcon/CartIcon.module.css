@@ -9,6 +9,10 @@
   color: #333;
 }
 
+.cartIcon_icon:hover {
+  color: white;
+}
+
 .cartIcon_badge {
   position: absolute;
   top: 0;
