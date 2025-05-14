@@ -6,6 +6,7 @@ import styles from "../../styles/product.module.css";
 import Price from "../productprice/productprice";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
+import { useLoading } from "../../context/LoadingContext";
 import toast from "react-hot-toast";
 import Banner from '../banner/Banner';
 import { Footer, Button } from '../../components/componentsindex';
@@ -22,10 +23,12 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [selectedOption, setSelectedOption] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
+  const { showLoading, hideLoading } = useLoading();
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
+        showLoading();
         const response = await fetch(`/api/product/${id}`);
         if (!response.ok) {
           throw new Error("Failed to fetch product");
@@ -38,11 +41,12 @@ export default function ProductDetail() {
         console.error("Error fetching product:", error);
       } finally {
         setLoading(false);
+        hideLoading();
       }
     };
 
     fetchProduct();
-  }, [id]);
+  }, [id, showLoading, hideLoading]);
 
   // Cập nhật tổng giá khi thay đổi số lượng hoặc tùy chọn
   useEffect(() => {
@@ -78,6 +82,8 @@ export default function ProductDetail() {
     }
     
     if (product) {
+      showLoading();
+      
       const option = product.options ? product.options[selectedOption] : null;
       
       const success = addToCart({
@@ -100,6 +106,8 @@ export default function ProductDetail() {
           window.location.href = '/menu';
         }, 1000);
       }
+      
+      hideLoading();
     }
   }
 

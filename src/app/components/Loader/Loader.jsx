@@ -16,6 +16,7 @@ const Loader = () => {
                     width={200}
                     height={200}
                     className={Style.Loader_box_img_img}
+                    priority
                 />
             </div>
         </div>
