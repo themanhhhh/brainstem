@@ -39,6 +39,9 @@ const Page = () => {
   // Thêm debounce cho việc tìm kiếm
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   
+  // Create a reference to store the current AbortController
+  const abortControllerRef = React.useRef(null);
+  
   // Lấy tham số từ URL
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -92,9 +95,25 @@ const Page = () => {
   const fetchFoods = async (page, pageSize, name = '', categoryId = null, state = null) => {
     try {
       setLoading(true);
-      const response = await foodService.getAllFoods(name, categoryId, state, page, pageSize);
       
-      console.log("API Response (Foods):", response); // Debug thông tin API trả về
+      // Abort previous request if it exists
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      
+      // Create new AbortController
+      const controller = new AbortController();
+      const signal = controller.signal;
+      
+      // Store controller in the ref
+      abortControllerRef.current = controller;
+      
+      const response = await foodService.getAllFoods(name, categoryId, state, page, pageSize, signal);
+      
+      // Kiểm tra nếu request đã bị hủy
+      if (signal.aborted) return;
+      
+      console.log("API Response (Foods):", response);
       
       // Kiểm tra và xử lý dữ liệu từ API
       if (response.data && Array.isArray(response.data)) {
@@ -102,7 +121,7 @@ const Page = () => {
         
         // Lưu metadata để sử dụng cho phân trang
         if (response.metadata) {
-          console.log("Pagination Metadata (Foods):", response.metadata); // Debug metadata
+          console.log("Pagination Metadata (Foods):", response.metadata);
           setMetadata(response.metadata);
         } else {
           console.warn("No metadata found in Foods API response");
@@ -114,6 +133,12 @@ const Page = () => {
       
       setError(null);
     } catch (err) {
+      // Kiểm tra nếu lỗi là do hủy request
+      if (err.name === 'AbortError') {
+        console.log('Fetch aborted');
+        return;
+      }
+      
       setError("Failed to fetch foods");
       console.error("Error fetching foods:", err);
       setFoods([]);
@@ -320,6 +345,13 @@ const Page = () => {
           </Link>
         </div>
       </div>
+
+      {/* Hiển thị loading indicator */}
+      {loading && (
+        <div className={Style.loadingOverlay}>
+          <div className={Style.loadingSpinner}></div>
+        </div>
+      )}
 
       {/* Hiển thị kết quả tìm kiếm */}
       {(nameFilter || statusFilter || categoryFilter) && (

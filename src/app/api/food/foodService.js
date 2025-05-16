@@ -23,7 +23,7 @@ export const foodService = {
     },
 
     // Get foods with filtering
-    getAllFoods: async (name = '', categoryId = null, state = null, page = 0, pageSize = 10) => {
+    getAllFoods: async (name = '', categoryId = null, state = null, page = 0, pageSize = 10, signal = null) => {
         const token = getToken();
         if (!token) throw new Error('No authentication token found');
         
@@ -32,13 +32,20 @@ export const foodService = {
         if (categoryId) url += `&categoryId=${categoryId}`;
         if (state) url += `&state=${state}`;
         
-        const response = await fetch(url, {
+        const options = {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
             method: 'GET',
-        });
+        };
+        
+        // Add signal to request if provided
+        if (signal) {
+            options.signal = signal;
+        }
+        
+        const response = await fetch(url, options);
         return response.json();
     },
 
