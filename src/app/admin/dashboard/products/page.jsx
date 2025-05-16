@@ -362,8 +362,8 @@ const Page = () => {
                 {activeCategories.find(cat => cat.id === food.categoryId)?.name || "Unknown"}
               </td>
               <td>
-                <span className={`${Style.status} ${food.foodState === 'ACTIVE' ? Style.active : Style.inactive}`}>
-                  {food.foodState || "N/A"}
+                <span className={`${Style.status} ${food.state === 'ACTIVE' ? Style.active : Style.inactive}`}>
+                  {food.state || "N/A"}
                 </span>
               </td>
               <td>
