@@ -29,7 +29,8 @@ const Page = () => {
     image: null,
     imgUrl: '',
     categoryId: '',
-    state: ''
+    state: '',
+    quantity: ''
   });
   const [showViewModal, setShowViewModal] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -200,7 +201,8 @@ const Page = () => {
         image: null,
         imgUrl: (foodDetail || food).imgUrl || '',
         categoryId: (foodDetail || food).categoryId || '',
-        state: (foodDetail || food).state || ''
+        state: (foodDetail || food).state || '',
+        quantity: (foodDetail || food).quantity || 0
       });
       
       // Show the edit modal
@@ -238,7 +240,8 @@ const Page = () => {
         editForm.price,
         imgUrl,
         editForm.categoryId,
-        editForm.state
+        editForm.state,
+        editForm.quantity
       );
       setShowEditModal(false);
       fetchFoods(currentPage, itemsPerPage, nameFilter, categoryFilter, statusFilter);
@@ -290,6 +293,11 @@ const Page = () => {
             value={searchTerm}
             statusFilter={selectedStatus}
             onStatusChange={handleStatusChange}
+            statusOptions={[
+              { value: '', label: 'All Statuses' },
+              { value: 'AVAILABLE', label: 'Available' },
+              { value: 'UNAVAILABLE', label: 'Unavailable' }
+            ]}
           />
           {activeCategories.length > 0 && (
             <div className={Style.categoryFilter}>
@@ -340,6 +348,7 @@ const Page = () => {
             <td>Price</td>
             <td>Category</td>
             <td>Status</td>
+            <td>Quantity</td>
             <td>Action</td>
           </tr>
         </thead>
@@ -362,10 +371,11 @@ const Page = () => {
                 {activeCategories.find(cat => cat.id === food.categoryId)?.name || "Unknown"}
               </td>
               <td>
-                <span className={`${Style.status} ${food.state === 'ACTIVE' ? Style.active : Style.inactive}`}>
+                <span className={`${Style.status} ${food.state === 'AVAILABLE' ? Style.active : Style.inactive}`}>
                   {food.state || "N/A"}
                 </span>
               </td>
+              <td>{food.quantity || 0}</td>
               <td>
                 <div className={Style.buttons}>
                   <button
@@ -430,6 +440,15 @@ const Page = () => {
                 />
               </div>
               <div className={Style.formGroup}>
+                <label>Quantity:</label>
+                <input
+                  type="number"
+                  value={editForm.quantity}
+                  onChange={(e) => setEditForm({...editForm, quantity: e.target.value})}
+                  required
+                />
+              </div>
+              <div className={Style.formGroup}>
                 <label>Current Image:</label>
                 {editForm.imgUrl && (
                   <div className={Style.currentImage}>
@@ -474,8 +493,8 @@ const Page = () => {
                   onChange={(e) => setEditForm({...editForm, state: e.target.value})}
                   required
                 >
-                  <option value="ACTIVE">ACTIVE</option>
-                  <option value="INACTIVE">INACTIVE</option>
+                  <option value="AVAILABLE">AVAILABLE</option>
+                  <option value="UNAVAILABLE">UNAVAILABLE</option>
                 </select>
               </div>
               
@@ -547,6 +566,10 @@ const Page = () => {
                 <span>${selectedFood?.price}</span>
               </div>
               <div className={Style.detailItem}>
+                <label>Quantity:</label>
+                <span>{selectedFood?.quantity || 0}</span>
+              </div>
+              <div className={Style.detailItem}>
                 <label>Category:</label>
                 <span>
                   {activeCategories.find(cat => cat.id === selectedFood?.categoryId)?.name || 'N/A'}
@@ -554,7 +577,7 @@ const Page = () => {
               </div>
               <div className={Style.detailItem}>
                 <label>Status:</label>
-                <span className={`${Style.status} ${selectedFood?.state === 'ACTIVE' ? Style.active : Style.inactive}`}>
+                <span className={`${Style.status} ${selectedFood.state === "AVAILABLE" ? Style.active : Style.inactive}`}>
                   {selectedFood?.state}
                 </span>
               </div>

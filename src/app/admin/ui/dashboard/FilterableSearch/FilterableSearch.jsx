@@ -9,10 +9,21 @@ const FilterableSearch = ({
   onSearch, 
   value,
   statusFilter,
-  onStatusChange
+  onStatusChange,
+  statusOptions
 }) => {
   const [inputValue, setInputValue] = useState(value || "");
   const inputRef = useRef(null);
+
+  // Default status options if not provided
+  const defaultStatusOptions = [
+    { value: "", label: "All Statuses" },
+    { value: "AVAILABLE", label: "Available" },
+    { value: "UNAVAILABLE", label: "Unavailable" }
+  ];
+
+  // Use provided statusOptions or fall back to defaults
+  const options = statusOptions || defaultStatusOptions;
 
   // Update internal state when value prop changes
   useEffect(() => {
@@ -99,9 +110,11 @@ const FilterableSearch = ({
             value={statusFilter || ""}
             onChange={handleStatusChange}
           >
-            <option value="">All Statuses</option>
-            <option value="ACTIVE">Active</option>
-            <option value="INACTIVE">Inactive</option>
+            {options.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
         </div>
       )}

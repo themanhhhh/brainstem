@@ -26,7 +26,7 @@ const Page = () => {
     description: '',
     image: null,
     imgUrl: '',
-    categoryState: 'ACTIVE'
+    state: 'ACTIVE'
   });
   const { uploadToPinata, error: uploadError, openError } = useCart();
   
@@ -145,7 +145,7 @@ const Page = () => {
   const handleAdd = () => {
     // Fetch active categories when opening the Add modal
     fetchActiveCategories();
-    setFormData({ name: '', description: '', image: null, imgUrl: '', categoryState: 'ACTIVE' });
+    setFormData({ name: '', description: '', image: null, imgUrl: '', state: 'ACTIVE' });
     setShowAddModal(true);
   };
 
@@ -168,7 +168,7 @@ const Page = () => {
         description: categoryDetail.description || '',
         image: null,
         imgUrl: categoryDetail.imgUrl || '',
-        categoryState: categoryDetail.categoryState || 'ACTIVE'
+        state: categoryDetail.state || 'ACTIVE'
       });
       
       // Show the edit modal
@@ -211,7 +211,7 @@ const Page = () => {
       let categoryData = {
         name: formData.name,
         description: formData.description,
-        categoryState: formData.categoryState
+        state: formData.state
       };
       
       // Upload image if selected
@@ -235,7 +235,7 @@ const Page = () => {
       let categoryData = {
         name: formData.name,
         description: formData.description,
-        categoryState: formData.categoryState
+        state: formData.state
       };
       
       // Upload new image if selected
@@ -281,6 +281,11 @@ const Page = () => {
             value={searchTerm}
             statusFilter={selectedStatus}
             onStatusChange={handleStatusChange}
+            statusOptions={[
+              { value: '', label: 'All Statuses' },
+              { value: 'ACTIVE', label: 'Active' },
+              { value: 'INACTIVE', label: 'Inactive' }
+            ]}
           />
           <button className={Style.addButton} onClick={handleAdd}>
             Add New Category
@@ -326,8 +331,8 @@ const Page = () => {
               <td>{category.name}</td>
               <td>{category.description}</td>
               <td>
-                <span className={`${Style.status} ${category.categoryState === 'ACTIVE' ? Style.active : Style.inactive}`}>
-                  {category.categoryState || 'ACTIVE'}
+                <span className={`${Style.status} ${category.state === 'ACTIVE' ? Style.active : Style.inactive}`}>
+                  {category.state || 'ACTIVE'}
                 </span>
               </td>
               <td>
@@ -396,47 +401,15 @@ const Page = () => {
                 <label>Status:</label>
                 <select 
                   className={`${Style.statusSelect}`}
-                  value={formData.categoryState}
-                  onChange={(e) => setFormData({...formData, categoryState: e.target.value})}
+                  value={formData.state}
+                  onChange={(e) => setFormData({...formData, state: e.target.value})}
                 >
                   <option value="ACTIVE">ACTIVE</option>
                   <option value="INACTIVE">INACTIVE</option>
                 </select>
               </div>
               
-              {/* Display Active Categories Section */}
-              {activeCategories.length > 0 && (
-                <div className={Style.activeCategoriesSection}>
-                  <h3>Active Categories</h3>
-                  <div className={Style.activeCategoriesList}>
-                    {activeCategories.map(category => (
-                      <div key={category.id} className={Style.activeCategory}>
-                        <div className={Style.activeCategoryImage}>
-                          {category.imgUrl ? (
-                            <Image 
-                              src={category.imgUrl}
-                              alt={category.name}
-                              width={40}
-                              height={40}
-                              className={Style.categoryImageSmall}
-                            />
-                          ) : (
-                            <div className={Style.noImageSmall}>No Img</div>
-                          )}
-                        </div>
-                        <div className={Style.activeCategoryInfo}>
-                          <div className={Style.activeCategoryName}>{category.name}</div>
-                          <div className={Style.activeCategoryDescription}>
-                            {category.description.length > 30 
-                              ? `${category.description.substring(0, 30)}...` 
-                              : category.description}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              
               
               <div className={Style.modalButtons}>
                 <button type="submit" className={Style.saveButton}>Add Category</button>
@@ -504,8 +477,8 @@ const Page = () => {
                 <label>Status:</label>
                 <select 
                   className={`${Style.statusSelect}`}
-                  value={formData.categoryState}
-                  onChange={(e) => setFormData({...formData, categoryState: e.target.value})}
+                  value={formData.state}
+                  onChange={(e) => setFormData({...formData, state: e.target.value})}
                 >
                   <option value="ACTIVE">ACTIVE</option>
                   <option value="INACTIVE">INACTIVE</option>
@@ -579,8 +552,8 @@ const Page = () => {
               </div>
               <div className={Style.detailItem}>
                 <label>Status:</label>
-                <span className={`${Style.status} ${selectedCategory?.categoryState === 'ACTIVE' ? Style.active : Style.inactive}`}>
-                  {selectedCategory?.categoryState || 'ACTIVE'}
+                <span className={`${Style.status} ${selectedCategory?.state === 'ACTIVE' ? Style.active : Style.inactive}`}>
+                  {selectedCategory?.state || 'ACTIVE'}
                 </span>
               </div>
               <div className={Style.detailItem}>
