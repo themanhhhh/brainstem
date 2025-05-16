@@ -2,11 +2,14 @@
 import React, { useState, useEffect } from "react";
 import Style from "./category.module.css";
 import { categoryService } from "../../../api/category/categoryService";
-import { Pagination, Search } from "../../ui/dashboard/dashboardindex";
+import { Pagination, FilterableSearch } from "../../ui/dashboard/dashboardindex";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import { useCart } from "../../../context/CartContext";
+import Image from "next/image";
 
 const Page = () => {
   const [categories, setCategories] = useState([]);
+  const [activeCategories, setActiveCategories] = useState([]);
   const [metadata, setMetadata] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,12 +19,16 @@ const Page = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [formData, setFormData] = useState({
     name: '',
-    description: ''
+    description: '',
+    image: null,
+    imgUrl: '',
+    categoryState: 'ACTIVE'
   });
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const { uploadToPinata, error: uploadError, openError } = useCart();
   
   // Lấy tham số từ URL
   const searchParams = useSearchParams();
@@ -30,32 +37,53 @@ const Page = () => {
   
   // Lấy trang hiện tại từ URL (API bắt đầu từ 0)
   const currentPage = parseInt(searchParams.get("page") || "0");
+  
+  // Lấy các tham số lọc từ URL
+  const nameFilter = searchParams.get("name") || "";
+  const statusFilter = searchParams.get("status") || "";
 
-  // Effect khi trang thay đổi, gọi API để lấy dữ liệu
+  // Effect khi trang hoặc bộ lọc thay đổi, gọi API để lấy dữ liệu
   useEffect(() => {
-    fetchCategories(currentPage, itemsPerPage);
-  }, [currentPage, itemsPerPage]);
+    fetchCategories(currentPage, itemsPerPage, nameFilter, statusFilter);
+  }, [currentPage, itemsPerPage, nameFilter, statusFilter]);
 
   useEffect(() => {
     const timerId = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-      if (searchTerm) {
-        // Khi tìm kiếm, quay về trang đầu tiên
-        const params = new URLSearchParams(searchParams);
-        params.set("page", "0");
-        replace(`${pathname}?${params}`);
+      if (searchTerm !== nameFilter) {
+        // Cập nhật URL với từ khóa tìm kiếm
+        updateFilters({ name: searchTerm });
       }
     }, 500);
 
     return () => {
       clearTimeout(timerId);
     };
-  }, [searchTerm, pathname, replace, searchParams]);
+  }, [searchTerm, nameFilter]);
 
-  const fetchCategories = async (page, pageSize) => {
+  // Cập nhật bộ lọc vào URL và quay về trang đầu tiên
+  const updateFilters = (newFilters) => {
+    const params = new URLSearchParams(searchParams);
+    
+    // Cập nhật các tham số
+    Object.entries(newFilters).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, value);
+      } else {
+        params.delete(key);
+      }
+    });
+    
+    // Khi thay đổi bộ lọc, quay về trang đầu tiên
+    params.set("page", "0");
+    
+    // Cập nhật URL
+    replace(`${pathname}?${params}`);
+  };
+
+  const fetchCategories = async (page, pageSize, name = "", state = "") => {
     try {
       setLoading(true);
-      const response = await categoryService.getCategories(page, pageSize);
+      const response = await categoryService.getAllCategories(name, state, page, pageSize);
       
       console.log("API Response (Categories):", response); // Debug thông tin API trả về
       
@@ -85,34 +113,72 @@ const Page = () => {
     }
   };
 
+  const fetchActiveCategories = async () => {
+    try {
+      const response = await categoryService.getActiveCategories();
+      console.log("Active Categories:", response);
+      
+      // Check if response is an array or has data property
+      if (Array.isArray(response)) {
+        setActiveCategories(response);
+      } else if (response.data && Array.isArray(response.data)) {
+        setActiveCategories(response.data);
+      } else {
+        console.warn("Unexpected active categories response format");
+        setActiveCategories([]);
+      }
+    } catch (err) {
+      console.error("Error fetching active categories:", err);
+      setActiveCategories([]);
+    }
+  };
+
   const handleSearch = (value) => {
     setSearchTerm(value);
   };
 
-  // Lọc dữ liệu phía client (chỉ áp dụng khi có search term)
-  const filteredCategories = categories.filter(category => {
-    if (!debouncedSearchTerm) return true;
-    
-    const searchLower = debouncedSearchTerm.toLowerCase();
-    
-    return (
-      (category?.name?.toLowerCase().includes(searchLower)) ||
-      (category?.description?.toLowerCase().includes(searchLower))
-    );
-  });
+  const handleStatusChange = (status) => {
+    setSelectedStatus(status);
+    updateFilters({ status });
+  };
 
   const handleAdd = () => {
-    setFormData({ name: '', description: '' });
+    // Fetch active categories when opening the Add modal
+    fetchActiveCategories();
+    setFormData({ name: '', description: '', image: null, imgUrl: '', categoryState: 'ACTIVE' });
     setShowAddModal(true);
   };
 
-  const handleEdit = (category) => {
-    setSelectedCategory(category);
-    setFormData({
-      name: category.name || '',
-      description: category.description || ''
-    });
-    setShowEditModal(true);
+  const handleEdit = async (category) => {
+    try {
+      // Set loading state
+      setLoading(true);
+      
+      // Fetch the active categories
+      await fetchActiveCategories();
+      
+      // Get the detailed info of the selected category
+      const categoryDetail = await categoryService.getCategoryById(category.id);
+      
+      // Set the selected category
+      setSelectedCategory(categoryDetail);
+      // Initialize the form data
+      setFormData({
+        name: categoryDetail.name || '',
+        description: categoryDetail.description || '',
+        image: null,
+        imgUrl: categoryDetail.imgUrl || '',
+        categoryState: categoryDetail.categoryState || 'ACTIVE'
+      });
+      
+      // Show the edit modal
+      setShowEditModal(true);
+    } catch (err) {
+      console.error("Error preparing edit form:", err);
+      setError("Failed to prepare edit form");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = (category) => {
@@ -131,10 +197,30 @@ const Page = () => {
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    setFormData(prev => ({
+      ...prev,
+      image: file
+    }));
+  };
+
   const handleAddSubmit = async (e) => {
     e.preventDefault();
     try {
-      await categoryService.addCategory(formData);
+      let categoryData = {
+        name: formData.name,
+        description: formData.description,
+        categoryState: formData.categoryState
+      };
+      
+      // Upload image if selected
+      if (formData.image) {
+        const imgUrl = await uploadToPinata(formData.image);
+        categoryData.imgUrl = imgUrl;
+      }
+      
+      await categoryService.addCategory(categoryData);
       setShowAddModal(false);
       fetchCategories(currentPage, itemsPerPage);
     } catch (err) {
@@ -146,7 +232,21 @@ const Page = () => {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      await categoryService.updateCategory(selectedCategory.id, formData);
+      let categoryData = {
+        name: formData.name,
+        description: formData.description,
+        categoryState: formData.categoryState
+      };
+      
+      // Upload new image if selected
+      if (formData.image) {
+        const imgUrl = await uploadToPinata(formData.image);
+        categoryData.imgUrl = imgUrl;
+      } else if (formData.imgUrl) {
+        categoryData.imgUrl = formData.imgUrl;
+      }
+      
+      await categoryService.updateCategory(selectedCategory.id, categoryData);
       setShowEditModal(false);
       fetchCategories(currentPage, itemsPerPage);
     } catch (err) {
@@ -174,10 +274,13 @@ const Page = () => {
       <div className={Style.top}>
         <h1>Categories Management</h1>
         <div className={Style.topRight}>
-          <Search 
-            placeholder="Tìm kiếm theo tên hoặc mô tả danh mục..." 
+          <FilterableSearch 
+            placeholder="Tìm kiếm theo tên danh mục..." 
             onChange={handleSearch}
             onSearch={handleSearch}
+            value={searchTerm}
+            statusFilter={selectedStatus}
+            onStatusChange={handleStatusChange}
           />
           <button className={Style.addButton} onClick={handleAdd}>
             Add New Category
@@ -186,26 +289,47 @@ const Page = () => {
       </div>
 
       {/* Hiển thị kết quả tìm kiếm */}
-      {debouncedSearchTerm && (
+      {searchTerm && (
         <div className={Style.searchInfo}>
-          Kết quả tìm kiếm cho: <strong>{debouncedSearchTerm}</strong> | 
-          Tìm thấy: <strong>{filteredCategories.length}</strong> danh mục
+          Kết quả tìm kiếm cho: <strong>{searchTerm}</strong> | 
+          Tìm thấy: <strong>{categories.length}</strong> danh mục
+          {selectedStatus && (
+            <span> | Trạng thái: <strong>{selectedStatus}</strong></span>
+          )}
         </div>
       )}
 
       <table className={Style.table}>
         <thead>
           <tr>
+            <td>Image</td>
             <td>Name</td>
             <td>Description</td>
+            <td>Status</td>
             <td>Action</td>
           </tr>
         </thead>
         <tbody>
-          {filteredCategories.map((category) => (
+          {categories.map((category) => (
             <tr key={category.id}>
+              <td>
+                  <div className={Style.imageContainer}>
+                    <Image 
+                      src={category.imgUrl}
+                      alt={category.name}
+                      width={50}
+                      height={50}
+                      className={Style.categoryImage}
+                    />
+                  </div>
+              </td>
               <td>{category.name}</td>
               <td>{category.description}</td>
+              <td>
+                <span className={`${Style.status} ${category.categoryState === 'ACTIVE' ? Style.active : Style.inactive}`}>
+                  {category.categoryState || 'ACTIVE'}
+                </span>
+              </td>
               <td>
                 <div className={Style.buttons}>
                   <button 
@@ -234,7 +358,7 @@ const Page = () => {
       </table>
 
       <div className={Style.darkBg}>
-        <Pagination metadata={metadata || { page: 0, totalPages: 1, count: filteredCategories.length, totalElements: filteredCategories.length }} />
+        <Pagination metadata={metadata || { page: 0, totalPages: 1, count: categories.length, totalElements: categories.length }} />
       </div>
 
       {/* Add Modal */}
@@ -260,6 +384,60 @@ const Page = () => {
                   required
                 />
               </div>
+              <div className={Style.formGroup}>
+                <label>Upload Image:</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+              </div>
+              <div className={Style.formGroup}>
+                <label>Status:</label>
+                <select 
+                  className={`${Style.statusSelect}`}
+                  value={formData.categoryState}
+                  onChange={(e) => setFormData({...formData, categoryState: e.target.value})}
+                >
+                  <option value="ACTIVE">ACTIVE</option>
+                  <option value="INACTIVE">INACTIVE</option>
+                </select>
+              </div>
+              
+              {/* Display Active Categories Section */}
+              {activeCategories.length > 0 && (
+                <div className={Style.activeCategoriesSection}>
+                  <h3>Active Categories</h3>
+                  <div className={Style.activeCategoriesList}>
+                    {activeCategories.map(category => (
+                      <div key={category.id} className={Style.activeCategory}>
+                        <div className={Style.activeCategoryImage}>
+                          {category.imgUrl ? (
+                            <Image 
+                              src={category.imgUrl}
+                              alt={category.name}
+                              width={40}
+                              height={40}
+                              className={Style.categoryImageSmall}
+                            />
+                          ) : (
+                            <div className={Style.noImageSmall}>No Img</div>
+                          )}
+                        </div>
+                        <div className={Style.activeCategoryInfo}>
+                          <div className={Style.activeCategoryName}>{category.name}</div>
+                          <div className={Style.activeCategoryDescription}>
+                            {category.description.length > 30 
+                              ? `${category.description.substring(0, 30)}...` 
+                              : category.description}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               <div className={Style.modalButtons}>
                 <button type="submit" className={Style.saveButton}>Add Category</button>
                 <button 
@@ -270,6 +448,7 @@ const Page = () => {
                   Cancel
                 </button>
               </div>
+              {openError && <div className={Style.error}>{uploadError}</div>}
             </form>
           </div>
         </div>
@@ -298,6 +477,41 @@ const Page = () => {
                   required
                 />
               </div>
+              <div className={Style.formGroup}>
+                <label>Current Image:</label>
+                {formData.imgUrl && (
+                  <div className={Style.currentImage}>
+                    <Image 
+                      src={formData.imgUrl}
+                      alt={formData.name}
+                      width={100}
+                      height={100}
+                      className={Style.categoryImagePreview}
+                    />
+                  </div>
+                )}
+              </div>
+              <div className={Style.formGroup}>
+                <label>Upload New Image:</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+                <small>Leave empty to keep current image</small>
+              </div>
+              <div className={Style.formGroup}>
+                <label>Status:</label>
+                <select 
+                  className={`${Style.statusSelect}`}
+                  value={formData.categoryState}
+                  onChange={(e) => setFormData({...formData, categoryState: e.target.value})}
+                >
+                  <option value="ACTIVE">ACTIVE</option>
+                  <option value="INACTIVE">INACTIVE</option>
+                </select>
+              </div>
+              
               <div className={Style.modalButtons}>
                 <button type="submit" className={Style.saveButton}>Save Changes</button>
                 <button 
@@ -308,6 +522,7 @@ const Page = () => {
                   Cancel
                 </button>
               </div>
+              {openError && <div className={Style.error}>{uploadError}</div>}
             </form>
           </div>
         </div>
@@ -343,6 +558,17 @@ const Page = () => {
           <div className={Style.modal}>
             <h2>Category Details</h2>
             <div className={Style.detailContent}>
+              {selectedCategory?.imgUrl && (
+                <div className={Style.detailImage}>
+                  <Image 
+                    src={selectedCategory.imgUrl}
+                    alt={selectedCategory.name}
+                    width={200}
+                    height={200}
+                    className={Style.categoryImage}
+                  />
+                </div>
+              )}
               <div className={Style.detailItem}>
                 <label>Name:</label>
                 <span>{selectedCategory?.name}</span>
@@ -350,6 +576,12 @@ const Page = () => {
               <div className={Style.detailItem}>
                 <label>Description:</label>
                 <span>{selectedCategory?.description}</span>
+              </div>
+              <div className={Style.detailItem}>
+                <label>Status:</label>
+                <span className={`${Style.status} ${selectedCategory?.categoryState === 'ACTIVE' ? Style.active : Style.inactive}`}>
+                  {selectedCategory?.categoryState || 'ACTIVE'}
+                </span>
               </div>
               <div className={Style.detailItem}>
                 <label>Created At:</label>

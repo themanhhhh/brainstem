@@ -1,17 +1,22 @@
 "use client";
 import React, { useState, Suspense, useEffect } from "react";
 import Style from "./products.module.css";
-import { Pagination, Search } from "../../ui/dashboard/dashboardindex";
+import { Pagination, FilterableSearch } from "../../ui/dashboard/dashboardindex";
 import Image from "next/image";
 import Link from "next/link";
 import { foodService } from "../../../api/food/foodService";
+import { categoryService } from "../../../api/category/categoryService";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import { useCart } from "../../../context/CartContext";
 
 const Page = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [foods, setFoods] = useState([]);
   const [metadata, setMetadata] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [activeCategories, setActiveCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -21,12 +26,14 @@ const Page = () => {
     name: '',
     description: '',
     price: '',
+    image: null,
     imgUrl: '',
     categoryId: '',
-    foodState: ''
+    state: ''
   });
   const [showViewModal, setShowViewModal] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const { uploadToPinata, error: uploadError, openError } = useCart();
   
   // Thêm debounce cho việc tìm kiếm
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -36,35 +43,55 @@ const Page = () => {
   const pathname = usePathname();
   const { replace } = useRouter();
   
-  // Lấy trang hiện tại từ URL (API bắt đầu từ 0)
+  // Lấy trang và các bộ lọc từ URL
   const currentPage = parseInt(searchParams.get("page") || "0");
+  const nameFilter = searchParams.get("name") || "";
+  const statusFilter = searchParams.get("state") || "";
+  const categoryFilter = searchParams.get("categoryId") || "";
 
-  // Effect khi trang thay đổi, gọi API để lấy dữ liệu
+  // Effect khi trang hoặc bộ lọc thay đổi, gọi API để lấy dữ liệu
   useEffect(() => {
-    fetchFoods(currentPage, itemsPerPage);
-    fetchCategories();
-  }, [currentPage, itemsPerPage]);
+    fetchFoods(currentPage, itemsPerPage, nameFilter, categoryFilter, statusFilter);
+    fetchActiveCategories();
+  }, [currentPage, itemsPerPage, nameFilter, categoryFilter, statusFilter]);
 
   useEffect(() => {
     const timerId = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-      if (searchTerm) {
-        // Khi tìm kiếm, quay về trang đầu tiên
-        const params = new URLSearchParams(searchParams);
-        params.set("page", "0");
-        replace(`${pathname}?${params}`);
+      if (searchTerm !== nameFilter) {
+        // Cập nhật URL với từ khóa tìm kiếm
+        updateFilters({ name: searchTerm });
       }
     }, 500);
 
     return () => {
       clearTimeout(timerId);
     };
-  }, [searchTerm, pathname, replace, searchParams]);
+  }, [searchTerm, nameFilter]);
 
-  const fetchFoods = async (page, pageSize) => {
+  // Cập nhật bộ lọc vào URL và quay về trang đầu tiên
+  const updateFilters = (newFilters) => {
+    const params = new URLSearchParams(searchParams);
+    
+    // Cập nhật các tham số
+    Object.entries(newFilters).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, value);
+      } else {
+        params.delete(key);
+      }
+    });
+    
+    // Khi thay đổi bộ lọc, quay về trang đầu tiên
+    params.set("page", "0");
+    
+    // Cập nhật URL
+    replace(`${pathname}?${params}`);
+  };
+
+  const fetchFoods = async (page, pageSize, name = '', categoryId = null, state = null) => {
     try {
       setLoading(true);
-      const response = await foodService.getFoods(page, pageSize);
+      const response = await foodService.getAllFoods(name, categoryId, state, page, pageSize);
       
       console.log("API Response (Foods):", response); // Debug thông tin API trả về
       
@@ -104,8 +131,38 @@ const Page = () => {
     }
   };
 
+  const fetchActiveCategories = async () => {
+    try {
+      const response = await categoryService.getActiveCategories();
+      console.log("Active Categories:", response);
+      
+      // Check if response is an array or has data property
+      if (Array.isArray(response)) {
+        setActiveCategories(response);
+      } else if (response.data && Array.isArray(response.data)) {
+        setActiveCategories(response.data);
+      } else {
+        console.warn("Unexpected active categories response format");
+        setActiveCategories([]);
+      }
+    } catch (err) {
+      console.error("Error fetching active categories:", err);
+      setActiveCategories([]);
+    }
+  };
+
   const handleSearch = (value) => {
     setSearchTerm(value);
+  };
+
+  const handleStatusChange = (status) => {
+    setSelectedStatus(status);
+    updateFilters({ state: status });
+  };
+
+  const handleCategoryChange = (categoryId) => {
+    setSelectedCategory(categoryId);
+    updateFilters({ categoryId });
   };
 
   // Lọc dữ liệu phía client (chỉ áp dụng khi có search term)
@@ -117,37 +174,74 @@ const Page = () => {
     return (
       (food?.name?.toLowerCase().includes(searchLower)) ||
       (food?.description?.toLowerCase().includes(searchLower)) ||
-      (categories.find(cat => cat.id === food.categoryId)?.name?.toLowerCase().includes(searchLower))
+      (activeCategories.find(cat => cat.id === food.categoryId)?.name?.toLowerCase().includes(searchLower))
     );
   });
 
-  const handleEdit = (food) => {
-    setSelectedFood(food);
-    setEditForm({
-      name: food.name || '',
-      description: food.description || '',
-      price: food.price || '',
-      imgUrl: food.imgUrl || '',
-      categoryId: food.categoryId || '',
-      foodState: food.foodState || ''
-    });
-    setShowEditModal(true);
+  const handleEdit = async (food) => {
+    try {
+      // Set loading state
+      setLoading(true);
+      
+      // Fetch the active categories for the edit form
+      await fetchActiveCategories();
+      
+      // Get detailed food info if needed
+      const foodDetail = await foodService.getFoodById(food.id);
+      
+      // Set the selected food
+      setSelectedFood(foodDetail || food);
+      
+      // Set the form data
+      setEditForm({
+        name: (foodDetail || food).name || '',
+        description: (foodDetail || food).description || '',
+        price: (foodDetail || food).price || '',
+        image: null,
+        imgUrl: (foodDetail || food).imgUrl || '',
+        categoryId: (foodDetail || food).categoryId || '',
+        state: (foodDetail || food).state || ''
+      });
+      
+      // Show the edit modal
+      setShowEditModal(true);
+    } catch (err) {
+      console.error("Error preparing food edit form:", err);
+      setError("Failed to prepare edit form");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    setEditForm(prev => ({
+      ...prev,
+      image: file
+    }));
   };
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
+      let imgUrl = editForm.imgUrl;
+      
+      // Upload new image if selected
+      if (editForm.image) {
+        imgUrl = await uploadToPinata(editForm.image);
+      }
+      
       await foodService.updateFood(
         selectedFood.id,
         editForm.name,
         editForm.description,
         editForm.price,
-        editForm.imgUrl,
+        imgUrl,
         editForm.categoryId,
-        editForm.foodState
+        editForm.state
       );
       setShowEditModal(false);
-      fetchFoods(currentPage, itemsPerPage);
+      fetchFoods(currentPage, itemsPerPage, nameFilter, categoryFilter, statusFilter);
     } catch (err) {
       console.error("Error updating food:", err);
       setError("Failed to update food");
@@ -163,7 +257,7 @@ const Page = () => {
     try {
       await foodService.deleteFood(selectedFood.id);
       setShowDeleteModal(false);
-      fetchFoods(currentPage, itemsPerPage);
+      fetchFoods(currentPage, itemsPerPage, nameFilter, categoryFilter, statusFilter);
     } catch (err) {
       console.error("Error deleting food:", err);
       setError("Failed to delete food");
@@ -187,22 +281,53 @@ const Page = () => {
   return (
     <div className={Style.container}>
       <div className={Style.top}>
-          <Suspense fallback={<div>Loading...</div>}>
-            <Search 
-              onSearch={handleSearch} 
-              placeholder="Tìm kiếm theo tên, mô tả hoặc danh mục món ăn..."
-            />
-          </Suspense>
-          <Link href="/admin/dashboard/products/add">
-            <button className={Style.addButton}>Add New</button>
+        <h1>Products Management</h1>
+        <div className={Style.topRight}>
+          <FilterableSearch 
+            placeholder="Tìm kiếm theo tên món ăn..." 
+            onChange={handleSearch}
+            onSearch={handleSearch}
+            value={searchTerm}
+            statusFilter={selectedStatus}
+            onStatusChange={handleStatusChange}
+          />
+          {activeCategories.length > 0 && (
+            <div className={Style.categoryFilter}>
+              <select
+                value={selectedCategory}
+                onChange={(e) => handleCategoryChange(e.target.value)}
+                className={Style.categorySelect}
+              >
+                <option value="">All Categories</option>
+                {activeCategories.map(category => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          <Link href="/admin/dashboard/products/add" className={Style.addButton}>
+            Add New Product
           </Link>
+        </div>
       </div>
-      
+
       {/* Hiển thị kết quả tìm kiếm */}
-      {debouncedSearchTerm && (
+      {(nameFilter || statusFilter || categoryFilter) && (
         <div className={Style.searchInfo}>
-          Kết quả tìm kiếm cho: <strong>{debouncedSearchTerm}</strong> | 
-          Tìm thấy: <strong>{filteredFoods.length}</strong> món ăn
+          {nameFilter && (
+            <>Kết quả tìm kiếm cho: <strong>{nameFilter}</strong> | </>
+          )}
+          Tìm thấy: <strong>{foods.length}</strong> món ăn
+          {statusFilter && (
+            <span> | Trạng thái: <strong>{statusFilter}</strong></span>
+          )}
+          {categoryFilter && (
+            <span> | Danh mục: <strong>
+              {activeCategories.find(c => c.id.toString() === categoryFilter)?.name || categoryFilter}
+            </strong></span>
+          )}
         </div>
       )}
 
@@ -214,48 +339,48 @@ const Page = () => {
             <td>Description</td>
             <td>Price</td>
             <td>Category</td>
-            <td>Quantity</td>
+            <td>Status</td>
             <td>Action</td>
           </tr>
         </thead>
         <tbody>
-          {filteredFoods.map((food) => (
+          {foods.map((food) => (
             <tr key={food.id}>
               <td>
-                <div className={Style.imageContainer}>
-                  <Image 
-                    src={food.imgUrl || '/placeholder.png'}
-                    
-                    width={50}
-                    height={50}
-                    className={Style.foodImage}
-                  />
+                <div className={Style.imgContainer}>
+                  {food.imgUrl ? (
+                    <Image src={food.imgUrl} alt={food.name} width={40} height={40} className={Style.foodImage} />
+                  ) : (
+                    <div className={Style.noImage}>No Image</div>
+                  )}
                 </div>
               </td>
               <td>{food.name}</td>
-              <td>{food.description}</td>
+              <td className={Style.description}>{food.description}</td>
               <td>${food.price}</td>
               <td>
-                {categories.find(cat => cat.id === food.categoryId)?.name || 'N/A'}
+                {activeCategories.find(cat => cat.id === food.categoryId)?.name || "Unknown"}
               </td>
               <td>
-                {food.quantity}
+                <span className={`${Style.status} ${food.foodState === 'ACTIVE' ? Style.active : Style.inactive}`}>
+                  {food.foodState || "N/A"}
+                </span>
               </td>
               <td>
                 <div className={Style.buttons}>
-                  <button 
+                  <button
                     className={`${Style.button} ${Style.view}`}
                     onClick={() => handleView(food)}
                   >
                     View
                   </button>
-                  <button 
+                  <button
                     className={`${Style.button} ${Style.edit}`}
                     onClick={() => handleEdit(food)}
                   >
                     Edit
                   </button>
-                  <button 
+                  <button
                     className={`${Style.button} ${Style.delete}`}
                     onClick={() => handleDelete(food)}
                   >
@@ -267,11 +392,9 @@ const Page = () => {
           ))}
         </tbody>
       </table>
-      
-      <div className={Style.darkBg}>
-        <Suspense fallback={<div>Loading...</div>}>
-          <Pagination metadata={metadata || { page: 0, totalPages: 1, count: filteredFoods.length, totalElements: filteredFoods.length }} />
-        </Suspense>
+
+      <div className={Style.pagination}>
+        <Pagination metadata={metadata || { page: 0, totalPages: 1, count: foods.length, totalElements: foods.length }} />
       </div>
 
       {/* Edit Modal */}
@@ -307,13 +430,27 @@ const Page = () => {
                 />
               </div>
               <div className={Style.formGroup}>
-                <label>Image URL:</label>
+                <label>Current Image:</label>
+                {editForm.imgUrl && (
+                  <div className={Style.currentImage}>
+                    <Image 
+                      src={editForm.imgUrl}
+                      alt={editForm.name}
+                      width={100}
+                      height={100}
+                      className={Style.foodImagePreview}
+                    />
+                  </div>
+                )}
+              </div>
+              <div className={Style.formGroup}>
+                <label>Upload New Image:</label>
                 <input
-                  type="text"
-                  value={editForm.imgUrl}
-                  onChange={(e) => setEditForm({...editForm, imgUrl: e.target.value})}
-                  required
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
                 />
+                <small>Leave empty to keep current image</small>
               </div>
               <div className={Style.formGroup}>
                 <label>Category:</label>
@@ -323,7 +460,7 @@ const Page = () => {
                   required
                 >
                   <option value="">Select Category</option>
-                  {categories.map(category => (
+                  {activeCategories.map(category => (
                     <option key={category.id} value={category.id}>
                       {category.name}
                     </option>
@@ -333,14 +470,15 @@ const Page = () => {
               <div className={Style.formGroup}>
                 <label>Status:</label>
                 <select
-                  value={editForm.foodState}
-                  onChange={(e) => setEditForm({...editForm, foodState: e.target.value})}
+                  value={editForm.state}
+                  onChange={(e) => setEditForm({...editForm, state: e.target.value})}
                   required
                 >
                   <option value="ACTIVE">ACTIVE</option>
                   <option value="INACTIVE">INACTIVE</option>
                 </select>
               </div>
+              
               <div className={Style.modalButtons}>
                 <button type="submit" className={Style.saveButton}>Save Changes</button>
                 <button 
@@ -351,6 +489,7 @@ const Page = () => {
                   Cancel
                 </button>
               </div>
+              {openError && <div className={Style.error}>{uploadError}</div>}
             </form>
           </div>
         </div>
@@ -410,13 +549,13 @@ const Page = () => {
               <div className={Style.detailItem}>
                 <label>Category:</label>
                 <span>
-                  {categories.find(cat => cat.id === selectedFood?.categoryId)?.name || 'N/A'}
+                  {activeCategories.find(cat => cat.id === selectedFood?.categoryId)?.name || 'N/A'}
                 </span>
               </div>
               <div className={Style.detailItem}>
                 <label>Status:</label>
-                <span className={`${Style.status} ${selectedFood?.foodState === 'ACTIVE' ? Style.active : Style.inactive}`}>
-                  {selectedFood?.foodState}
+                <span className={`${Style.status} ${selectedFood?.state === 'ACTIVE' ? Style.active : Style.inactive}`}>
+                  {selectedFood?.state}
                 </span>
               </div>
               <div className={Style.detailItem}>

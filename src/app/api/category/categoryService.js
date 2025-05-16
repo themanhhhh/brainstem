@@ -23,6 +23,26 @@ export const categoryService = {
     return response.json();
   },
 
+  // Get categories with filter options
+  getAllCategories: async (name = '', state = null, page = 0, pageSize = 10) => {
+    const token = getToken();
+    if (!token) throw new Error('No authentication token found');
+
+    let url = `${API_URL}/category?page=${page}&pageSize=${pageSize}`;
+    if (name) url += `&name=${encodeURIComponent(name)}`;
+    if (state) url += `&state=${state}`;
+
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      method: 'GET',
+    });
+
+    return response.json();
+  },
+
   getCategoryById: async (id) => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
@@ -80,6 +100,21 @@ export const categoryService = {
         'Content-Type': 'application/json',
       },
       method: 'DELETE',
+    });
+
+    return response.json();
+  },
+
+  getActiveCategories: async () => {
+    const token = getToken();
+    if (!token) throw new Error('No authentication token found');
+
+    const response = await fetch(`${API_URL}/category/active`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      method: 'GET',
     });
 
     return response.json();

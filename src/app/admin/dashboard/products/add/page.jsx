@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import styles from "./add.module.css";
 import { foodService } from "../../../../api/food/foodService";
+import { categoryService } from "../../../../api/category/categoryService";
 import { useRouter } from "next/navigation";
 import { useCart } from "../../../../context/CartContext";
 
@@ -28,7 +29,7 @@ const AddFoodPage = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await foodService.getCategories(0, itemsPerPage);
+      const response = await categoryService.getCategories(0, itemsPerPage);
       const categoryData = Array.isArray(response) ? response : response.data || [];
       setCategories(categoryData);
     } catch (err) {
@@ -71,7 +72,10 @@ const AddFoodPage = () => {
         imgUrl = await uploadToPinata(formData.image);
       }
 
-      const quantity = parseInt(formData.quantity);
+      const quantity = typeof formData.quantity === 'string' 
+        ? parseInt(formData.quantity, 10) 
+        : formData.quantity;
+        
       if (isNaN(quantity) || quantity < 0) {
         throw new Error('Quantity must be a valid positive number');
       }

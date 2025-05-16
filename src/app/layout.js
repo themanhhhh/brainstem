@@ -19,10 +19,10 @@ function ClientLayout({ children }) {
     <Suspense fallback={<div>Loading...</div>}>
       <AuthProvider>
         <CartProvider>
-          <LoadingProvider>
+          
             <Toaster position="top-center" />
             {children}
-          </LoadingProvider>
+         
         </CartProvider>
       </AuthProvider>
     </Suspense>

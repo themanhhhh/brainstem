@@ -38,6 +38,25 @@ export const userService = {
         return response.json();
     },
 
+    // Get all user accounts with filter
+    getAllUsers: async (search = '', state = null, page = 0, size = 20) => {
+        const token = getToken();
+        if (!token) throw new Error('No authentication token found');
+
+        let url = `${API_URL}/account?page=${page}&size=${size}`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        if (state) url += `&state=${state}`;
+
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            method: 'GET',
+        });
+        return response.json();
+    },
+
     getUserById: async (id) => {
         const token = getToken();
         if (!token) throw new Error('No authentication token found');

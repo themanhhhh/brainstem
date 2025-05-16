@@ -23,6 +23,26 @@ export const discountService = {
     return response.json();
   },
 
+  // Get discounts with filtering
+  getAllDiscounts: async (name = '', status = null, page = 0, size = 10) => {
+    const token = getToken();
+    if (!token) throw new Error('No authentication token found');
+
+    let url = `${API_URL}/discount?page=${page}&size=${size}`;
+    if (name) url += `&name=${encodeURIComponent(name)}`;
+    if (status) url += `&status=${status}`;
+
+    const response = await fetch(`${url}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      method: 'GET',
+    });
+
+    return response.json();
+  },
+
   getDiscountById: async (id) => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');

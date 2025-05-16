@@ -7,8 +7,9 @@ const getToken = () => {
     return null;
   };
 
-export const getLogs = async (page = 0, size = 10) => {
-
+export const logService = {
+  // Get basic logs
+  getLogs: async (page = 0, size = 10) => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
     try {
@@ -19,7 +20,7 @@ export const getLogs = async (page = 0, size = 10) => {
             },
         });
         if (!response.ok) {
-        throw new Error('Failed to fetch logs');
+          throw new Error('Failed to fetch logs');
         }
         const data = await response.json();
         return data;
@@ -27,6 +28,39 @@ export const getLogs = async (page = 0, size = 10) => {
         console.error('Error fetching logs:', error);
         throw error;
     }
+  },
+
+  // Get logs with advanced filtering
+  getLogActivity: async (username = '', accountRole = '', actionType = '', gte = null, lte = null, page = 0, size = 10) => {
+    const token = getToken();
+    if (!token) throw new Error('No authentication token found');
+    
+    try {
+      let url = `${API_URL}/action-log?page=${page}&size=${size}`;
+      if (username) url += `&username=${encodeURIComponent(username)}`;
+      if (accountRole) url += `&accountRole=${encodeURIComponent(accountRole)}`;
+      if (actionType) url += `&actionType=${encodeURIComponent(actionType)}`;
+      if (gte) url += `&gte=${encodeURIComponent(gte)}`;
+      if (lte) url += `&lte=${encodeURIComponent(lte)}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch log activity');
+      }
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching log activity:', error);
+      throw error;
+    }
+  }
 };
 
 export const formatDate = (timestamp) => {
