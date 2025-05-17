@@ -4,7 +4,15 @@ export default {
       buildActivity: false,
     },
     images: {
-      domains: ['gateway.pinata.cloud'],
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'gateway.pinata.cloud',
+                port: '',
+                pathname: '/ipfs/**',
+            },
+        ],
+        unoptimized: true,
     },
     webpack(config, { isServer }) {
       if (!isServer) {
