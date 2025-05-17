@@ -13,6 +13,7 @@ export default {
             },
         ],
         unoptimized: true,
+        domains: ['gateway.pinata.cloud'],
     },
     webpack(config, { isServer }) {
       if (!isServer) {
@@ -20,5 +21,7 @@ export default {
       }
       return config;
     },
+    // Add output configuration for standalone build
+    output: 'standalone',
   };
   

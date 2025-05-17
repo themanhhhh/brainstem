@@ -43,15 +43,17 @@ export function CartProvider({ children }) {
           url: "https://api.pinata.cloud/pinning/pinFileToIPFS",
           data: formData,
           headers: {
-            pinata_api_key:`5b9afb41a6a64bcad1f7`,
-            pinata_secret_api_key:`080a3e13f1c8a9527e3ff8faaeb9871b5df53900099d88edba2259f98be701ec`,
+            pinata_api_key: process.env.NEXT_PUBLIC_PINATA_API_KEY || "5b9afb41a6a64bcad1f7",
+            pinata_secret_api_key: process.env.NEXT_PUBLIC_PINATA_SECRET_API_KEY || "080a3e13f1c8a9527e3ff8faaeb9871b5df53900099d88edba2259f98be701ec",
             "Content-Type": "multipart/form-data",
           }
         });
 
         const ImgHash = `https://gateway.pinata.cloud/ipfs/${response.data.IpfsHash}`;
+        console.log("Image successfully uploaded to Pinata:", ImgHash);
         return ImgHash;
       } catch (error) {
+        console.error("Pinata upload error:", error.response?.data || error.message);
         setError("Unable to upload image to Pinata");
         setOpenError(true);
         throw error;

@@ -15,8 +15,12 @@ build
 coverage
 
 # Env, secret
-.env*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 *.pem
+# DO NOT ignore .env file with Pinata keys
 
 # Vercel / deploy
 .vercel
@@ -38,7 +42,8 @@ pnpm-debug.log*
 next-env.d.ts
 
 # Docker & infra
-Dockerfile
+# Do not exclude Dockerfile to allow references
+# Dockerfile
 docker-compose.yml
 
 # Git
