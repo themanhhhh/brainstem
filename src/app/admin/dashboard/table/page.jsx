@@ -4,6 +4,7 @@ import Style from "./table.module.css";
 import { Pagination, Search } from "../../ui/dashboard/dashboardindex";
 import ordertableService from "../../../api/ordertable/ordertableService";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import LogoutButton from "@/app/components/LogoutButton/LogoutButton";
 
 const Page = () => {
   const [tables, setTables] = useState([]);
@@ -186,7 +187,12 @@ const Page = () => {
   if (error) return <div className={Style.error}>{error}</div>;
 
   return (
-    <div className={Style.container}>
+    <div className={Style.tablee}>
+      <div className={Style.header}>
+        <h1></h1>
+        <LogoutButton />
+      </div>
+      <div className={Style.container}>
       <div className={Style.top}>
         <h1>Table Management</h1>
         <div className={Style.topRight}>
@@ -381,6 +387,7 @@ const Page = () => {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 };

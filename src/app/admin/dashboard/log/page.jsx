@@ -4,6 +4,7 @@ import Style from "./log.module.css";
 import { getLogs, formatDate, getActionTypeColor } from "@/app/api/log/logService";
 import { Pagination } from "../../ui/dashboard/dashboardindex";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import LogoutButton from "@/app/components/LogoutButton/LogoutButton";
 
 const Page = () => {
   const [logs, setLogs] = useState([]);
@@ -62,52 +63,58 @@ const Page = () => {
   if (error) return <div className={Style.error}>{error}</div>;
 
   return (
-    <div className={Style.container}>
-      <div className={Style.top}>
+    <div className={Style.log}>
+      <div className={Style.header}>
         <h1>Activity Logs</h1>
+        <LogoutButton />
       </div>
+      <div className={Style.container}>
+        <div className={Style.top}>
+          <h1>Activity Logs</h1>
+        </div>
 
-      <table className={Style.table}>
-        <thead>
-          <tr>
-            <td>Username</td>
-            <td>Role</td>
-            <td>Action</td>
-            <td>Module</td>
-            <td>Description</td>
-            <td>Date</td>
-          </tr>
-        </thead>
-        <tbody>
-          {logs.map((log) => (
-            <tr key={log.id}>
-              <td>{log.username}</td>
-              <td>{log.accountRole}</td>
-              <td>
-                <span 
-                  className={Style.actionType}
-                  style={{ backgroundColor: getActionTypeColor(log.actionType) }}
-                >
-                  {log.actionType}
-                </span>
-              </td>
-              <td>
-                <span className={Style.module}>
-                  {log.module}
-                </span>
-              </td>
-              <td className={Style.description}>
-                {log.description}
-              </td>
-              <td>{formatDate(log.createdAt)}</td>
+        <table className={Style.table}>
+          <thead>
+            <tr>
+              <td>Username</td>
+              <td>Role</td>
+              <td>Action</td>
+              <td>Module</td>
+              <td>Description</td>
+              <td>Date</td>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {logs.map((log) => (
+              <tr key={log.id}>
+                <td>{log.username}</td>
+                <td>{log.accountRole}</td>
+                <td>
+                  <span 
+                    className={Style.actionType}
+                    style={{ backgroundColor: getActionTypeColor(log.actionType) }}
+                  >
+                    {log.actionType}
+                  </span>
+                </td>
+                <td>
+                  <span className={Style.module}>
+                    {log.module}
+                  </span>
+                </td>
+                <td className={Style.description}>
+                  {log.description}
+                </td>
+                <td>{formatDate(log.createdAt)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-      <div className={Style.darkBg}>
-        <Pagination metadata={metadata || { page: 0, totalPages: 1, count: logs.length, totalElements: logs.length }} />
-      </div>
+        <div className={Style.darkBg}>
+          <Pagination metadata={metadata || { page: 0, totalPages: 1, count: logs.length, totalElements: logs.length }} />
+        </div>
+        </div>
     </div>
   );
 };

@@ -42,7 +42,7 @@ const menuItems = [
         icon: <BiCategoryAlt />,
       },
       {
-        title: "Foods",
+        title: "Foods Management",
         path: "/admin/dashboard/products",
         icon: <IoFastFoodOutline />,
       },

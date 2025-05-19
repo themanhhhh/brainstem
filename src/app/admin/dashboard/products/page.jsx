@@ -8,6 +8,7 @@ import { foodService } from "../../../api/food/foodService";
 import { categoryService } from "../../../api/category/categoryService";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useCart } from "../../../context/CartContext";
+import LogoutButton from "../../../components/LogoutButton/LogoutButton";
 
 const Page = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -307,9 +308,14 @@ const Page = () => {
   if (error) return <div className={Style.error}>{error}</div>;
 
   return (
-    <div className={Style.container}>
+    <div className={Style.productt}>
+      <div className={Style.header}>
+        <h1></h1>
+        <LogoutButton />
+      </div>
+      <div className={Style.container}>
       <div className={Style.top}>
-        <h1>Products Management</h1>
+        <h1>Food Management</h1>
         <div className={Style.topRight}>
           <FilterableSearch 
             placeholder="Tìm kiếm theo tên món ăn..." 
@@ -352,7 +358,6 @@ const Page = () => {
           <div className={Style.loadingSpinner}></div>
         </div>
       )}
-
       {/* Hiển thị kết quả tìm kiếm */}
       {(nameFilter || statusFilter || categoryFilter) && (
         <div className={Style.searchInfo}>
@@ -633,6 +638,7 @@ const Page = () => {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 };

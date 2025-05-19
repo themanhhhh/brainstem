@@ -55,19 +55,11 @@ const Profile = () => {
           </div>
           <div className={Style.profile_menu_one_item}>
             <TbDownload/>
-            <p>
-                <Link href={{pathname: '/aboutus'}}>About Us</Link>
+            <p onClick={handleLogout}>
+                Logout
             </p>
           </div>
-          <div className={Style.profile_menu_one_item}>
-            <TbDownload/>
-            <button 
-                onClick={handleLogout}
-                className={Style.logoutButton}
-              >
-                Logout
-            </button>
-          </div>
+         
         </div>
       </div>
     </div>

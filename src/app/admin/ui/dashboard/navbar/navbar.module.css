@@ -38,3 +38,51 @@
     display: flex;
     gap: 20px;
   }
+
+  .avatarWrapper {
+    position: relative;
+    margin-left: 20px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .avatarImg {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #eee;
+    border: 2px solid var(--bgSoft);
+    transition: box-shadow 0.2s;
+  }
+
+  .avatarImg:hover {
+    box-shadow: 0 0 0 2px var(--primary, #0070f3);
+  }
+
+  .userName {
+    margin-left: 10px;
+    font-weight: 500;
+    color: var(--textSoft);
+    font-size: 1rem;
+    white-space: nowrap;
+  }
+
+  .profileMenu {
+    position: absolute;
+    right: 0;
+    top: 48px;
+    z-index: 100;
+    min-width: 220px;
+    background: var(--main-bg-color, #fff);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    border-radius: 12px;
+    padding: 0;
+    animation: fadeInProfile 0.2s;
+  }
+
+  @keyframes fadeInProfile {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }

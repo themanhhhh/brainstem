@@ -7,6 +7,7 @@ import Link from "next/link";
 import { userService } from "../../../api/user/userService";
 import images from "../../../img/index";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import LogoutButton from "../../../components/LogoutButton/LogoutButton";
 
 const Page = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -173,250 +174,257 @@ const Page = () => {
   if (error) return <div className={Style.error}>{error}</div>;
 
   return (
-    <div className={Style.container}>
-      <div className={Style.top}>
-          <Suspense fallback={<div>Loading...</div>}>
-            <Search 
-              onSearch={handleSearch} 
-              placeholder="Tìm kiếm theo tên, email, username, hoặc số điện thoại..."
-            />
-          </Suspense>
-          <Link href="/admin/dashboard/users/add">
-            <button className={Style.addButton}>Add New</button>
-          </Link>
+    <div className={Style.userr}>
+      <div className={Style.header}>
+        <h1></h1>
+        <LogoutButton />
       </div>
-      
-      {/* Hiển thị kết quả tìm kiếm */}
-      {debouncedSearchTerm && (
-        <div className={Style.searchInfo}>
-          Kết quả tìm kiếm cho: <strong>{debouncedSearchTerm}</strong> | 
-          Tìm thấy: <strong>{filteredUsers.length}</strong> người dùng
+      <div className={Style.container}>
+        <div className={Style.top}>
+            <Suspense fallback={<div>Loading...</div>}>
+              <Search 
+                onChange={handleSearch} 
+                onSearch={handleSearch} 
+                placeholder="Tìm kiếm theo tên, email, username, hoặc số điện thoại..."
+              />
+            </Suspense>
+            <Link href="/admin/dashboard/users/add">
+              <button className={Style.addButton}>Add New</button>
+            </Link>
         </div>
-      )}
-
-      <table className={Style.table}>
-        <thead>
-          <tr>
-            <td>Name</td>
-            <td>Email</td>
-            <td>Username</td>
-            <td>Phone</td>
-            <td>Role</td>
-            <td>Status</td>
-            <td>Action</td>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredUsers.map((user) => (
-            <tr key={user.id}>
-              <td>
-                <div className={Style.user}>
-                  {user.fullName}
-                </div>
-              </td>
-              <td>{user.email}</td>
-              <td>{user.username}</td>
-              <td>{user.phoneNumber}</td>
-              <td>{user.role}</td>
-              <td>
-                <span className={`${Style.status} ${user.state === 'ACTIVE' ? Style.active : Style.inactive}`}>
-                  {user.state}
-                </span>
-              </td>
-              <td>
-                <div className={Style.buttons}>
-                  <button 
-                    className={`${Style.button} ${Style.view}`}
-                    onClick={() => handleView(user)}
-                  >
-                    View
-                  </button>
-                  <button 
-                    className={`${Style.button} ${Style.edit}`}
-                    onClick={() => handleEdit(user)}
-                  >
-                    Edit
-                  </button>
-                  <button 
-                    className={`${Style.button} ${Style.delete}`}
-                    onClick={() => handleDelete(user)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
       
-      <div className={Style.darkBg}>
-        <Suspense fallback={<div>Loading...</div>}>
-          <Pagination metadata={metadata || { page: 0, totalPages: 1, count: filteredUsers.length, totalElements: filteredUsers.length }} />
-        </Suspense>
-      </div>
+        {/* Hiển thị kết quả tìm kiếm */}
+        {debouncedSearchTerm && (
+          <div className={Style.searchInfo}>
+            Kết quả tìm kiếm cho: <strong>{debouncedSearchTerm}</strong> | 
+            Tìm thấy: <strong>{filteredUsers.length}</strong> người dùng
+          </div>
+        )}
 
-      {/* Edit Modal */}
-      {showEditModal && (
-        <div className={Style.modalOverlay}>
-          <div className={Style.modal}>
-            <h2>Edit User</h2>
-            <form onSubmit={handleEditSubmit}>
-              <div className={Style.formGroup}>
-                <label>Full Name:</label>
-                <input
-                  type="text"
-                  value={editForm.fullName}
-                  onChange={(e) => setEditForm({...editForm, fullName: e.target.value})}
-                  required
-                />
-              </div>
-              <div className={Style.formGroup}>
-                <label>Username:</label>
-                <input
-                  type="text"
-                  value={editForm.username}
-                  onChange={(e) => setEditForm({...editForm, username: e.target.value})}
-                  required
-                />
-              </div>
-              <div className={Style.formGroup}>
-                <label>Password:</label>
-                <input
-                  type="password"
-                  value={editForm.password}
-                  onChange={(e) => setEditForm({...editForm, password: e.target.value})}
-                  placeholder="Leave blank to keep current password"
-                />
-              </div>
-              <div className={Style.formGroup}>
-                <label>Phone Number:</label>
-                <input
-                  type="text"
-                  value={editForm.phoneNumber}
-                  onChange={(e) => setEditForm({...editForm, phoneNumber: e.target.value})}
-                  required
-                />
-              </div>
-              <div className={Style.formGroup}>
-                <label>Email:</label>
-                <input
-                  type="email"
-                  value={editForm.email}
-                  onChange={(e) => setEditForm({...editForm, email: e.target.value})}
-                  required
-                />
-              </div>
-              <div className={Style.formGroup}>
-                <label>Role:</label>
-                <select
-                  value={editForm.role}
-                  onChange={(e) => setEditForm({...editForm, role: e.target.value})}
-                  required
-                >
-                  <option value={editForm.role}>{editForm.role}</option>
-                  {editForm.role !== 'ADMIN' && <option value="ADMIN">ADMIN</option>}
-                  {editForm.role !== 'STAFF' && <option value="STAFF">STAFF</option>}
-                  {editForm.role !== 'CUSTOMER' && <option value="CUSTOMER">CUSTOMER</option>}
-                  {editForm.role !== 'MANAGER' && <option value="MANAGER">MANAGER</option>}
-                  {editForm.role !== 'SHIPPER' && <option value="SHIPPER">SHIPPER</option>}
-                </select>
-              </div>
-              <div className={Style.formGroup}>
-                <label>Status:</label>
-                <select
-                  value={editForm.state}
-                  onChange={(e) => setEditForm({...editForm, state: e.target.value})}
-                  required
-                >
-                  <option value={editForm.state}>{editForm.state}</option>
-                  {editForm.state !== 'ACTIVE' && <option value="ACTIVE">ACTIVE</option>}
-                  {editForm.state !== 'INACTIVE' && <option value="INACTIVE">INACTIVE</option>}
-                </select>
-              </div>
+        <table className={Style.table}>
+          <thead>
+            <tr>
+              <td>Name</td>
+              <td>Email</td>
+              <td>Username</td>
+              <td>Phone</td>
+              <td>Role</td>
+              <td>Status</td>
+              <td>Action</td>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredUsers.map((user) => (
+              <tr key={user.id}>
+                <td>
+                  <div className={Style.user}>
+                    {user.fullName}
+                  </div>
+                </td>
+                <td>{user.email}</td>
+                <td>{user.username}</td>
+                <td>{user.phoneNumber}</td>
+                <td>{user.role}</td>
+                <td>
+                  <span className={`${Style.status} ${user.state === 'ACTIVE' ? Style.active : Style.inactive}`}>
+                    {user.state}
+                  </span>
+                </td>
+                <td>
+                  <div className={Style.buttons}>
+                    <button 
+                      className={`${Style.button} ${Style.view}`}
+                      onClick={() => handleView(user)}
+                    >
+                      View
+                    </button>
+                    <button 
+                      className={`${Style.button} ${Style.edit}`}
+                      onClick={() => handleEdit(user)}
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      className={`${Style.button} ${Style.delete}`}
+                      onClick={() => handleDelete(user)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      
+        <div className={Style.darkBg}>
+          <Suspense fallback={<div>Loading...</div>}>
+            <Pagination metadata={metadata || { page: 0, totalPages: 1, count: filteredUsers.length, totalElements: filteredUsers.length }} />
+          </Suspense>
+        </div>
+
+        {/* Edit Modal */}
+        {showEditModal && (
+          <div className={Style.modalOverlay}>
+            <div className={Style.modal}>
+              <h2>Edit User</h2>
+              <form onSubmit={handleEditSubmit}>
+                <div className={Style.formGroup}>
+                  <label>Full Name:</label>
+                  <input
+                    type="text"
+                    value={editForm.fullName}
+                    onChange={(e) => setEditForm({...editForm, fullName: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className={Style.formGroup}>
+                  <label>Username:</label>
+                  <input
+                    type="text"
+                    value={editForm.username}
+                    onChange={(e) => setEditForm({...editForm, username: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className={Style.formGroup}>
+                  <label>Password:</label>
+                  <input
+                    type="password"
+                    value={editForm.password}
+                    onChange={(e) => setEditForm({...editForm, password: e.target.value})}
+                    placeholder="Leave blank to keep current password"
+                  />
+                </div>
+                <div className={Style.formGroup}>
+                  <label>Phone Number:</label>
+                  <input
+                    type="text"
+                    value={editForm.phoneNumber}
+                    onChange={(e) => setEditForm({...editForm, phoneNumber: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className={Style.formGroup}>
+                  <label>Email:</label>
+                  <input
+                    type="email"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className={Style.formGroup}>
+                  <label>Role:</label>
+                  <select
+                    value={editForm.role}
+                    onChange={(e) => setEditForm({...editForm, role: e.target.value})}
+                    required
+                  >
+                    <option value={editForm.role}>{editForm.role}</option>
+                    {editForm.role !== 'ADMIN' && <option value="ADMIN">ADMIN</option>}
+                    {editForm.role !== 'STAFF' && <option value="STAFF">STAFF</option>}
+                    {editForm.role !== 'CUSTOMER' && <option value="CUSTOMER">CUSTOMER</option>}
+                    {editForm.role !== 'MANAGER' && <option value="MANAGER">MANAGER</option>}
+                    {editForm.role !== 'SHIPPER' && <option value="SHIPPER">SHIPPER</option>}
+                  </select>
+                </div>
+                <div className={Style.formGroup}>
+                  <label>Status:</label>
+                  <select
+                    value={editForm.state}
+                    onChange={(e) => setEditForm({...editForm, state: e.target.value})}
+                    required
+                  >
+                    <option value={editForm.state}>{editForm.state}</option>
+                    {editForm.state !== 'ACTIVE' && <option value="ACTIVE">ACTIVE</option>}
+                    {editForm.state !== 'INACTIVE' && <option value="INACTIVE">INACTIVE</option>}
+                  </select>
+                </div>
+                <div className={Style.modalButtons}>
+                  <button type="submit" className={Style.saveButton}>Save Changes</button>
+                  <button 
+                    type="button" 
+                    className={Style.cancelButton}
+                    onClick={() => setShowEditModal(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Modal */}
+        {showDeleteModal && (
+          <div className={Style.modalOverlay}>
+            <div className={Style.modal}>
+              <h2>Delete User</h2>
+              <p>Are you sure you want to delete user {selectedUser?.fullName}?</p>
               <div className={Style.modalButtons}>
-                <button type="submit" className={Style.saveButton}>Save Changes</button>
                 <button 
-                  type="button" 
+                  className={Style.deleteButton}
+                  onClick={handleDeleteConfirm}
+                >
+                  Delete
+                </button>
+                <button 
                   className={Style.cancelButton}
-                  onClick={() => setShowEditModal(false)}
+                  onClick={() => setShowDeleteModal(false)}
                 >
                   Cancel
                 </button>
               </div>
-            </form>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Delete Modal */}
-      {showDeleteModal && (
-        <div className={Style.modalOverlay}>
-          <div className={Style.modal}>
-            <h2>Delete User</h2>
-            <p>Are you sure you want to delete user {selectedUser?.fullName}?</p>
-            <div className={Style.modalButtons}>
-              <button 
-                className={Style.deleteButton}
-                onClick={handleDeleteConfirm}
-              >
-                Delete
-              </button>
-              <button 
-                className={Style.cancelButton}
-                onClick={() => setShowDeleteModal(false)}
-              >
-                Cancel
-              </button>
+        {/* View Modal */}
+        {showViewModal && (
+          <div className={Style.modalOverlay}>
+            <div className={Style.modal}>
+              <h2>User Details</h2>
+              <div className={Style.detailContent}>
+                <div className={Style.detailItem}>
+                  <label>Full Name:</label>
+                  <span>{selectedUser?.fullName}</span>
+                </div>
+                <div className={Style.detailItem}>
+                  <label>Username:</label>
+                  <span>{selectedUser?.username}</span>
+                </div>
+                <div className={Style.detailItem}>
+                  <label>Email:</label>
+                  <span>{selectedUser?.email}</span>
+                </div>
+                <div className={Style.detailItem}>
+                  <label>Phone Number:</label>
+                  <span>{selectedUser?.phoneNumber}</span>
+                </div>
+                <div className={Style.detailItem}>
+                  <label>Role:</label>
+                  <span>{selectedUser?.role}</span>
+                </div>
+                <div className={Style.detailItem}>
+                  <label>Status:</label>
+                  <span className={`${Style.status} ${selectedUser?.state === 'ACTIVE' ? Style.active : Style.inactive}`}>
+                    {selectedUser?.state}
+                  </span>
+                </div>
+              </div>
+              <div className={Style.modalButtons}>
+                <button 
+                  className={Style.cancelButton}
+                  onClick={() => setShowViewModal(false)}
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* View Modal */}
-      {showViewModal && (
-        <div className={Style.modalOverlay}>
-          <div className={Style.modal}>
-            <h2>User Details</h2>
-            <div className={Style.detailContent}>
-              <div className={Style.detailItem}>
-                <label>Full Name:</label>
-                <span>{selectedUser?.fullName}</span>
-              </div>
-              <div className={Style.detailItem}>
-                <label>Username:</label>
-                <span>{selectedUser?.username}</span>
-              </div>
-              <div className={Style.detailItem}>
-                <label>Email:</label>
-                <span>{selectedUser?.email}</span>
-              </div>
-              <div className={Style.detailItem}>
-                <label>Phone Number:</label>
-                <span>{selectedUser?.phoneNumber}</span>
-              </div>
-              <div className={Style.detailItem}>
-                <label>Role:</label>
-                <span>{selectedUser?.role}</span>
-              </div>
-              <div className={Style.detailItem}>
-                <label>Status:</label>
-                <span className={`${Style.status} ${selectedUser?.state === 'ACTIVE' ? Style.active : Style.inactive}`}>
-                  {selectedUser?.state}
-                </span>
-              </div>
-            </div>
-            <div className={Style.modalButtons}>
-              <button 
-                className={Style.cancelButton}
-                onClick={() => setShowViewModal(false)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

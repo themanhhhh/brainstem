@@ -100,10 +100,65 @@ export const authService = {
       console.error('Token refresh error:', error);
       throw error;
     }
+  },
+
+  getProfile: async () => {
+    try {
+      const token = getToken();
+      const response = await fetch(`${API_URL}/auth/profile`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Profile fetch failed');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Profile fetch error:', error);
+      throw error;
+    }
+  },
+
+  updateProfile: async (fullName, phoneNumber, email, address) => {
+    try {
+      const token = getToken();
+      const response = await fetch(`${API_URL}/auth/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ fullName, phoneNumber, email, address })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) { 
+        throw new Error(data.message || 'Profile update failed');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Profile update error:', error);
+      throw error;
+    }
   }
 };
 
 // Helper function để lấy cookie
+const getToken = () => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; token=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+};
+
 const getCookie = (name) => {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);

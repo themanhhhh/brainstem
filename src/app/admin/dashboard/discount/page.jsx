@@ -4,6 +4,7 @@ import Style from "./discount.module.css";
 import { discountService } from "../../../api/discount/discountService";
 import { Pagination, Search } from "../../ui/dashboard/dashboardindex";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import LogoutButton from "../../../components/LogoutButton/LogoutButton";
 
 const Page = () => {
   const [discounts, setDiscounts] = useState([]);
@@ -270,7 +271,12 @@ const Page = () => {
   if (error) return <div className={Style.error}>{error}</div>;
 
   return (
-    <div className={Style.container}>
+    <div className={Style.discountt}>
+      <div className={Style.header}>
+        <h1></h1>
+        <LogoutButton />
+      </div>
+      <div className={Style.container}>
       <div className={Style.top}>
         <h1>Discounts Management</h1>
         <div className={Style.topRight}>
@@ -661,6 +667,7 @@ const Page = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

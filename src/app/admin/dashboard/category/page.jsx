@@ -6,6 +6,7 @@ import { Pagination, FilterableSearch } from "../../ui/dashboard/dashboardindex"
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useCart } from "../../../context/CartContext";
 import Image from "next/image";
+import LogoutButton from "@/app/components/LogoutButton/LogoutButton";
 
 const Page = () => {
   const [categories, setCategories] = useState([]);
@@ -270,7 +271,12 @@ const Page = () => {
   if (error) return <div className={Style.error}>{error}</div>;
 
   return (
-    <div className={Style.container}>
+    <div className={Style.categoryy}>
+      <div className={Style.header}>
+        <h1></h1>
+        <LogoutButton />
+      </div>
+      <div className={Style.container}>
       <div className={Style.top}>
         <h1>Categories Management</h1>
         <div className={Style.topRight}>
@@ -576,6 +582,7 @@ const Page = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

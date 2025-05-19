@@ -1,0 +1,86 @@
+.popup {
+  min-width: 240px;
+  background: var(--main-bg-color, #fff);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+  border-radius: 14px;
+  padding: 18px 18px 12px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  animation: fadeInProfile 0.2s;
+}
+
+.avatarWrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #eee;
+  border: 2px solid var(--primary, #0070f3);
+}
+
+.avatarDefault {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--primary, #0070f3);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.name {
+  font-weight: 600;
+  font-size: 1.08rem;
+  color: var(--text, #222);
+}
+
+.email {
+  font-size: 0.95rem;
+  color: #888;
+  margin-bottom: 2px;
+}
+
+.role {
+  font-size: 0.92rem;
+  color: var(--primary, #0070f3);
+  font-weight: 500;
+}
+
+.detailBtn {
+  margin-top: 10px;
+  background: var(--primary, #0070f3);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 0;
+  text-align: center;
+  font-weight: 500;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: background 0.18s;
+  cursor: pointer;
+  display: block;
+}
+.detailBtn:hover {
+  background: #005bb5;
+}
+
+@keyframes fadeInProfile {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+} 
