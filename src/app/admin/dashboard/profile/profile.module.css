@@ -258,3 +258,113 @@
   margin-bottom: 8px;
   margin-top: 4px;
 }
+
+.userInfoCard {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+  padding: 24px;
+  margin-bottom: 30px;
+}
+
+.userInfoHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.avatarContainer {
+  margin-right: 20px;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #6366f1;
+}
+
+.avatarPlaceholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6366f1;
+  border: 3px solid #e5e7eb;
+}
+
+.userInfoBasic {
+  flex-grow: 1;
+}
+
+.userInfoBasic h2 {
+  margin: 0 0 6px 0;
+  font-size: 1.4rem;
+  color: #333;
+}
+
+.userInfoUsername {
+  color: #6b7280;
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.userInfoBadge {
+  display: inline-flex;
+  align-items: center;
+  background-color: #f0f4ff;
+  color: #6366f1;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.badgeIcon {
+  margin-right: 6px;
+  font-size: 1.1rem;
+}
+
+.userInfoDetails {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.userInfoDetailItem {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  background-color: #f9fafb;
+  border-radius: 8px;
+}
+
+.userInfoDetailLabel {
+  min-width: 120px;
+  color: #6b7280;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+.inlineIcon {
+  margin-right: 6px;
+  font-size: 1.1rem;
+}
+
+.userInfoDetailValue {
+  color: #111827;
+  font-weight: 600;
+}
+
+.userStatus {
+  color: #10b981;
+}
+
+.userStatus.inactive {
+  color: #f43f5e;
+}

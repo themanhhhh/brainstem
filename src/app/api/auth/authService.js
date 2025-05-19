@@ -148,7 +148,31 @@ export const authService = {
       console.error('Profile update error:', error);
       throw error;
     }
-  }
+  },
+  changePassword: async (oldPassword, newPassword , confirmPassword) => {
+    try {
+      const token = getToken();
+      const response = await fetch(`${API_URL}/auth/changepassword`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ oldPassword, newPassword , confirmPassword})
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Password change failed');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Password change error:', error);
+      throw error;
+    }
+  } 
 };
 
 // Helper function để lấy cookie

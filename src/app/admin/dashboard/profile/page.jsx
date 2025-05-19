@@ -2,11 +2,14 @@
 import React, { useEffect, useState } from 'react';
 import styles from './profile.module.css';
 import { authService } from '@/app/api/auth/authService';
-import { MdPersonOutline, MdLockOutline } from 'react-icons/md';
+import { MdPersonOutline, MdLockOutline, MdInfoOutline } from 'react-icons/md';
 import ChangePassword from './ChangePassword';
 import LogoutButton from '@/app/components/LogoutButton/LogoutButton';
+import UpdateProfile from './UpdateProfile';
+import UserInfoCard from './UserInfoCard';
 
 const menu = [
+  { label: 'My Info', desc: 'View your detailed profile information', icon: <MdInfoOutline className={styles.menuIcon} /> },
   { label: 'Account', desc: 'Manage your public profile and private information', icon: <MdPersonOutline className={styles.menuIcon} /> },
   { label: 'Security', desc: 'Manage your password and 2-step verification preferences', icon: <MdLockOutline className={styles.menuIcon} /> },
 ];
@@ -30,6 +33,19 @@ const Profile = () => {
     };
     fetchProfile();
   }, []);
+
+  const refreshProfile = async () => {
+    setLoading(true);
+    try {
+      const data = await authService.getProfile();
+      setProfile(data);
+      setError(null);
+    } catch (err) {
+      setError('Không thể tải thông tin người dùng.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading || !profile) return <div className={styles.loading}>Đang tải...</div>;
   if (error) return <div className={styles.container}><h1>Profile</h1><p>{error}</p></div>;
@@ -76,45 +92,13 @@ const Profile = () => {
       {/* Main content */}
       <main className={styles.content}>
         {activeTab === 0 && (
-          <div className={styles.card}>
-            <div className={styles.cardTitle}>Account</div>
-            <form className={styles.form}>
-              <div className={styles.formGroup}>
-                <label>Name</label>
-                <input type="text" value={profile.fullName || ''} readOnly />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Username</label>
-                <input type="text" value={profile.username || ''} readOnly />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Email</label>
-                <input type="email" value={profile.email || ''} readOnly />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Phone</label>
-                <input type="text" value={profile.phoneNumber || ''} readOnly />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Role</label>
-                <input type="text" value={profile.role || ''} readOnly />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Status</label>
-                <input type="text" value={profile.state || ''} readOnly />
-              </div>
-              <div className={styles.formActions}>
-                <button type="button" className={styles.cancelBtn}>Cancel</button>
-                <button type="submit" className={styles.saveBtn}>Save</button>
-              </div>
-            </form>
-          </div>
+          <UserInfoCard profile={profile} />
         )}
         {activeTab === 1 && (
-          <ChangePassword onSubmit={async (current, next) => {
-            // TODO: Gọi API đổi mật khẩu ở đây
-            // await authService.changePassword(current, next);
-          }} />
+          <UpdateProfile profile={profile} onProfileUpdated={refreshProfile} />
+        )}
+        {activeTab === 2 && (
+          <ChangePassword />
         )}
       </main>
       </div>
