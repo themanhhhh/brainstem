@@ -1,5 +1,4 @@
 import React from 'react';
-
 import Style from './userprofile.module.css';
 
 const UserProfile = () => {
@@ -9,3 +8,5 @@ const UserProfile = () => {
         </div>
     );
 };
+
+export default UserProfile;
