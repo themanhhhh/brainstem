@@ -21,9 +21,6 @@ FROM node:18-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-# Add environment variables for Pinata
-ENV NEXT_PUBLIC_PINATA_API_KEY="5b9afb41a6a64bcad1f7"
-ENV NEXT_PUBLIC_PINATA_SECRET_API_KEY="080a3e13f1c8a9527e3ff8faaeb9871b5df53900099d88edba2259f98be701ec"
 
 # Chỉ copy phần cần thiết để chạy
 COPY --from=builder /app/public ./public
