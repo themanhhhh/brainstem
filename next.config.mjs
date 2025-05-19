@@ -12,7 +12,7 @@ export default {
                 pathname: '/ipfs/**',
             },
         ],
-        unoptimized: true,
+        domains: ['gateway.pinata.cloud']
     },
     webpack(config, { isServer }) {
       if (!isServer) {

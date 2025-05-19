@@ -1,4 +1,4 @@
-const API_URL = 'http://dev.quyna.online/project_4/restaurant';
+const API_URL = 'https://dev.quyna.online/project_4/restaurant';
 
 export const authService = {
   // Đăng nhập
