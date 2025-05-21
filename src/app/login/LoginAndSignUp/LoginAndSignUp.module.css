@@ -13,6 +13,15 @@
     transition: all .3s ease-in;
 }
 
+.user_box_back{
+    margin-top: 1rem;
+    text-align: center;
+   
+}
+
+.user_box_back :hover{
+    color: var(--icons-color);
+}
 
 .user_box_social_item:hover{
     box-shadow: var(--box-shadow);

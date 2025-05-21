@@ -105,6 +105,9 @@ const LoginAndSignUp = () => {
             disabled={loading}
           />
         </form>
+        <div className={Style.user_box_back}>
+          <Link href="/">Back to home</Link>
+        </div>
       </div>
     </div>
   );
