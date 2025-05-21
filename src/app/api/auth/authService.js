@@ -172,7 +172,74 @@ export const authService = {
       console.error('Password change error:', error);
       throw error;
     }
-  } 
+  } ,
+  forgotPassword: async (email) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/forgotpassword`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Password reset failed');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Password reset error:', error);  
+      throw error;
+    }
+  } ,
+
+  verifyOtp: async (email, otp) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/verifyotp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, otp })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'OTP verification failed');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('OTP verification error:', error);
+      throw error;
+    } 
+  } ,
+  resetPassword: async (email, newPassword, confirmPassword , token) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/resetpassword`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, newPassword, confirmPassword , token})
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Password reset failed');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Password reset error:', error);
+      throw error;
+    }
+  }
 };
 
 // Helper function để lấy cookie

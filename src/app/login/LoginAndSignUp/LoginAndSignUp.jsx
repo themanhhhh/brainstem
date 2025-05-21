@@ -7,6 +7,7 @@ import { useAuth } from "../../context/AuthContext";
 import Style from "./LoginAndSignUp.module.css";
 import images from "../../img";
 import { Button } from "../../components/componentsindex.js";
+import Link from "next/link";
 
 const LoginAndSignUp = () => {
   const [formData, setFormData] = useState({
@@ -79,7 +80,7 @@ const LoginAndSignUp = () => {
                 disabled={loading}
               />
               <p>
-                <a href="/forgot-password">Forget password</a>
+                <Link href="/forgot-password">Forget password</Link>
               </p>
             </div>
 
@@ -97,6 +98,7 @@ const LoginAndSignUp = () => {
           </div>
 
           <Button 
+            onClick={handleSubmit}
             btnName={loading ? "Loading..." : "Continue"} 
             classStyle={Style.button}
             type="submit"
