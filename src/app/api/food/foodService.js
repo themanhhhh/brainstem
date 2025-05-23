@@ -12,7 +12,7 @@ export const foodService = {
         const token = getToken();
         if (!token) throw new Error('No authentication token found');
 
-        const response = await fetch(`${API_URL}/food/view?page=${page}&pageSize=${size}`, {
+        const response = await fetch(`${API_URL}/food/view?page=${page}&size=${size}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
@@ -27,7 +27,7 @@ export const foodService = {
         const token = getToken();
         if (!token) throw new Error('No authentication token found');
         
-        let url = `${API_URL}/food?page=${page}&pageSize=${pageSize}`;
+        let url = `${API_URL}/food/view?page=${page}&size=${pageSize}`;
         if (name) url += `&name=${encodeURIComponent(name)}`;
         if (categoryId) url += `&categoryId=${categoryId}`;
         if (state) url += `&state=${state}`;
@@ -54,7 +54,7 @@ export const foodService = {
         const token = getToken();
         if (!token) throw new Error('No authentication token found');
 
-        const response = await fetch(`${API_URL}/food/${id}`, {
+        const response = await fetch(`${API_URL}/food/view/${id}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
