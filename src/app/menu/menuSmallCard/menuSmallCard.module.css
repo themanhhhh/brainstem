@@ -21,6 +21,7 @@
 }
 .MenuCard_description {
     color: var(--font--color);
+    margin-top: 30px;
 }
 .MenuCard_right_price_box {
     margin-left: 20px;
@@ -42,4 +43,9 @@
 }
 .MenuCard_right_price_line_up{
     border-bottom: 1px solid var(--icons-color);
+}
+
+.MenuCard_img{
+    object-fit: cover;
+    border-radius: 50%;
 }

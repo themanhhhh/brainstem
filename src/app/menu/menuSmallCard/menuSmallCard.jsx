@@ -4,14 +4,24 @@ import Style from "./menuSmallCard.module.css";
 import Image from "next/image";
 import Link from "next/link";
 
-const menuSmallCard = ({id,name, price, description, image}) => {
+const MenuSmallCard = ({ id, name, price, description, image = null, imgUrl = null }) => {
+  // Sử dụng imgUrl từ API nếu có, ngược lại dùng image từ prop
+  const imageSource = imgUrl || image || "/placeholder-image.jpg";
+  
+  // Chuyển đổi price thành số nếu là chuỗi
+  const displayPrice = typeof price === 'number' 
+    ? price.toLocaleString('vi-VN') 
+    : price;
+  
   return (
     <Link href={`/product/${id}`}>
         <div className={Style.MenuCard}>
         <div className={Style.MenuCard_left}>
         <Image
-            src={image}
-            alt="abc"
+            src={imageSource}
+            alt={name}
+            width={100}
+            height={100}
             className={Style.MenuCard_img}
         />
         </div>
@@ -24,7 +34,7 @@ const menuSmallCard = ({id,name, price, description, image}) => {
                 <div className={Style.MenuCard_right_price_line_down}></div>
                 </div>
             <div className={Style.MenuCard_right_price_box}>
-                <p>{price}</p>
+                <p>{displayPrice} đ</p>
             </div>
             </div>
         </div>
@@ -35,4 +45,4 @@ const menuSmallCard = ({id,name, price, description, image}) => {
   )
 }
   
-export default menuSmallCard;
+export default MenuSmallCard;

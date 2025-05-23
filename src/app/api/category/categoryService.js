@@ -119,6 +119,12 @@ export const categoryService = {
 
     return response.json();
   },
+  getCategoryView: async () => {
+    const response = await fetch(`${API_URL}/category/view?state=ACTIVE`, {
+      
+    });
+    return response.json();
+  },
 };
 
 
