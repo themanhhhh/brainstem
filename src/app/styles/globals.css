@@ -8,6 +8,7 @@
   --bg-shadow-dark-color: #FEAE97; 
   --shadow-light-color: #3e3c6e; 
   --main-bg-color: #10100a; 
+  --main-bg-color-rgb: 16, 16, 10; /* RGB values for backdrop */
   --font--color:#AEB0B4;
   --overlay:  #2323255e;
 
@@ -25,6 +26,7 @@ body {
   font-size: 14px;
   background-color: var(--main-bg-color);
   color: azure;
+
 }
 
 a {

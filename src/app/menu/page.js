@@ -14,22 +14,60 @@ const MenuPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
+  // Function để scroll đến category cụ thể
+  const scrollToCategory = (categoryId) => {
+    const element = document.getElementById(`category-${categoryId}`);
+    if (element) {
+      // Tính toán offset để scroll đúng vị trí
+      const headerHeight = 80; // Chiều cao header/navbar
+      const extraOffset = 20; // Khoảng cách thêm cho đẹp
+      const elementPosition = element.offsetTop - headerHeight - extraOffset;
+      
+      // Smooth scroll
+      window.scrollTo({
+        top: elementPosition,
+        behavior: 'smooth'
+      });
+      
+      // Thêm hiệu ứng highlight tạm thời
+      element.style.transition = 'box-shadow 0.5s ease';
+      element.style.boxShadow = '0 0 20px rgba(170, 169, 123, 0.5)';
+      
+      // Xóa hiệu ứng sau 2 giây
+      setTimeout(() => {
+        element.style.boxShadow = 'none';
+      }, 2000);
+    }
+  };
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Lấy danh sách danh mục đang hoạt động
         const categoryResponse = await categoryService.getCategoryView();
         if (categoryResponse && categoryResponse.data) {
-          // Kiểm tra xem data có phải là array không, nếu có content thì lấy content, nếu không thì lấy data trực tiếp
+         
           const categoriesData = Array.isArray(categoryResponse.data) ? categoryResponse.data : categoryResponse.data.content;
           setCategories(categoriesData || []);
           console.log("Categories loaded:", categoriesData);
         }
         // Lấy danh sách món ăn
         const foodResponse = await foodService.getFoodView();
-        if (foodResponse && foodResponse.data) {
-          // Kiểm tra xem data có phải là array không, nếu có content thì lấy content, nếu không thì lấy data trực tiếp
-          const foodsData = Array.isArray(foodResponse.data) ? foodResponse.data : foodResponse.data.content;
+        console.log("Food response:", foodResponse);
+        
+        if (foodResponse) {
+          // Kiểm tra cấu trúc response - có thể là array trực tiếp hoặc wrapped trong data
+          let foodsData;
+          if (Array.isArray(foodResponse)) {
+            // Response trả về trực tiếp là array
+            foodsData = foodResponse;
+          } else if (foodResponse.data) {
+            // Response có wrapper data
+            foodsData = Array.isArray(foodResponse.data) ? foodResponse.data : foodResponse.data.content;
+          } else {
+            foodsData = [];
+          }
+          
           setFoods(foodsData || []);
           console.log("Foods loaded:", foodsData);
         }
@@ -49,7 +87,10 @@ const MenuPage = () => {
   return (
     <div className={Style.menu}>
       <Banner />
-      <MenuCategory categories={categories} />
+      <MenuCategory 
+        categories={categories} 
+        onCategoryClick={scrollToCategory}
+      />
 
       {categories && categories.length > 0 && 
         categories
@@ -59,12 +100,17 @@ const MenuPage = () => {
             console.log(`Category ${category.name} (ID: ${category.id}) has ${categoryFoods.length} foods:`, categoryFoods);
             
             return (
-              <MenuCard
+              <div 
                 key={category.id}
-                category={category.name}
-                items={categoryFoods}
-                className={idx % 2 === 0 ? Style.menuCardOdd : Style.menuCardEven}
-              />
+                id={`category-${category.id}`}
+                style={{ scrollMarginTop: '100px' }} // Offset để tránh bị che bởi fixed header
+              >
+                <MenuCard
+                  category={category.name}
+                  items={categoryFoods}
+                  className={idx % 2 === 0 ? Style.menuCardOdd : Style.menuCardEven}
+                />
+              </div>
             );
           })}
 

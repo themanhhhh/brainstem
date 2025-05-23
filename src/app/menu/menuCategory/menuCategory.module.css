@@ -72,10 +72,15 @@
   }
 
   .categoryItem:hover {
-    background-color: rgba(170, 169, 123, 0.1);
+    background-color: rgba(170, 169, 123, 0.15);
     backdrop-filter: blur(10px);
-    border-color: rgba(170, 169, 123, 0.3);
-    transform: scale(1.05);
+    border-color: rgba(170, 169, 123, 0.4);
+    transform: scale(1.05) translateY(-5px);
+    box-shadow: 0 8px 25px rgba(170, 169, 123, 0.3);
+  }
+  
+  .categoryItem:active {
+    transform: scale(1.02) translateY(-2px);
   }
   
   .categoryItem img {

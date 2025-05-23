@@ -127,12 +127,16 @@ export const foodService = {
     },
 
     getFoodView: async () => {
-        const token = getToken();
-        if (!token) throw new Error('No authentication token found');
-
         const response = await fetch(`${API_URL}/food/view?size=100&state=AVAILABLE`, {
-            
+            method: 'GET',
         }); 
         return response.json();
+    },
+
+    getFoodByIdView: async (id) => {
+        const response = await fetch(`${API_URL}/food/view/${id}`, {
+            method: 'GET',
+        });
+        return response.json(); 
     }
 };

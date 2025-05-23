@@ -1,7 +1,12 @@
 .navbar_body {
     background-color: transparent;
-    position: relative;
-    z-index: 2;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    background-color: rgba(var(--main-bg-color-rgb), 0.9);
 }
 
 .navbar {

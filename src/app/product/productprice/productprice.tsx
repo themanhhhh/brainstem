@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "../../components/componentsindex";
 import styles from "./productprice.module.css";
+import NumberCounter from "./NumberCounter";
 import { useCart } from "../../context/CartContext";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
@@ -63,7 +64,11 @@ const Price = ({ price, id, name, options, onQuantityChange, onOptionChange, onA
 
   return (
     <div className={styles.Price_container}>
-      <h2 className={styles.Price_totalPrice}>${total.toFixed(2)}</h2>
+      <NumberCounter 
+        value={total} 
+        duration={500}
+        className={styles.Price_totalPrice}
+      />
 
       {/* OPTIONS CONTAINER */}
       <div className={styles.Price_optionsContainer}>

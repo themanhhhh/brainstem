@@ -5,7 +5,7 @@ import Style from "./menuCategory.module.css";
 import Image from "next/image";
 import images from "../../img/index";
 
-const MenuCategory = ({ categories = [] }) => {
+const MenuCategory = ({ categories = [], onCategoryClick }) => {
   const [currentPage, setCurrentPage] = useState(0);
 
   // Danh sách hình ảnh mặc định cho các danh mục
@@ -53,6 +53,13 @@ const MenuCategory = ({ categories = [] }) => {
     }
   };
 
+  // Handle click category
+  const handleCategoryClick = (categoryId) => {
+    if (onCategoryClick) {
+      onCategoryClick(categoryId);
+    }
+  };
+
   return (
     <div className={Style.container}>
       <p>• TASTE THE BEST THAT SURPRISE YOU</p>
@@ -77,7 +84,12 @@ const MenuCategory = ({ categories = [] }) => {
               exit="exit"
             >
               {currentCategories.map((cat, idx) => (
-                <div key={cat.id} className={Style.categoryItem}>
+                <div 
+                  key={cat.id} 
+                  className={Style.categoryItem}
+                  onClick={() => handleCategoryClick(cat.id)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <Image
                     src={cat.imgUrl || defaultImages[idx % defaultImages.length]}
                     alt={cat.name}
