@@ -8,11 +8,11 @@ const getToken = () => {
 };
 
 export const categoryService = {
-  getCategories: async (page = 0, pageSize = 8) => {
+  getCategories: async (page = 0, pageSize = 10) => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
 
-    const response = await fetch(`${API_URL}/category?page=${page}&pageSize=${pageSize}`, {
+    const response = await fetch(`${API_URL}/category/view?page=${page}&pageSize=${pageSize}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -28,7 +28,7 @@ export const categoryService = {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
 
-    let url = `${API_URL}/category?page=${page}&pageSize=${pageSize}`;
+    let url = `${API_URL}/category/view?page=${page}&pageSize=${pageSize}`;
     if (name) url += `&name=${encodeURIComponent(name)}`;
     if (state) url += `&state=${state}`;
 
@@ -119,8 +119,8 @@ export const categoryService = {
 
     return response.json();
   },
-  getCategoryView: async () => {
-    const response = await fetch(`${API_URL}/category/view?state=ACTIVE`, {
+  getCategoryView: async (size = 100) => {
+    const response = await fetch(`${API_URL}/category/view?state=ACTIVE&size=${size}`, {
       
     });
     return response.json();

@@ -1,14 +1,12 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Style from "./menuCategory.module.css";
 import Image from "next/image";
 import images from "../../img/index";
 
 const MenuCategory = ({ categories = [] }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const slideRef = useRef(null);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
+  const [currentPage, setCurrentPage] = useState(0);
 
   // Danh sách hình ảnh mặc định cho các danh mục
   const defaultImages = [
@@ -20,68 +18,38 @@ const MenuCategory = ({ categories = [] }) => {
     images.specialmenu6,
   ];
 
-  // Số lượng item hiển thị trên màn hình
-  const [itemsToShow, setItemsToShow] = useState(4);
+  // Cố định 5 categories mỗi slide
+  const categoriesPerSlide = 5;
+  const totalPages = Math.ceil(categories.length / categoriesPerSlide);
 
-  // Cập nhật số lượng items hiển thị khi resize window
+  // Auto-slide
   useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 640) {
-        setItemsToShow(1);
-      } else if (window.innerWidth < 768) {
-        setItemsToShow(2);
-      } else if (window.innerWidth < 1024) {
-        setItemsToShow(3);
-      } else {
-        setItemsToShow(4);
-      }
-    };
+    const iv = setInterval(() => setCurrentPage(p => (p + 1) % totalPages), 4000);
+    return () => clearInterval(iv);
+  }, [totalPages]);
 
-    handleResize(); // Gọi ngay khi component mount
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const nextSlide = () => setCurrentPage(p => (p + 1) % totalPages);
+  const prevSlide = () => setCurrentPage(p => (p - 1 + totalPages) % totalPages);
+  const goToPage = i => setCurrentPage(i);
 
-  // Tự động chuyển slide sau mỗi 5 giây
-  useEffect(() => {
-    const interval = setInterval(() => {
-      nextSlide();
-    }, 5000);
+  // Lấy 5 categories cho trang hiện tại
+  const currentCategories = categories.slice(
+    currentPage * categoriesPerSlide,
+    currentPage * categoriesPerSlide + categoriesPerSlide
+  );
 
-    return () => clearInterval(interval);
-  }, [currentIndex, categories.length]);
-
-  // Xử lý chuyển slide
-  const nextSlide = () => {
-    if (categories.length <= itemsToShow) return;
-    setCurrentIndex((prevIndex) => 
-      prevIndex + 1 >= categories.length ? 0 : prevIndex + 1
-    );
-  };
-
-  const prevSlide = () => {
-    if (categories.length <= itemsToShow) return;
-    setCurrentIndex((prevIndex) => 
-      prevIndex - 1 < 0 ? categories.length - 1 : prevIndex - 1
-    );
-  };
-
-  // Xử lý sự kiện touch cho mobile
-  const handleTouchStart = (e) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (touchStart - touchEnd > 150) {
-      nextSlide();
-    }
-
-    if (touchStart - touchEnd < -150) {
-      prevSlide();
+  // Framer variants cho slide
+  const sliderVariants = {
+    hidden: { opacity: 0, x: 100 },
+    visible: { 
+      opacity: 1, 
+      x: 0, 
+      transition: { type: "spring", stiffness: 400, damping: 40, duration: 0.6 }
+    },
+    exit: { 
+      opacity: 0, 
+      x: -100, 
+      transition: { type: "spring", stiffness: 400, damping: 40, duration: 0.6 }
     }
   };
 
@@ -94,63 +62,48 @@ const MenuCategory = ({ categories = [] }) => {
       <p className={Style.subtitle}>
         Enjoy the unique dishes from the basilico restaurant that only our restaurant has, Fusce malesuada, lorem vitae euismod lobortis.
       </p>
-      
+
       <div className={Style.sliderContainer}>
-        {categories.length > itemsToShow && (
-          <button className={`${Style.sliderButton} ${Style.prevButton}`} onClick={prevSlide}>
-            &lt;
-          </button>
-        )}
-        
-        <div 
-          className={Style.categoryList}
-          ref={slideRef}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          style={{
-            transform: `translateX(-${currentIndex * (100 / itemsToShow)}%)`,
-            transition: 'transform 0.5s ease-in-out',
-            display: 'flex',
-          }}
-        >
-          {categories.map((category, index) => (
-            <div 
-              key={category.id} 
-              className={Style.categoryItem}
-              style={{ flex: `0 0 ${100 / itemsToShow}%` }}
+        <button className={Style.sliderButton} onClick={prevSlide}>&#8249;</button>
+
+        <div className={Style.sliderWrapper}>
+          <AnimatePresence initial={false} mode="wait">
+            <motion.div
+              key={currentPage}
+              className={Style.categoryList}
+              variants={sliderVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
             >
-              {/* Sử dụng ảnh từ API nếu có, nếu không thì dùng ảnh mặc định */}
-              <Image 
-                src={category.imgUrl || defaultImages[index % defaultImages.length]} 
-                alt={category.name} 
-                width={100}
-                height={100}
-              />
-              <span>{category.name}</span>
-            </div>
-          ))}
+              {currentCategories.map((cat, idx) => (
+                <div key={cat.id} className={Style.categoryItem}>
+                  <Image
+                    src={cat.imgUrl || defaultImages[idx % defaultImages.length]}
+                    alt={cat.name}
+                    width={120}
+                    height={120}
+                    style={{ borderRadius: '50%' }}
+                  />
+                  <span>{cat.name}</span>
+                </div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
         </div>
-        
-        {categories.length > itemsToShow && (
-          <button className={`${Style.sliderButton} ${Style.nextButton}`} onClick={nextSlide}>
-            &gt;
-          </button>
-        )}
+
+        <button className={Style.sliderButton} onClick={nextSlide}>&#8250;</button>
       </div>
-      
-      {/* Chỉ số trang */}
-      {categories.length > itemsToShow && (
-        <div className={Style.pagination}>
-          {Array.from({ length: Math.ceil(categories.length / itemsToShow) }).map((_, index) => (
-            <span 
-              key={index} 
-              className={`${Style.dot} ${Math.floor(currentIndex / itemsToShow) === index ? Style.activeDot : ''}`}
-              onClick={() => setCurrentIndex(index * itemsToShow)}
-            />
-          ))}
-        </div>
-      )}
+
+      <div className={Style.pagination}>
+        {Array.from({ length: totalPages }).map((_, i) => (
+          <span
+            key={i}
+            className={`${Style.dot} ${currentPage === i ? Style.activeDot : ""}`}
+            onClick={() => goToPage(i)}
+          />
+        ))}
+      </div>
     </div>
   );
 };
