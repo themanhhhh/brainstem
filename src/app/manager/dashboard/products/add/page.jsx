@@ -13,7 +13,7 @@ const AddFoodPage = () => {
     price: '',
     imgUrl: '',
     categoryId: '',
-    foodState: 'ACTIVE'
+    state: 'ACTIVE'
   });
 
   useEffect(() => {
@@ -58,7 +58,7 @@ const AddFoodPage = () => {
         price,
         formData.imgUrl,
         formData.categoryId,
-        formData.foodState
+        formData.state
       );
 
     
@@ -144,8 +144,8 @@ const AddFoodPage = () => {
         <div className={styles.formGroup}>
           <label>Status:</label>
           <select
-            name="foodState"
-            value={formData.foodState}
+            name="state"
+            value={formData.state}
             onChange={handleChange}
             required
           >

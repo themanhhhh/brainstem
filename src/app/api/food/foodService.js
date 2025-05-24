@@ -65,7 +65,7 @@ export const foodService = {
     },
 
     // Thêm món ăn mới
-    addFood: async (name, description, price, imgUrl, categoryId, foodState, quantity)  => {
+    addFood: async (name, description, price, imgUrl, categoryId, state, quantity)  => {
         const token = getToken();
         if (!token) throw new Error('No authentication token found');
 
@@ -81,7 +81,7 @@ export const foodService = {
                 price,
                 imgUrl,
                 categoryId,
-                foodState,
+                state,
                 quantity
             }),
         });

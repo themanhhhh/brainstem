@@ -11,6 +11,7 @@ const AddCategoryPage = () => {
     name: '',
     description: '',
     image: null,
+    state: 'ACTIVE',
     imageUrl: ''
   });
   const [loading, setLoading] = useState(false);
@@ -92,6 +93,19 @@ const AddCategoryPage = () => {
             onChange={handleImageChange}
             required
           />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label>Status:</label>
+          <select
+              name="state"
+              value={formData.state}
+              onChange={handleChange}
+              required
+          >
+            <option value="ACTIVE">ACTIVE</option>
+            <option value="INACTIVE">INACTIVE</option>
+          </select>
         </div>
 
         <div className={styles.buttonGroup}>

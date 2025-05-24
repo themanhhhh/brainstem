@@ -23,7 +23,7 @@ const Page = () => {
     price: '',
     imgUrl: '',
     categoryId: '',
-    foodState: ''
+    state: ''
   });
   const [showViewModal, setShowViewModal] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -129,7 +129,7 @@ const Page = () => {
       price: food.price || '',
       imgUrl: food.imgUrl || '',
       categoryId: food.categoryId || '',
-      foodState: food.foodState || ''
+      state: food.state || ''
     });
     setShowEditModal(true);
   };
@@ -144,7 +144,7 @@ const Page = () => {
         editForm.price,
         editForm.imgUrl,
         editForm.categoryId,
-        editForm.foodState
+        editForm.state
       );
       setShowEditModal(false);
       fetchFoods(currentPage, itemsPerPage);
@@ -334,8 +334,8 @@ const Page = () => {
               <div className={Style.formGroup}>
                 <label>Status:</label>
                 <select
-                  value={editForm.foodState}
-                  onChange={(e) => setEditForm({...editForm, foodState: e.target.value})}
+                  value={editForm.state}
+                  onChange={(e) => setEditForm({...editForm, state: e.target.value})}
                   required
                 >
                   <option value="ACTIVE">ACTIVE</option>
@@ -416,8 +416,8 @@ const Page = () => {
               </div>
               <div className={Style.detailItem}>
                 <label>Status:</label>
-                <span className={`${Style.status} ${selectedFood?.foodState === 'ACTIVE' ? Style.active : Style.inactive}`}>
-                  {selectedFood?.foodState}
+                <span className={`${Style.status} ${selectedFood?.state === 'ACTIVE' ? Style.active : Style.inactive}`}>
+                  {selectedFood?.state}
                 </span>
               </div>
               <div className={Style.detailItem}>

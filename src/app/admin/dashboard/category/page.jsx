@@ -27,7 +27,7 @@ const Page = () => {
     description: '',
     image: null,
     imgUrl: '',
-    state: 'ACTIVE'
+    state: ''
   });
   const { uploadToPinata, error: uploadError, openError } = useCart();
   

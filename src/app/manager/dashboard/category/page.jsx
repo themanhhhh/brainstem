@@ -110,7 +110,8 @@ const Page = () => {
     setSelectedCategory(category);
     setFormData({
       name: category.name || '',
-      description: category.description || ''
+      description: category.description || '',
+      state: category.state || 'ACTIVE'
     });
     setShowEditModal(true);
   };

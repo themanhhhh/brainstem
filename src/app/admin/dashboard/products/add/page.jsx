@@ -19,7 +19,7 @@ const AddFoodPage = () => {
     image: null,
     imgUrl: '',
     categoryId: '',
-    foodState: 'AVAILABLE',
+    state: 'AVAILABLE',
     quantity: 1
   });
 
@@ -86,7 +86,7 @@ const AddFoodPage = () => {
         price,
         imgUrl,
         formData.categoryId,
-        formData.foodState,
+        formData.state,
         quantity
       );
 
@@ -183,13 +183,13 @@ const AddFoodPage = () => {
         <div className={styles.formGroup}>
           <label>Status:</label>
           <select
-            name="foodState"
-            value={formData.foodState}
+            name="state"
+            value={formData.state}
             onChange={handleChange}
             required
           >
             <option value="AVAILABLE">AVAILABLE</option>
-            <option value="INAVAILABLE">INAVAILABLE</option>
+            <option value="IN_AVAILABLE">IN_AVAILABLE</option>
           </select>
         </div>
 
