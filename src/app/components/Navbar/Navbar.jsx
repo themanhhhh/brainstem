@@ -9,6 +9,7 @@ import {BsSearch} from "react-icons/bs";
 import {CgMenuLeft,CgMenuRight} from "react-icons/cg";
 import {DiJqueryLogo} from "react-icons/di";
 import { FaAngleDown } from "react-icons/fa6";
+import { MdPerson } from "react-icons/md";
 
 // Internal import
 import Style from "./Navbar.module.css";
@@ -27,7 +28,7 @@ const Navbar = () => {
     const [notification , setNotification] = useState(false);
     const [profile , setProfile] = useState(false);
     const [openSideMenu , setOpenSideMenu] = useState(false);
-    const { user, logout } = useAuth();
+    const { user, profile: userProfile, logout } = useAuth();
     const router = useRouter();
 
 
@@ -101,10 +102,34 @@ const Navbar = () => {
                     {user ? (
                         <div className={Style.navbar_container_right_profile_box} style={{zIndex: 10000000}}>
                             <div className={Style.navbar_container_right_profile}>
-                                <Image src={images.user} alt="Profile" width={40} height={40}
-                                onClick={()=> openProfile()}
-                                className={Style.navbar_container_right_profile}
-                                />
+                                {userProfile?.imgUrl && userProfile.imgUrl !== 'admin' ? (
+                                    <img 
+                                        src={userProfile.imgUrl} 
+                                        alt="Profile" 
+                                        width={40} 
+                                        height={40}
+                                        onClick={() => openProfile()}
+                                        className={Style.navbar_container_right_profile}
+                                        style={{ borderRadius: '50%', objectFit: 'cover' }}
+                                    />
+                                ) : (
+                                    <div 
+                                        onClick={() => openProfile()}
+                                        className={Style.navbar_container_right_profile}
+                                        style={{
+                                            width: '40px',
+                                            height: '40px',
+                                            borderRadius: '50%',
+                                            backgroundColor: '#f0f0f0',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        <MdPerson size={24} color="#666" />
+                                    </div>
+                                )}
                                 {profile && <Profile />}
                             </div>
                         </div>

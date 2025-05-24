@@ -55,7 +55,7 @@ const ordertableService = {
     return response.json();
   },
 
-  getActiveTable: async (page = 0, size = 10) => {
+  getActiveTable: async (page = 0, size = 100) => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
 
@@ -126,8 +126,22 @@ const ordertableService = {
       body: JSON.stringify({ state }),
     });
     return response.json();
-  }
+  },
 
+  createOrder: async (email , fullName , description , phoneNumber , periodType , tableId , orderTime , orderTableState ) => {
+    const token = getToken();
+    if (!token) throw new Error('No authentication token found');
+
+    const response = await fetch(`${API_URL}/order-table`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+      body: JSON.stringify({ email , fullName , description , phoneNumber , periodType , tableId , orderTime , orderTableState }),
+    });
+    return response.json();
+  }
 }
 
 export default ordertableService;

@@ -8,7 +8,6 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
     fullName: '',
     phoneNumber: '',
     email: '',
-    address: '',
     imgUrl: ''
   });
   const [selectedImage, setSelectedImage] = useState(null);
@@ -26,7 +25,6 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
         fullName: profile.fullName || '',
         phoneNumber: profile.phoneNumber || '',
         email: profile.email || '',
-        address: profile.address || '',
         imgUrl: profile.imgUrl || ''
       });
       setImagePreview(profile.imgUrl || '');
@@ -101,8 +99,8 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
         imageUrl = await uploadImage();
       }
 
-      const { fullName, phoneNumber, email, address } = formData;
-      await authService.updateProfile(fullName, phoneNumber, email, address, imageUrl);
+      const { fullName, phoneNumber, email } = formData;
+      await authService.updateProfile(fullName, phoneNumber, email, imageUrl);
       
       setMsg('Thông tin đã được cập nhật thành công!');
       setSelectedImage(null);
@@ -121,7 +119,6 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
       fullName: profile.fullName || '',
       phoneNumber: profile.phoneNumber || '',
       email: profile.email || '',
-      address: profile.address || '',
       imgUrl: profile.imgUrl || ''
     });
     setSelectedImage(null);
@@ -195,16 +192,6 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
             value={formData.phoneNumber}
             onChange={handleChange}
             placeholder="Enter your phone number"
-          />
-        </div>
-        <div className={styles.formGroup}>
-          <label>Address</label>
-          <input
-            type="text"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            placeholder="Enter your address"
           />
         </div>
         {error && <div className={styles.formMsg} style={{color:'#e11d48'}}>{error}</div>}

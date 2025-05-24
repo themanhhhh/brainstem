@@ -26,8 +26,21 @@ const removeCookie = (name) => {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  // Fetch profile function
+  const fetchProfile = async () => {
+    try {
+      const profileData = await authService.getProfile();
+      setProfile(profileData);
+      return profileData;
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      return null;
+    }
+  };
 
   useEffect(() => {
     // Kiểm tra token trong cookies
@@ -38,6 +51,9 @@ export function AuthProvider({ children }) {
       try {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
+        
+        // Fetch profile data for complete user information
+        fetchProfile();
         
         // Chỉ chuyển hướng khi cần thiết
         const currentPath = window.location.pathname;
@@ -102,6 +118,9 @@ export function AuthProvider({ children }) {
       setCookie('refreshToken', data.refreshToken, 7);
       setCookie('user', JSON.stringify(userData), 7);
 
+      // Fetch profile data after login
+      await fetchProfile();
+
       // Chuyển hướng dựa vào role
       if (userData.role === "ADMIN") {
         window.location.href = '/admin/dashboard';
@@ -124,6 +143,7 @@ export function AuthProvider({ children }) {
       console.error('Logout error:', error);
     } finally {
       setUser(null);
+      setProfile(null);
       removeCookie('token');
       removeCookie('user');
       removeCookie('refreshToken');
@@ -159,10 +179,12 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{ 
       user, 
+      profile,
       loading, 
       login, 
       logout,
       register,
+      fetchProfile,
       isAdmin, 
       isUser,
       isManager 

@@ -125,17 +125,15 @@ export const authService = {
     }
   },
 
-  updateProfile: async (fullName, phoneNumber, email, address, imgUrl = null) => {
+  updateProfile: async (fullName, phoneNumber, email, imgUrl = null) => {
     try {
       const token = getToken();
-      const profileData = { fullName, phoneNumber, email, address };
-      
+      const profileData = { fullName, phoneNumber, email };
       // Chỉ thêm imgUrl vào request nếu nó được cung cấp
       if (imgUrl) {
         profileData.imgUrl = imgUrl;
       }
-      
-      const response = await fetch(`${API_URL}/auth/profile`, {
+      const response = await fetch(`${API_URL}/auth/update-profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -143,13 +141,10 @@ export const authService = {
         },
         body: JSON.stringify(profileData)
       });
-
       const data = await response.json();
-
       if (!response.ok) { 
         throw new Error(data.message || 'Profile update failed');
       }
-
       return data;
     } catch (error) {
       console.error('Profile update error:', error);
@@ -202,7 +197,6 @@ export const authService = {
       throw error;
     }
   } ,
-
   verifyOtp: async (email, otp) => {
     try {
       const response = await fetch(`${API_URL}/auth/verifyotp`, {
@@ -248,7 +242,6 @@ export const authService = {
     }
   }
 };
-
 // Helper function để lấy cookie
 const getToken = () => {
   const value = `; ${document.cookie}`;

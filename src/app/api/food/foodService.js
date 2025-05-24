@@ -12,7 +12,7 @@ export const foodService = {
         const token = getToken();
         if (!token) throw new Error('No authentication token found');
 
-        const response = await fetch(`${API_URL}/food/view?page=${page}&size=${size}`, {
+        const response = await fetch(`${API_URL}/food/view?page=${page}&size=${size}&language=EN`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
@@ -54,7 +54,7 @@ export const foodService = {
         const token = getToken();
         if (!token) throw new Error('No authentication token found');
 
-        const response = await fetch(`${API_URL}/food/view/${id}`, {
+        const response = await fetch(`${API_URL}/food/view/${id}&language=EN`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
@@ -127,14 +127,14 @@ export const foodService = {
     },
 
     getFoodView: async () => {
-        const response = await fetch(`${API_URL}/food/view?size=100&state=AVAILABLE`, {
+        const response = await fetch(`${API_URL}/food/view?size=100&state=AVAILABLE&language=EN`, {
             method: 'GET',
         }); 
         return response.json();
     },
 
     getFoodByIdView: async (id) => {
-        const response = await fetch(`${API_URL}/food/view/${id}`, {
+        const response = await fetch(`${API_URL}/food/view/${id}&language=EN`, {
             method: 'GET',
         });
         return response.json(); 

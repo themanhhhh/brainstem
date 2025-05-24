@@ -6,6 +6,7 @@ import {
   MdOutlineChat,
   MdPublic,
   MdSearch,
+  MdPerson,
 } from "react-icons/md";
 import { useEffect, useState, useRef } from "react";
 import { authService } from "@/app/api/auth/authService";
@@ -61,14 +62,26 @@ const Navbar = () => {
             className={styles.avatarWrapper}
             onClick={() => setShowProfileMenu((v) => !v)}
           >
-            {profile && profile.avatarUrl ? (
+            {profile?.imgUrl && profile.imgUrl !== 'admin' ? (
               <img
-                src={profile.avatarUrl}
+                src={profile.imgUrl}
                 alt="avatar"
                 className={styles.avatarImg}
+                style={{ borderRadius: '50%', objectFit: 'cover' }}
               />
             ) : (
-              <MdPublic size={36} className={styles.avatarImg} />
+              <div 
+                className={styles.avatarImg}
+                style={{
+                  borderRadius: '50%',
+                  backgroundColor: '#f0f0f0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <MdPerson size={24} color="#666" />
+              </div>
             )}
             {profile && (
               <span className={styles.userName}>{profile.fullName || profile.username}</span>
