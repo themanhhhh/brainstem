@@ -62,7 +62,7 @@ const menuItems = [
         icon: <MdTableRestaurant />,
       },
       {
-        title: "Order",
+        title: "Order Table",
         path: "/admin/dashboard/order",
         icon: <RiListOrdered />,
       },

@@ -257,7 +257,7 @@ const Page = () => {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Create New Order</h1>
+      <h1 className={styles.title}>Create New Order Table</h1>
       
       {error && <div className={styles.error}>{error}</div>}
       {success && (

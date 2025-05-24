@@ -134,7 +134,7 @@ export const foodService = {
     },
 
     getFoodByIdView: async (id) => {
-        const response = await fetch(`${API_URL}/food/view/${id}&language=EN`, {
+        const response = await fetch(`${API_URL}/food/view/${id}?language=EN`, {
             method: 'GET',
         });
         return response.json(); 
