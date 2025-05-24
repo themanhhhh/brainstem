@@ -12,7 +12,7 @@ export const discountService = {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
 
-    const response = await fetch(`${API_URL}/discount?page=${page}&size=${size}`, {
+    const response = await fetch(`${API_URL}/discount/view?page=${page}&size=${size}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -28,7 +28,7 @@ export const discountService = {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
 
-    let url = `${API_URL}/discount?page=${page}&size=${size}`;
+    let url = `${API_URL}/discount/view?page=${page}&size=${size}`;
     if (name) url += `&name=${encodeURIComponent(name)}`;
     if (status) url += `&status=${status}`;
 
@@ -47,7 +47,7 @@ export const discountService = {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
 
-    const response = await fetch(`${API_URL}/discount/${id}`, {
+    const response = await fetch(`${API_URL}/discount/view/${id}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
