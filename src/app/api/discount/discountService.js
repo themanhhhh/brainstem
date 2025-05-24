@@ -8,11 +8,11 @@ const getToken = () => {
 };
 
 export const discountService = {
-  getDiscounts: async (page = 0, pageSize = 8) => {
+  getDiscounts: async (page = 0, size = 10) => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
 
-    const response = await fetch(`${API_URL}/discount?page=${page}&pageSize=${pageSize}`, {
+    const response = await fetch(`${API_URL}/discount?page=${page}&size=${size}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',

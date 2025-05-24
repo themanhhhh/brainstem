@@ -10,12 +10,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 const CartDropdown = () => {
   const { cartItems, removeFromCart, getCartTotal } = useCart();
 
+  const handleRemoveClick = (e, itemId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    removeFromCart(itemId);
+  };
+
+  const handleDropdownClick = (e) => {
+    e.stopPropagation(); // Prevent event bubbling to parent elements
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 10 }}
       className={styles.cartDropdown}
+      onClick={handleDropdownClick}
     >
       <div className={styles.cartHeader}>
         <h3>Your Cart</h3>
@@ -43,7 +54,7 @@ const CartDropdown = () => {
                   <p>${item.price.toFixed(2)} x {item.quantity}</p>
                 </div>
                 <button
-                  onClick={() => removeFromCart(item.id)}
+                  onClick={(e) => handleRemoveClick(e, item.id)}
                   className={styles.removeButton}
                 >
                   <FaTrash />

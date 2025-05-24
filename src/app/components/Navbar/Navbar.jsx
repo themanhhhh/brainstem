@@ -93,9 +93,9 @@ const Navbar = () => {
                     </div>
           
                     {/*Cart Icon*/}
-                    <Link href="/cart" className={Style.navbar_container_right_cart} style={{zIndex: 10000000}}>
+                    <div className={Style.navbar_container_right_cart} style={{zIndex: 10000000}}>
                         <CartIcon />
-                    </Link>
+                    </div>
 
                     {/*User profile hoặc Login Button*/}
                     {user ? (

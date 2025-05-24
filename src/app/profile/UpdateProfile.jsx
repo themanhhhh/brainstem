@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import styles from './profile.module.css';
 import { authService } from '@/app/api/auth/authService';
+import { useCart } from '../context/CartContext';
 
 const UpdateProfile = ({ profile, onProfileUpdated }) => {
   const [formData, setFormData] = useState({
     fullName: '',
     phoneNumber: '',
     email: '',
-    address: ''
+    address: '',
+    imgUrl: ''
   });
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
   const [error, setError] = useState('');
+
+  const { uploadToPinata } = useCart();
 
   useEffect(() => {
     if (profile) {
@@ -19,8 +26,10 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
         fullName: profile.fullName || '',
         phoneNumber: profile.phoneNumber || '',
         email: profile.email || '',
-        address: profile.address || ''
+        address: profile.address || '',
+        imgUrl: profile.imgUrl || ''
       });
+      setImagePreview(profile.imgUrl || '');
     }
   }, [profile]);
 
@@ -32,15 +41,72 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
     }));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Vui lòng chọn file ảnh hợp lệ');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Kích thước ảnh không được vượt quá 5MB');
+        return;
+      }
+
+      setSelectedImage(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result;
+        if (typeof result === 'string') {
+          setImagePreview(result);
+        }
+      };
+      reader.readAsDataURL(file);
+      setError('');
+    }
+  };
+
+  const uploadImage = async () => {
+    if (!selectedImage) return formData.imgUrl;
+
+    setUploadingImage(true);
+    try {
+      const imageUrl = await uploadToPinata(selectedImage);
+      setFormData(prev => ({ ...prev, imgUrl: imageUrl }));
+      return imageUrl;
+    } catch (error) {
+      setError('Không thể upload ảnh. Vui lòng thử lại.');
+      throw error;
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMsg('');
     setError('');
     setLoading(true);
+    
     try {
+      let imageUrl = formData.imgUrl;
+      
+      // Upload image if new image is selected
+      if (selectedImage) {
+        imageUrl = await uploadImage();
+      }
+
       const { fullName, phoneNumber, email, address } = formData;
-      await authService.updateProfile(fullName, phoneNumber, email, address);
+      await authService.updateProfile(fullName, phoneNumber, email, address, imageUrl);
+      
       setMsg('Thông tin đã được cập nhật thành công!');
+      setSelectedImage(null);
+      
       if (onProfileUpdated) {
         onProfileUpdated(); // Để fetch lại profile mới từ server
       }
@@ -50,10 +116,55 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
     setLoading(false);
   };
 
+  const resetForm = () => {
+    setFormData({
+      fullName: profile.fullName || '',
+      phoneNumber: profile.phoneNumber || '',
+      email: profile.email || '',
+      address: profile.address || '',
+      imgUrl: profile.imgUrl || ''
+    });
+    setSelectedImage(null);
+    setImagePreview(profile.imgUrl || '');
+    setError('');
+    setMsg('');
+  };
+
   return (
     <div className={styles.card}>
       <div className={styles.cardTitle}>Update Your Profile</div>
       <form className={styles.form} onSubmit={handleSubmit}>
+        {/* Avatar Upload Section */}
+        <div className={styles.formGroup}>
+          <label>Profile Avatar</label>
+          <div className={styles.avatarUpload}>
+            <div className={styles.avatarPreview}>
+              {imagePreview ? (
+                <img src={imagePreview} alt="Profile Preview" className={styles.avatarImage} />
+              ) : (
+                <div className={styles.avatarPlaceholder}>
+                  <span>No Image</span>
+                </div>
+              )}
+            </div>
+            <div className={styles.avatarUploadControls}>
+              <input
+                type="file"
+                id="avatar"
+                accept="image/*"
+                onChange={handleImageChange}
+                className={styles.fileInput}
+              />
+              <label htmlFor="avatar" className={styles.uploadBtn}>
+                Choose Image
+              </label>
+              {selectedImage && (
+                <span className={styles.fileName}>{selectedImage.name}</span>
+              )}
+            </div>
+          </div>
+        </div>
+
         <div className={styles.formGroup}>
           <label>Full Name</label>
           <input
@@ -99,16 +210,11 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
         {error && <div className={styles.formMsg} style={{color:'#e11d48'}}>{error}</div>}
         {msg && <div className={styles.formMsg}>{msg}</div>}
         <div className={styles.formActions}>
-          <button type="button" className={styles.cancelBtn} onClick={() => setFormData({
-            fullName: profile.fullName || '',
-            phoneNumber: profile.phoneNumber || '',
-            email: profile.email || '',
-            address: profile.address || ''
-          })}>
+          <button type="button" className={styles.cancelBtn} onClick={resetForm}>
             Cancel
           </button>
-          <button type="submit" className={styles.saveBtn} disabled={loading}>
-            {loading ? 'Saving...' : 'Save'}
+          <button type="submit" className={styles.saveBtn} disabled={loading || uploadingImage}>
+            {loading ? 'Saving...' : uploadingImage ? 'Uploading...' : 'Save'}
           </button>
         </div>
       </form>

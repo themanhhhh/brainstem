@@ -125,16 +125,23 @@ export const authService = {
     }
   },
 
-  updateProfile: async (fullName, phoneNumber, email, address) => {
+  updateProfile: async (fullName, phoneNumber, email, address, imgUrl = null) => {
     try {
       const token = getToken();
+      const profileData = { fullName, phoneNumber, email, address };
+      
+      // Chỉ thêm imgUrl vào request nếu nó được cung cấp
+      if (imgUrl) {
+        profileData.imgUrl = imgUrl;
+      }
+      
       const response = await fetch(`${API_URL}/auth/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ fullName, phoneNumber, email, address })
+        body: JSON.stringify(profileData)
       });
 
       const data = await response.json();

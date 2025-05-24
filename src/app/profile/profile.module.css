@@ -372,3 +372,110 @@
 .userStatus.inactive {
   color: #f43f5e;
 }
+
+/* Avatar Upload Styles */
+.avatarUpload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  background-color: #fafafa;
+  transition: all 0.3s ease;
+}
+
+.avatarUpload:hover {
+  border-color: #2563eb;
+  background-color: #f8faff;
+}
+
+.avatarPreview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #e0e0e0;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background-color: #f5f5f5;
+  color: #999;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.avatarUploadControls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fileInput {
+  display: none;
+}
+
+.uploadBtn {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--icons-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.uploadBtn:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.fileName {
+  font-size: 0.8rem;
+  color: #666;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .avatarUpload {
+    padding: 0.75rem;
+  }
+  
+  .avatarPreview {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .uploadBtn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+}
