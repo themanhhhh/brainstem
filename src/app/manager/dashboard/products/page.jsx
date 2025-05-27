@@ -4,10 +4,11 @@ import Style from "./products.module.css";
 import { Pagination, Search } from "../../ui/dashboard/dashboardindex";
 import Image from "next/image";
 import Link from "next/link";
-import { foodService } from "../../../api/food/foodService";
+import { useLanguageService } from "../../../hooks/useLanguageService";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 
 const Page = () => {
+  const { foodService, categoryService, language } = useLanguageService();
   const [searchTerm, setSearchTerm] = useState("");
   const [foods, setFoods] = useState([]);
   const [metadata, setMetadata] = useState(null);
@@ -44,6 +45,12 @@ const Page = () => {
     fetchFoods(currentPage, itemsPerPage);
     fetchCategories();
   }, [currentPage, itemsPerPage]);
+
+  // Effect để gọi lại API khi ngôn ngữ thay đổi
+  useEffect(() => {
+    fetchFoods(currentPage, itemsPerPage);
+    fetchCategories();
+  }, [language]); // Thêm language vào dependency
 
   useEffect(() => {
     const timerId = setTimeout(() => {
@@ -96,7 +103,7 @@ const Page = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await foodService.getCategories();
+      const response = await categoryService.getActiveCategories();
       const categoryData = Array.isArray(response) ? response : response.data || [];
       setCategories(categoryData);
     } catch (err) {

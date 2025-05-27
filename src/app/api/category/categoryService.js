@@ -8,11 +8,11 @@ const getToken = () => {
 };
 
 export const categoryService = {
-  getCategories: async (page = 0, pageSize = 10) => {
+  getCategories: async (page = 0, pageSize = 10, language = 'EN') => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
 
-    const response = await fetch(`${API_URL}/category/view?page=${page}&size=${pageSize}`, {
+    const response = await fetch(`${API_URL}/category/view?page=${page}&size=${pageSize}&language=${language}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -24,11 +24,11 @@ export const categoryService = {
   },
 
   // Get categories with filter options
-  getAllCategories: async (name = '', state = null, page = 0, pageSize = 10) => {
+  getAllCategories: async (name = '', state = null, page = 0, pageSize = 10, language = 'EN') => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
 
-    let url = `${API_URL}/category/view?page=${page}&size=${pageSize}`;
+    let url = `${API_URL}/category/view?page=${page}&size=${pageSize}&language=${language}`;
     if (name) url += `&name=${encodeURIComponent(name)}`;
     if (state) url += `&state=${state}`;
 
@@ -43,11 +43,11 @@ export const categoryService = {
     return response.json();
   },
 
-  getCategoryById: async (id) => {
+  getCategoryById: async (id, language = 'EN') => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
 
-    const response = await fetch(`${API_URL}/category/view/${id}`, {
+    const response = await fetch(`${API_URL}/category/view/${id}?language=${language}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -74,11 +74,11 @@ export const categoryService = {
     return response.json();
   },
 
-  updateCategory: async (id, category) => {
+  updateCategory: async (id, category , language = 'EN') => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
 
-    const response = await fetch(`${API_URL}/category/${id}`, {
+    const response = await fetch(`${API_URL}/category/${id}?language=${language}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -119,8 +119,8 @@ export const categoryService = {
 
     return response.json();
   },
-  getCategoryView: async (size = 100) => {
-    const response = await fetch(`${API_URL}/category/view?state=ACTIVE&size=${size}&language=EN`, {
+  getCategoryView: async (size = 100 , language = 'EN') => {
+    const response = await fetch(`${API_URL}/category/view?state=ACTIVE&size=${size}&language=${language}`, {
       method: 'GET',  
     });
     return response.json();

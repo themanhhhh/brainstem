@@ -27,15 +27,12 @@ const MenuSmallCard = ({ id, name, price, description, image = null, imgUrl = nu
         </div>
         <div className={Style.MenuCard_right}>
         <div className={Style.MenuCard_right_name_price}>
-            <h3 className={Style.MenuCard_title}>{name}</h3>
+            <h3 className={Style.MenuCard_title}><p>{name}</p></h3>
             <div className={Style.MenuCard_price}>
-            <div className={Style.MenuCard_right_price_line}>
-                <div className={Style.MenuCard_right_price_line_up}></div>
-                <div className={Style.MenuCard_right_price_line_down}></div>
-                </div>
-            <div className={Style.MenuCard_right_price_box}>
-                <p>{displayPrice} đ</p>
-            </div>
+              
+              <div className={Style.MenuCard_right_price_box}>
+                  <p>{displayPrice} $</p>
+              </div>
             </div>
         </div>
         <p className={Style.MenuCard_description}>{description}</p>

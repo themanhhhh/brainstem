@@ -1,20 +1,22 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Style from "./category.module.css";
-import { categoryService } from "../../../api/category/categoryService";
+import { useLanguageService } from "../../../hooks/useLanguageService";
 import { Pagination, FilterableSearch } from "../../ui/dashboard/dashboardindex";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useCart } from "../../../context/CartContext";
 import Image from "next/image";
 import LogoutButton from "@/app/components/LogoutButton/LogoutButton";
+import Link from "next/link";
 
 const Page = () => {
+  const { categoryService, language } = useLanguageService();
   const [categories, setCategories] = useState([]);
   const [activeCategories, setActiveCategories] = useState([]);
   const [metadata, setMetadata] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
+
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -47,6 +49,12 @@ const Page = () => {
   useEffect(() => {
     fetchCategories(currentPage, itemsPerPage, nameFilter, statusFilter);
   }, [currentPage, itemsPerPage, nameFilter, statusFilter]);
+
+  // Effect để gọi lại API khi ngôn ngữ thay đổi
+  useEffect(() => {
+    fetchCategories(currentPage, itemsPerPage, nameFilter, statusFilter);
+    fetchActiveCategories();
+  }, [language]); // Thêm language vào dependency
 
   useEffect(() => {
     const timerId = setTimeout(() => {
@@ -143,12 +151,6 @@ const Page = () => {
     updateFilters({ status });
   };
 
-  const handleAdd = () => {
-    // Fetch active categories when opening the Add modal
-    fetchActiveCategories();
-    setFormData({ name: '', description: '', image: null, imgUrl: '', state: 'ACTIVE' });
-    setShowAddModal(true);
-  };
 
   const handleEdit = async (category) => {
     try {
@@ -206,29 +208,7 @@ const Page = () => {
     }));
   };
 
-  const handleAddSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      let categoryData = {
-        name: formData.name,
-        description: formData.description,
-        state: formData.state
-      };
-      
-      // Upload image if selected
-      if (formData.image) {
-        const imgUrl = await uploadToPinata(formData.image);
-        categoryData.imgUrl = imgUrl;
-      }
-      
-      await categoryService.addCategory(categoryData);
-      setShowAddModal(false);
-      fetchCategories(currentPage, itemsPerPage);
-    } catch (err) {
-      console.error("Error adding category:", err);
-      setError("Failed to add category");
-    }
-  };
+  
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
@@ -247,7 +227,7 @@ const Page = () => {
         categoryData.imgUrl = formData.imgUrl;
       }
       
-      await categoryService.updateCategory(selectedCategory.id, categoryData);
+      await categoryService.updateCategory(selectedCategory.id, categoryData, language);
       setShowEditModal(false);
       fetchCategories(currentPage, itemsPerPage);
     } catch (err) {
@@ -293,9 +273,9 @@ const Page = () => {
               { value: 'INACTIVE', label: 'Inactive' }
             ]}
           />
-          <button className={Style.addButton} onClick={handleAdd}>
+          <Link href="/admin/dashboard/category/add" className={Style.addButton}>
             Add New Category
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -373,65 +353,7 @@ const Page = () => {
       </div>
 
       {/* Add Modal */}
-      {showAddModal && (
-        <div className={Style.modalOverlay}>
-          <div className={Style.modal}>
-            <h2>Add New Category</h2>
-            <form onSubmit={handleAddSubmit}>
-              <div className={Style.formGroup}>
-                <label>Name:</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  required
-                />
-              </div>
-              <div className={Style.formGroup}>
-                <label>Description:</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  required
-                />
-              </div>
-              <div className={Style.formGroup}>
-                <label>Upload Image:</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                />
-              </div>
-              <div className={Style.formGroup}>
-                <label>Status:</label>
-                <select 
-                  className={`${Style.statusSelect}`}
-                  value={formData.state}
-                  onChange={(e) => setFormData({...formData, state: e.target.value})}
-                >
-                  <option value="ACTIVE">ACTIVE</option>
-                  <option value="INACTIVE">INACTIVE</option>
-                </select>
-              </div>
-              
-              
-              
-              <div className={Style.modalButtons}>
-                <button type="submit" className={Style.saveButton}>Add Category</button>
-                <button 
-                  type="button" 
-                  className={Style.cancelButton}
-                  onClick={() => setShowAddModal(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-              {openError && <div className={Style.error}>{uploadError}</div>}
-            </form>
-          </div>
-        </div>
-      )}
+      
 
       {/* Edit Modal */}
       {showEditModal && (

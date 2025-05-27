@@ -1,10 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import styles from "./add.module.css";
-import { foodService } from "../../../../api/food/foodService";
+import { useLanguageService } from "../../../../hooks/useLanguageService";
 import { useRouter } from "next/navigation";
 
 const AddFoodPage = () => {
+  const { foodService, categoryService, language } = useLanguageService();
   const router = useRouter();
   const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
@@ -20,9 +21,14 @@ const AddFoodPage = () => {
     fetchCategories();
   }, []);
 
+  // Effect để gọi lại API khi ngôn ngữ thay đổi
+  useEffect(() => {
+    fetchCategories();
+  }, [language]);
+
   const fetchCategories = async () => {
     try {
-      const response = await foodService.getCategories();
+      const response = await categoryService.getActiveCategories();
       const categoryData = Array.isArray(response) ? response : response.data || [];
       setCategories(categoryData);
     } catch (err) {

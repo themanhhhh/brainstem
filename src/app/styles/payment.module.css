@@ -43,6 +43,170 @@
   color: #333;
   font-size: 1.2rem;
   margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sectionIcon {
+  color: #2563eb;
+}
+
+/* Discount Styles */
+.discountList {
+  display: grid;
+  gap: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.discountCard {
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+}
+
+.discountCard:hover {
+  border-color: #2563eb;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+}
+
+.discountCardDisabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.discountCardDisabled:hover {
+  border-color: #e2e8f0;
+  box-shadow: none;
+}
+
+.discountHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.ineligibleBadge {
+  background: #ef4444;
+  color: white;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.discountIcon {
+  color: #2563eb;
+  font-size: 1rem;
+}
+
+.discountName {
+  font-weight: 600;
+  color: #333;
+  font-size: 1rem;
+}
+
+.discountDetails {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.discountValue {
+  background: #2563eb;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.minOrder {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.minOrderNotMet {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.discountDescription {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.maxDiscount {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0.5rem 0 0 0;
+  font-style: italic;
+}
+
+.selectedDiscount {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f0f9ff;
+  border: 2px solid #2563eb;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.discountInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.discountInfo span:first-of-type {
+  font-weight: 600;
+  color: #333;
+}
+
+.selectedDiscount .discountValue {
+  background: #28a745;
+}
+
+.removeDiscount {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.removeDiscount:hover {
+  background: #dc2626;
+}
+
+.loadingDiscounts {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.noDiscounts {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+  font-style: italic;
 }
 
 .inputGroup {
@@ -176,4 +340,322 @@
   .addressDetails {
     grid-template-columns: 1fr;
   }
+
+  .discountList {
+    max-height: 200px;
+  }
+
+  .discountDetails {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .discountModal {
+    max-width: 95vw;
+    max-height: 90vh;
+    margin: 0.5rem;
+  }
+
+  .modalHeader {
+    padding: 1rem;
+  }
+
+  .modalContent {
+    padding: 1rem;
+  }
+
+  .modalHeader h3 {
+    font-size: 1.1rem;
+  }
+
+  .addDiscountBtn {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .appliedDiscount {
+    padding: 0.75rem;
+  }
+
+  .discountRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .removeDiscountBtn {
+    align-self: flex-end;
+  }
+
+  .textArea {
+    min-height: 60px;
+    font-size: 0.9rem;
+  }
+
+  .selectInput {
+    font-size: 0.9rem;
+  }
+
+  .formSection h2 {
+    font-size: 1.1rem;
+  }
+
+  .payButton {
+    font-size: 1rem;
+    padding: 0.875rem;
+  }
+}
+
+/* Discount Section in Order Summary */
+.discountSection {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.addDiscountBtn {
+  width: 100%;
+  background: #f8f9fa;
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.addDiscountBtn:hover {
+  background: #e9ecef;
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.appliedDiscount {
+  background: #f0f9ff;
+  border: 2px solid #2563eb;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.discountRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.discountInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.removeDiscountBtn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.removeDiscountBtn:hover {
+  background: #dc2626;
+}
+
+.appliedDiscount .discountValue {
+  background: #28a745;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.discountModal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  max-width: 600px;
+  width: 100%;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #eee;
+  background: #f8f9fa;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.closeModal {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #666;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.closeModal:hover {
+  background: #e9ecef;
+  color: #333;
+}
+
+.modalContent {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modalContent .discountList {
+  display: grid;
+  gap: 1rem;
+  max-height: none;
+}
+
+.textArea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+  transition: all 0.2s;
+}
+
+.textArea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.selectInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.selectInput:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.payButton:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.payButton:disabled:hover {
+  background: #9ca3af;
+}
+
+.selectedAddressInfo {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.selectedAddressInfo h4 {
+  margin: 0 0 0.5rem 0;
+  color: #0369a1;
+  font-size: 0.9rem;
+}
+
+.selectedAddressInfo p {
+  margin: 0.25rem 0;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.manualAddressToggle {
+  margin-top: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.manualAddressToggle summary {
+  padding: 0.75rem 1rem;
+  background: #f9fafb;
+  cursor: pointer;
+  font-weight: 500;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.2s;
+}
+
+.manualAddressToggle summary:hover {
+  background: #f3f4f6;
+}
+
+.manualAddressToggle[open] summary {
+  background: #e5e7eb;
+}
+
+.manualAddressInputs {
+  padding: 1rem;
+  background: white;
+}
+
+.addressDetails {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
 } 

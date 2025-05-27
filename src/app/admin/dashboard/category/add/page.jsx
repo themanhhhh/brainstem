@@ -1,20 +1,22 @@
 "use client";
 import React, { useState } from 'react';
 import styles from './add.module.css';
-import { useCart } from '../../../../context/CartContext';
+import { useLanguageService } from "../../../../hooks/useLanguageService";
 import { useRouter } from 'next/navigation';
+import { useCart } from '../../../../context/CartContext';
 
 const AddCategoryPage = () => {
+  const { categoryService, language } = useLanguageService();
   const router = useRouter();
   const { uploadToPinata, error, openError } = useCart();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     image: null,
-    state: 'ACTIVE',
-    imageUrl: ''
+    imgUrl: '',
+    state: 'ACTIVE'
   });
-  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -37,23 +39,27 @@ const AddCategoryPage = () => {
     setLoading(true);
 
     try {
-      let imageUrl = formData.imageUrl;
-      if (formData.image) {
-        imageUrl = await uploadToPinata(formData.image);
+      if (!formData.name || !formData.description) {
+        throw new Error('Please fill in all required fields');
       }
 
-      // TODO: Add your API call to save the category
-      console.log({
+      let imgUrl = formData.imgUrl;
+      if (formData.image) {
+        imgUrl = await uploadToPinata(formData.image);
+      }
+
+      await categoryService.addCategory({
         name: formData.name,
         description: formData.description,
-        imageUrl
+        imgUrl,
+        state: formData.state
       });
 
       alert('Category added successfully!');
       router.push('/admin/dashboard/category');
     } catch (error) {
       console.error('Error adding category:', error);
-      alert('Failed to add category. Please try again.');
+      alert(error.message || 'Failed to add category. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -98,10 +104,10 @@ const AddCategoryPage = () => {
         <div className={styles.formGroup}>
           <label>Status:</label>
           <select
-              name="state"
-              value={formData.state}
-              onChange={handleChange}
-              required
+            name="state"
+            value={formData.state}
+            onChange={handleChange}
+            required
           >
             <option value="ACTIVE">ACTIVE</option>
             <option value="INACTIVE">INACTIVE</option>

@@ -5,10 +5,10 @@ import Style from "../styles/menu.module.css";
 import Banner from "./Banner/Banner";
 import MenuCategory from "./menuCategory/menuCategory";
 import MenuCard from "./menuCard/menuCard";
-import { foodService } from "../api/food/foodService";
-import { categoryService } from "../api/category/categoryService";
+import { useLanguageService } from "../hooks/useLanguageService";
 
 const MenuPage = () => {
+  const { foodService, categoryService, language } = useLanguageService();
   const [categories, setCategories] = useState([]);
   const [foods, setFoods] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,46 +40,49 @@ const MenuPage = () => {
     }
   };
   
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Lấy danh sách danh mục đang hoạt động
-        const categoryResponse = await categoryService.getCategoryView();
-        if (categoryResponse && categoryResponse.data) {
-         
-          const categoriesData = Array.isArray(categoryResponse.data) ? categoryResponse.data : categoryResponse.data.content;
-          setCategories(categoriesData || []);
-          console.log("Categories loaded:", categoriesData);
-        }
-        // Lấy danh sách món ăn
-        const foodResponse = await foodService.getFoodView();
-        console.log("Food response:", foodResponse);
-        
-        if (foodResponse) {
-          // Kiểm tra cấu trúc response - có thể là array trực tiếp hoặc wrapped trong data
-          let foodsData;
-          if (Array.isArray(foodResponse)) {
-            // Response trả về trực tiếp là array
-            foodsData = foodResponse;
-          } else if (foodResponse.data) {
-            // Response có wrapper data
-            foodsData = Array.isArray(foodResponse.data) ? foodResponse.data : foodResponse.data.content;
-          } else {
-            foodsData = [];
-          }
-          
-          setFoods(foodsData || []);
-          console.log("Foods loaded:", foodsData);
-        }
-        setLoading(false);
-      } catch (err) {
-        console.error("Lỗi khi lấy dữ liệu:", err);
-        setError("Không thể tải dữ liệu. Vui lòng thử lại sau.");
-        setLoading(false);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      // Lấy danh sách danh mục đang hoạt động
+      const categoryResponse = await categoryService.getCategoryView();
+      if (categoryResponse && categoryResponse.data) {
+       
+        const categoriesData = Array.isArray(categoryResponse.data) ? categoryResponse.data : categoryResponse.data.content;
+        setCategories(categoriesData || []);
+        console.log("Categories loaded:", categoriesData);
       }
-    };
+      // Lấy danh sách món ăn
+      const foodResponse = await foodService.getFoodView();
+      console.log("Food response:", foodResponse);
+      
+      if (foodResponse) {
+        // Kiểm tra cấu trúc response - có thể là array trực tiếp hoặc wrapped trong data
+        let foodsData;
+        if (Array.isArray(foodResponse)) {
+          // Response trả về trực tiếp là array
+          foodsData = foodResponse;
+        } else if (foodResponse.data) {
+          // Response có wrapper data
+          foodsData = Array.isArray(foodResponse.data) ? foodResponse.data : foodResponse.data.content;
+        } else {
+          foodsData = [];
+        }
+        
+        setFoods(foodsData || []);
+        console.log("Foods loaded:", foodsData);
+      }
+      setError(null);
+    } catch (err) {
+      console.error("Lỗi khi lấy dữ liệu:", err);
+      setError("Không thể tải dữ liệu. Vui lòng thử lại sau.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
     fetchData();
-  }, []);
+  }, [language]); // Thêm language vào dependency để gọi lại API khi đổi ngôn ngữ
 
   if (loading) return <div className={Style.loading}>Đang tải...</div>;
   if (error) return <div className={Style.error}>{error}</div>;

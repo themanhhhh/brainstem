@@ -1,11 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Style from "./category.module.css";
-import { categoryService } from "../../../api/category/categoryService";
+import { useLanguageService } from "../../../hooks/useLanguageService";
 import { Pagination, Search } from "../../ui/dashboard/dashboardindex";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 
 const Page = () => {
+  const { categoryService, language } = useLanguageService();
   const [categories, setCategories] = useState([]);
   const [metadata, setMetadata] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -19,7 +20,8 @@ const Page = () => {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [formData, setFormData] = useState({
     name: '',
-    description: ''
+    description: '',
+    state: 'ACTIVE'
   });
   const [itemsPerPage, setItemsPerPage] = useState(8);
   
@@ -35,6 +37,11 @@ const Page = () => {
   useEffect(() => {
     fetchCategories(currentPage, itemsPerPage);
   }, [currentPage, itemsPerPage]);
+
+  // Effect để gọi lại API khi ngôn ngữ thay đổi
+  useEffect(() => {
+    fetchCategories(currentPage, itemsPerPage);
+  }, [language]); // Thêm language vào dependency
 
   useEffect(() => {
     const timerId = setTimeout(() => {
@@ -102,7 +109,7 @@ const Page = () => {
   });
 
   const handleAdd = () => {
-    setFormData({ name: '', description: '' });
+    setFormData({ name: '', description: '', state: 'ACTIVE' });
     setShowAddModal(true);
   };
 

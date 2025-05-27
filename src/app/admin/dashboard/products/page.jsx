@@ -4,13 +4,13 @@ import Style from "./products.module.css";
 import { Pagination, FilterableSearch } from "../../ui/dashboard/dashboardindex";
 import Image from "next/image";
 import Link from "next/link";
-import { foodService } from "../../../api/food/foodService";
-import { categoryService } from "../../../api/category/categoryService";
+import { useLanguageService } from "../../../hooks/useLanguageService";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useCart } from "../../../context/CartContext";
 import LogoutButton from "../../../components/LogoutButton/LogoutButton";
 
 const Page = () => {
+  const { foodService, categoryService, language } = useLanguageService();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -59,6 +59,13 @@ const Page = () => {
     fetchFoods(currentPage, itemsPerPage, nameFilter, categoryFilter, statusFilter);
     fetchActiveCategories();
   }, [currentPage, itemsPerPage, nameFilter, categoryFilter, statusFilter]);
+
+  // Effect để gọi lại API khi ngôn ngữ thay đổi
+  useEffect(() => {
+    fetchFoods(currentPage, itemsPerPage, nameFilter, categoryFilter, statusFilter);
+    fetchCategories();
+    fetchActiveCategories();
+  }, [language]); // Thêm language vào dependency
 
   useEffect(() => {
     const timerId = setTimeout(() => {
@@ -267,7 +274,8 @@ const Page = () => {
         imgUrl,
         editForm.categoryId,
         editForm.state,
-        editForm.quantity
+        editForm.quantity,
+        language
       );
       setShowEditModal(false);
       fetchFoods(currentPage, itemsPerPage, nameFilter, categoryFilter, statusFilter);

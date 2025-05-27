@@ -1,12 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import styles from "./add.module.css";
-import { foodService } from "../../../../api/food/foodService";
-import { categoryService } from "../../../../api/category/categoryService";
+import { useLanguageService } from "../../../../hooks/useLanguageService";
 import { useRouter } from "next/navigation";
 import { useCart } from "../../../../context/CartContext";
 
 const AddFoodPage = () => {
+  const { foodService, categoryService, language } = useLanguageService();
   const router = useRouter();
   const { uploadToPinata, error, openError } = useCart();
   const [categories, setCategories] = useState([]);
@@ -26,6 +26,10 @@ const AddFoodPage = () => {
   useEffect(() => {
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [language]);
 
   const fetchCategories = async () => {
     try {

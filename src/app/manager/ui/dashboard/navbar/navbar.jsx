@@ -7,6 +7,7 @@ import {
   MdPublic,
   MdSearch,
 } from "react-icons/md";
+import LanguageSelector from "@/app/components/LanguageSelector/LanguageSelector";
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -19,6 +20,7 @@ const Navbar = () => {
           <MdOutlineChat size={20} />
           <MdNotifications size={20} />
           <MdPublic size={20} />
+          <LanguageSelector />
         </div>
       </div>
     </div>

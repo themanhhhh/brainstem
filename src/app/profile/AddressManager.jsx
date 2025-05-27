@@ -1,319 +1,512 @@
 "use client";
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { GoogleMap, useLoadScript, Marker, StandaloneSearchBox } from '@react-google-maps/api';
+import React, { useState, useEffect } from 'react';
+import AddressAutocomplete from '../components/AddressAutocomplete/AddressAutocomplete';
+import { addressService } from '../api/address/addressService';
 import styles from './AddressManager.module.css';
+import { FaMapMarkerAlt, FaPlus, FaEdit, FaTrash, FaSave, FaTimes, FaHome, FaBriefcase, FaHeart, FaSpinner } from 'react-icons/fa';
 
-// Cấu hình Map
-const mapContainerStyle = {
-  width: "100%",
-  height: "100%",
-};
-const center = {
-  lat: 10.8231,  // Vị trí mặc định (TP.HCM)
-  lng: 106.6297,
-};
-
-// Component quản lý địa chỉ
 const AddressManager = () => {
   const [addresses, setAddresses] = useState([]);
-  const [currentAddress, setCurrentAddress] = useState(null);
-  const [map, setMap] = useState(null);
-  const [searchBox, setSearchBox] = useState(null);
-  const [selectedPlace, setSelectedPlace] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingAddress, setEditingAddress] = useState(null);
+  const [selectedAddress, setSelectedAddress] = useState(null);
   
-  // Các trường dữ liệu
-  const [addressLine, setAddressLine] = useState("");
-  const [apt, setApt] = useState("");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("");
-  const [zipCode, setZipCode] = useState("");
-  const [country, setCountry] = useState("");
-  
-  // Tải Google Maps API
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "YOUR_API_KEY_HERE",
-    libraries: ['places'],
+  // Form data
+  const [formData, setFormData] = useState({
+    label: 'HOME', // HOME, WORK, OTHER
+    customLabel: '',
+    street: '',
+    apt: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: '',
+    latitude: null,
+    longitude: null,
+    formatted_address: '',
+    place_id: null,
+    isDefault: false
   });
 
-  // Load địa chỉ đã lưu từ localStorage khi component mount
+  // Load addresses when component mounts
   useEffect(() => {
-    const savedAddresses = localStorage.getItem('savedAddresses');
-    if (savedAddresses) {
-      try {
+    loadAddresses();
+  }, []);
+
+  const loadAddresses = async () => {
+    try {
+      setLoading(true);
+      // For now, use localStorage since we don't have backend API
+      const savedAddresses = localStorage.getItem('userAddresses');
+      if (savedAddresses) {
         setAddresses(JSON.parse(savedAddresses));
-      } catch (error) {
-        console.error("Error parsing saved addresses:", error);
       }
-    }
-  }, []);
-
-  // Callback khi bản đồ load xong
-  const onMapLoad = useCallback((map) => {
-    setMap(map);
-  }, []);
-
-  // Callback khi searchbox load xong
-  const onSearchBoxLoad = useCallback((ref) => {
-    setSearchBox(ref);
-  }, []);
-
-  // Callback khi tìm kiếm địa chỉ
-  const onPlacesChanged = () => {
-    if (searchBox) {
-      const places = searchBox.getPlaces();
-      
-      if (places.length === 0) {
-        return;
-      }
-      
-      const place = places[0];
-      
-      // Cập nhật vị trí bản đồ
-      if (map) {
-        map.panTo(place.geometry.location);
-        map.setZoom(16);
-      }
-      
-      // Lưu địa điểm đã chọn
-      setSelectedPlace(place);
-      
-      // Điền thông tin vào form
-      fillAddressForm(place);
+    } catch (error) {
+      console.error('Error loading addresses:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Điền thông tin địa chỉ vào form
-  const fillAddressForm = (place) => {
-    let addressComponents = {};
-    
-    // Trích xuất thông tin từ các thành phần địa chỉ
-    for (const component of place.address_components || []) {
-      const type = component.types[0];
-      addressComponents[type] = component.long_name;
-    }
-    
-    // Điền vào form
-    setAddressLine(`${addressComponents.street_number || ''} ${addressComponents.route || ''}`);
-    setCity(addressComponents.locality || '');
-    setState(addressComponents.administrative_area_level_1 || '');
-    setZipCode(addressComponents.postal_code || '');
-    setCountry(addressComponents.country || '');
+  const saveToLocalStorage = (addressList) => {
+    localStorage.setItem('userAddresses', JSON.stringify(addressList));
   };
 
-  // Lưu địa chỉ mới
-  const saveAddress = () => {
-    if (!selectedPlace || !addressLine) {
-      alert("Vui lòng chọn một địa chỉ hợp lệ");
+  const handleAddressSelect = (addressData) => {
+    setSelectedAddress(addressData);
+    setFormData(prev => ({
+      ...prev,
+      street: `${addressData.address_components.street_number || ''} ${addressData.address_components.route || ''}`.trim(),
+      city: addressData.address_components.locality || '',
+      state: addressData.address_components.administrative_area_level_1 || '',
+      zipCode: addressData.address_components.postal_code || '',
+      country: addressData.address_components.country || '',
+      latitude: addressData.latitude,
+      longitude: addressData.longitude,
+      formatted_address: addressData.formatted_address,
+      place_id: addressData.place_id
+    }));
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const resetForm = () => {
+    setFormData({
+      label: 'HOME',
+      customLabel: '',
+      street: '',
+      apt: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      country: '',
+      latitude: null,
+      longitude: null,
+      formatted_address: '',
+      place_id: null,
+      isDefault: false
+    });
+    setSelectedAddress(null);
+    setEditingAddress(null);
+    setShowAddForm(false);
+  };
+
+  const handleSaveAddress = async () => {
+    if (!selectedAddress && !formData.street) {
+      alert('Please select or enter an address');
       return;
     }
-    
-    const newAddress = {
-      id: Date.now(),  // ID đơn giản dựa trên timestamp
-      formattedAddress: selectedPlace.formatted_address,
-      addressLine,
-      apt,
-      city,
-      state,
-      zipCode,
-      country,
-      location: {
-        lat: selectedPlace.geometry.location.lat(),
-        lng: selectedPlace.geometry.location.lng()
+
+    try {
+      setSaving(true);
+      
+      const addressData = {
+        id: editingAddress ? editingAddress.id : Date.now(),
+        label: formData.label === 'OTHER' ? formData.customLabel : formData.label,
+        street: formData.street,
+        apt: formData.apt,
+        city: formData.city,
+        state: formData.state,
+        zipCode: formData.zipCode,
+        country: formData.country,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+        formatted_address: formData.formatted_address,
+        place_id: formData.place_id,
+        isDefault: formData.isDefault,
+        createdAt: editingAddress ? editingAddress.createdAt : new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      let updatedAddresses;
+      if (editingAddress) {
+        // Update existing address
+        updatedAddresses = addresses.map(addr => 
+          addr.id === editingAddress.id ? addressData : addr
+        );
+      } else {
+        // Add new address
+        updatedAddresses = [...addresses, addressData];
       }
-    };
-    
-    // Thêm địa chỉ mới vào danh sách
-    const updatedAddresses = [...addresses, newAddress];
-    setAddresses(updatedAddresses);
-    
-    // Lưu vào localStorage
-    localStorage.setItem('savedAddresses', JSON.stringify(updatedAddresses));
-    
-    // Reset form
-    resetForm();
-    
-    alert("Đã lưu địa chỉ thành công!");
-  };
 
-  // Xóa địa chỉ
-  const deleteAddress = (id) => {
-    const updatedAddresses = addresses.filter(address => address.id !== id);
-    setAddresses(updatedAddresses);
-    localStorage.setItem('savedAddresses', JSON.stringify(updatedAddresses));
-  };
+      // If this address is set as default, remove default from others
+      if (formData.isDefault) {
+        updatedAddresses = updatedAddresses.map(addr => ({
+          ...addr,
+          isDefault: addr.id === addressData.id
+        }));
+      }
 
-  // Chọn địa chỉ đã lưu để hiển thị
-  const selectAddress = (address) => {
-    setCurrentAddress(address);
-    
-    // Cập nhật bản đồ
-    if (map && address.location) {
-      map.panTo(address.location);
-      map.setZoom(16);
+      setAddresses(updatedAddresses);
+      saveToLocalStorage(updatedAddresses);
+      resetForm();
+      
+      alert(editingAddress ? 'Address updated successfully!' : 'Address saved successfully!');
+    } catch (error) {
+      console.error('Error saving address:', error);
+      alert('Failed to save address. Please try again.');
+    } finally {
+      setSaving(false);
     }
-    
-    // Điền thông tin vào form
-    setAddressLine(address.addressLine);
-    setApt(address.apt);
-    setCity(address.city);
-    setState(address.state);
-    setZipCode(address.zipCode);
-    setCountry(address.country);
-    
-    // Đặt selectedPlace để có thể lưu lại
-    setSelectedPlace({
-      formatted_address: address.formattedAddress,
-      geometry: {
-        location: {
-          lat: () => address.location.lat,
-          lng: () => address.location.lng
-        }
-      }
+  };
+
+  const handleEditAddress = (address) => {
+    setEditingAddress(address);
+    setFormData({
+      label: ['HOME', 'WORK'].includes(address.label) ? address.label : 'OTHER',
+      customLabel: !['HOME', 'WORK'].includes(address.label) ? address.label : '',
+      street: address.street || '',
+      apt: address.apt || '',
+      city: address.city || '',
+      state: address.state || '',
+      zipCode: address.zipCode || '',
+      country: address.country || '',
+      latitude: address.latitude,
+      longitude: address.longitude,
+      formatted_address: address.formatted_address || '',
+      place_id: address.place_id,
+      isDefault: address.isDefault || false
     });
+    setShowAddForm(true);
   };
 
-  // Reset form
-  const resetForm = () => {
-    setAddressLine("");
-    setApt("");
-    setCity("");
-    setState("");
-    setZipCode("");
-    setCountry("");
-    setSelectedPlace(null);
-    setCurrentAddress(null);
+  const handleDeleteAddress = (addressId) => {
+    if (confirm('Are you sure you want to delete this address?')) {
+      const updatedAddresses = addresses.filter(addr => addr.id !== addressId);
+      setAddresses(updatedAddresses);
+      saveToLocalStorage(updatedAddresses);
+    }
   };
 
-  // Xử lý lỗi khi load Map API
-  if (loadError) return <div className={styles.error}>Lỗi khi tải Google Maps</div>;
-  if (!isLoaded) return <div className={styles.loading}>Đang tải...</div>;
+  const handleSetDefault = (addressId) => {
+    const updatedAddresses = addresses.map(addr => ({
+      ...addr,
+      isDefault: addr.id === addressId
+    }));
+    setAddresses(updatedAddresses);
+    saveToLocalStorage(updatedAddresses);
+  };
+
+  const getLabelIcon = (label) => {
+    switch (label) {
+      case 'HOME': return <FaHome />;
+      case 'WORK': return <FaBriefcase />;
+      default: return <FaHeart />;
+    }
+  };
+
+  const getLabelColor = (label) => {
+    switch (label) {
+      case 'HOME': return '#10b981';
+      case 'WORK': return '#3b82f6';
+      default: return '#f59e0b';
+    }
+  };
 
   return (
     <div className={styles.addressManager}>
-      <h2>Quản lý địa chỉ</h2>
-      <p className={styles.subtitle}>Lưu các địa chỉ giao hàng của bạn để đặt hàng dễ dàng hơn</p>
-      
-      <div className={styles.splitLayout}>
-        <div className={styles.formPanel}>
-          <div className={styles.header}>
-            <img className={styles.titleIcon} src="https://fonts.gstatic.com/s/i/googlematerialicons/location_pin/v5/24px.svg" alt="" />
-            <span className={styles.title}>Thêm địa chỉ mới</span>
-          </div>
+      <div className={styles.header}>
+        <h2>Address Management</h2>
+        <p className={styles.subtitle}>Manage your delivery addresses for easier ordering</p>
+        <button 
+          className={styles.addButton}
+          onClick={() => setShowAddForm(true)}
+          disabled={showAddForm}
+        >
+          <FaPlus /> Add New Address
+        </button>
+      </div>
 
-          <div className={styles.autocompleteContainer}>
-            <StandaloneSearchBox
-              onLoad={onSearchBoxLoad}
-              onPlacesChanged={onPlacesChanged}
+      {/* Add/Edit Address Form */}
+      {showAddForm && (
+        <div className={styles.formContainer}>
+          <div className={styles.formHeader}>
+            <h3>
+              <FaMapMarkerAlt />
+              {editingAddress ? 'Edit Address' : 'Add New Address'}
+            </h3>
+            <button 
+              className={styles.closeButton}
+              onClick={resetForm}
             >
-              <input
-                type="text"
-                className={styles.input}
-                placeholder="Tìm địa chỉ..."
+              <FaTimes />
+            </button>
+          </div>
+
+          <div className={styles.formContent}>
+            {/* Address Search */}
+            <div className={styles.inputGroup}>
+              <label>Search Address</label>
+              <AddressAutocomplete
+                placeholder="Search for your address..."
+                onAddressSelect={handleAddressSelect}
+                value={formData.formatted_address}
+                onChange={(e) => setFormData(prev => ({ ...prev, formatted_address: e.target.value }))}
               />
-            </StandaloneSearchBox>
-          </div>
-
-          <input
-            type="text"
-            className={styles.input}
-            placeholder="Địa chỉ"
-            value={addressLine}
-            onChange={(e) => setAddressLine(e.target.value)}
-          />
-
-          <input
-            type="text"
-            className={styles.input}
-            placeholder="Căn hộ, Số phòng, v.v. (tùy chọn)"
-            value={apt}
-            onChange={(e) => setApt(e.target.value)}
-          />
-          
-          <input
-            type="text"
-            className={styles.input}
-            placeholder="Thành phố"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-          />
-          
-          <div className={styles.halfInputContainer}>
-            <input
-              type="text"
-              className={`${styles.input} ${styles.halfInput}`}
-              placeholder="Tỉnh/Thành"
-              value={state}
-              onChange={(e) => setState(e.target.value)}
-            />
-            <input
-              type="text"
-              className={`${styles.input} ${styles.halfInput}`}
-              placeholder="Mã bưu điện"
-              value={zipCode}
-              onChange={(e) => setZipCode(e.target.value)}
-            />
-          </div>
-          
-          <input
-            type="text"
-            className={styles.input}
-            placeholder="Quốc gia"
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
-          />
-          
-          <button className={styles.saveButton} onClick={saveAddress}>
-            Lưu địa chỉ
-          </button>
-
-          {/* Hiển thị danh sách địa chỉ đã lưu */}
-          {addresses.length > 0 && (
-            <div className={styles.savedAddresses}>
-              <h3>Địa chỉ đã lưu</h3>
-              <ul className={styles.addressList}>
-                {addresses.map((address) => (
-                  <li key={address.id} className={styles.addressItem}>
-                    <div 
-                      className={`${styles.addressContent} ${currentAddress?.id === address.id ? styles.activeAddress : ''}`}
-                      onClick={() => selectAddress(address)}
-                    >
-                      <p className={styles.formattedAddress}>{address.formattedAddress}</p>
-                      <p>{address.addressLine}, {address.city}, {address.state} {address.zipCode}</p>
-                    </div>
-                    <button 
-                      className={styles.deleteButton}
-                      onClick={() => deleteAddress(address.id)}
-                    >
-                      Xóa
-                    </button>
-                  </li>
-                ))}
-              </ul>
             </div>
-          )}
-        </div>
-        
-        <div className={styles.mapContainer}>
-          <GoogleMap
-            mapContainerStyle={mapContainerStyle}
-            zoom={12}
-            center={center}
-            onLoad={onMapLoad}
-          >
-            {/* Marker cho địa chỉ hiện tại */}
-            {(currentAddress?.location || (selectedPlace?.geometry?.location)) && (
-              <Marker
-                position={
-                  currentAddress?.location || 
-                  {
-                    lat: selectedPlace.geometry.location.lat(),
-                    lng: selectedPlace.geometry.location.lng()
-                  }
-                }
-              />
+
+            {/* Address Label */}
+            <div className={styles.inputGroup}>
+              <label>Address Label</label>
+              <div className={styles.labelSelector}>
+                <label className={styles.radioLabel}>
+                  <input
+                    type="radio"
+                    name="label"
+                    value="HOME"
+                    checked={formData.label === 'HOME'}
+                    onChange={handleInputChange}
+                  />
+                  <span className={styles.radioCustom}>
+                    <FaHome /> Home
+                  </span>
+                </label>
+                <label className={styles.radioLabel}>
+                  <input
+                    type="radio"
+                    name="label"
+                    value="WORK"
+                    checked={formData.label === 'WORK'}
+                    onChange={handleInputChange}
+                  />
+                  <span className={styles.radioCustom}>
+                    <FaBriefcase /> Work
+                  </span>
+                </label>
+                <label className={styles.radioLabel}>
+                  <input
+                    type="radio"
+                    name="label"
+                    value="OTHER"
+                    checked={formData.label === 'OTHER'}
+                    onChange={handleInputChange}
+                  />
+                  <span className={styles.radioCustom}>
+                    <FaHeart /> Other
+                  </span>
+                </label>
+              </div>
+              {formData.label === 'OTHER' && (
+                <input
+                  type="text"
+                  name="customLabel"
+                  placeholder="Enter custom label"
+                  value={formData.customLabel}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                  required
+                />
+              )}
+            </div>
+
+            {/* Address Details */}
+            <div className={styles.addressDetails}>
+              <div className={styles.inputGroup}>
+                <label>Street Address</label>
+                <input
+                  type="text"
+                  name="street"
+                  placeholder="Street address"
+                  value={formData.street}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                  required
+                />
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label>Apartment, Suite, etc. (Optional)</label>
+                <input
+                  type="text"
+                  name="apt"
+                  placeholder="Apt, Suite, Floor, etc."
+                  value={formData.apt}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                />
+              </div>
+
+              <div className={styles.inputRow}>
+                <div className={styles.inputGroup}>
+                  <label>City</label>
+                  <input
+                    type="text"
+                    name="city"
+                    placeholder="City"
+                    value={formData.city}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                    required
+                  />
+                </div>
+                <div className={styles.inputGroup}>
+                  <label>State/Province</label>
+                  <input
+                    type="text"
+                    name="state"
+                    placeholder="State"
+                    value={formData.state}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.inputRow}>
+                <div className={styles.inputGroup}>
+                  <label>ZIP/Postal Code</label>
+                  <input
+                    type="text"
+                    name="zipCode"
+                    placeholder="ZIP Code"
+                    value={formData.zipCode}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                  />
+                </div>
+                <div className={styles.inputGroup}>
+                  <label>Country</label>
+                  <input
+                    type="text"
+                    name="country"
+                    placeholder="Country"
+                    value={formData.country}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Default Address Checkbox */}
+            <div className={styles.checkboxGroup}>
+              <label className={styles.checkboxLabel}>
+                <input
+                  type="checkbox"
+                  name="isDefault"
+                  checked={formData.isDefault}
+                  onChange={handleInputChange}
+                />
+                <span className={styles.checkboxCustom}></span>
+                Set as default address
+              </label>
+            </div>
+
+            {/* Selected Address Info */}
+            {selectedAddress && (
+              <div className={styles.selectedAddressInfo}>
+                <h4>Selected Address Details:</h4>
+                <p><strong>Full Address:</strong> {selectedAddress.formatted_address}</p>
+                <p><strong>Coordinates:</strong> {selectedAddress.latitude.toFixed(6)}, {selectedAddress.longitude.toFixed(6)}</p>
+              </div>
             )}
-          </GoogleMap>
+
+            {/* Form Actions */}
+            <div className={styles.formActions}>
+              <button 
+                type="button"
+                className={styles.cancelButton}
+                onClick={resetForm}
+              >
+                <FaTimes /> Cancel
+              </button>
+              <button 
+                type="button"
+                className={styles.saveButton}
+                onClick={handleSaveAddress}
+                disabled={saving || (!selectedAddress && !formData.street)}
+              >
+                {saving ? <FaSpinner className={styles.spinning} /> : <FaSave />}
+                {saving ? 'Saving...' : (editingAddress ? 'Update Address' : 'Save Address')}
+              </button>
+            </div>
+          </div>
         </div>
+      )}
+
+      {/* Address List */}
+      <div className={styles.addressList}>
+        {loading ? (
+          <div className={styles.loading}>
+            <FaSpinner className={styles.spinning} />
+            Loading addresses...
+          </div>
+        ) : addresses.length === 0 ? (
+          <div className={styles.emptyState}>
+            <FaMapMarkerAlt className={styles.emptyIcon} />
+            <h3>No addresses saved</h3>
+            <p>Add your first address to get started with faster checkout</p>
+          </div>
+        ) : (
+          <div className={styles.addressGrid}>
+            {addresses.map((address) => (
+              <div 
+                key={address.id} 
+                className={`${styles.addressCard} ${address.isDefault ? styles.defaultAddress : ''}`}
+              >
+                <div className={styles.addressHeader}>
+                  <div className={styles.addressLabel} style={{ color: getLabelColor(address.label) }}>
+                    {getLabelIcon(address.label)}
+                    <span>{address.label}</span>
+                  </div>
+                  {address.isDefault && (
+                    <span className={styles.defaultBadge}>Default</span>
+                  )}
+                </div>
+
+                <div className={styles.addressContent}>
+                  <p className={styles.addressText}>
+                    {address.street}
+                    {address.apt && `, ${address.apt}`}
+                  </p>
+                  <p className={styles.addressSecondary}>
+                    {[address.city, address.state, address.zipCode].filter(Boolean).join(', ')}
+                  </p>
+                  {address.country && (
+                    <p className={styles.addressSecondary}>{address.country}</p>
+                  )}
+                  {address.formatted_address && (
+                    <p className={styles.fullAddress}>{address.formatted_address}</p>
+                  )}
+                </div>
+
+                <div className={styles.addressActions}>
+                  {!address.isDefault && (
+                    <button
+                      className={styles.actionButton}
+                      onClick={() => handleSetDefault(address.id)}
+                      title="Set as default"
+                    >
+                      Set Default
+                    </button>
+                  )}
+                  <button
+                    className={styles.actionButton}
+                    onClick={() => handleEditAddress(address)}
+                    title="Edit address"
+                  >
+                    <FaEdit /> Edit
+                  </button>
+                  <button
+                    className={`${styles.actionButton} ${styles.deleteButton}`}
+                    onClick={() => handleDeleteAddress(address.id)}
+                    title="Delete address"
+                  >
+                    <FaTrash /> Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

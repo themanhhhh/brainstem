@@ -3,6 +3,7 @@ import "./styles/globals.css";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 import { LoadingProvider } from "./context/LoadingContext";
+import { LanguageProvider } from "./context/LanguageContext";
 import { Suspense } from "react";
 import { Toaster } from "react-hot-toast";
 
@@ -18,14 +19,16 @@ export const metadata = {
 function ClientLayout({ children }) {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <AuthProvider>
-        <CartProvider>
-          
-            <Toaster position="top-center" />
-            {children}
-         
-        </CartProvider>
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <CartProvider>
+            
+              <Toaster position="top-center" />
+              {children}
+           
+          </CartProvider>
+        </AuthProvider>
+      </LanguageProvider>
     </Suspense>
   );
 }
