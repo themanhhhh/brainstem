@@ -225,17 +225,13 @@ const Page = () => {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
-  // Format datetime for API (convert from datetime-local to proper format)
+  
   const formatDateTimeForAPI = (dateTimeLocal) => {
     if (!dateTimeLocal) return '';
     
-    // dateTimeLocal format: "2024-01-15T14:30"
+   
     const date = new Date(dateTimeLocal);
-    
-    // Option 1: ISO string format (most common)
-    // return date.toISOString(); // "2024-01-15T14:30:00.000Z"
-    
-    // Option 2: Local datetime string (YYYY-MM-DD HH:MM:SS) - Current
+
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -245,14 +241,6 @@ const Page = () => {
     
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     
-    // Option 3: Timestamp (milliseconds)
-    // return date.getTime(); // 1736935800000
-    
-    // Option 4: ISO without timezone (YYYY-MM-DDTHH:MM:SS)
-    // return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-    
-    // Option 5: DD/MM/YYYY HH:MM:SS format
-    // return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
   };
 
   return (
@@ -364,9 +352,10 @@ const Page = () => {
             onChange={handleInputChange}
             className={styles.select}
           >
-            <option value="BREAKFAST">Breakfast</option>
+            <option value="MORNING">Morning</option>
             <option value="LUNCH">Lunch</option>
-            <option value="DINNER">Dinner</option>
+            <option value="AFTERNOON">Afternoon</option>
+            <option value="EVENING">Evening</option>
           </select>
         </div>
 

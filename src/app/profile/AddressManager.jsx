@@ -142,8 +142,8 @@ const AddressManager = () => {
       if (response.success) {
         // Reload addresses from server
         await loadAddresses();
-        resetForm();
-        alert(editingAddress ? 'Address updated successfully!' : 'Address saved successfully!');
+      resetForm();
+      alert(editingAddress ? 'Address updated successfully!' : 'Address saved successfully!');
       } else {
         throw new Error(response.message || 'Failed to save address');
       }
