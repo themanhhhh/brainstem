@@ -7,6 +7,24 @@ const getToken = () => {
   return null;
 };
 
+// Helper function to format address data into a single string
+const formatAddressDetail = (addressData) => {
+  const addressParts = [
+    addressData.label || 'HOME',
+    addressData.street || '',
+    addressData.apt ? `Apt: ${addressData.apt}` : '',
+    addressData.city || '',
+    addressData.state || '',
+    addressData.zipCode || '',
+    addressData.country || '',
+    addressData.formatted_address ? `Full: ${addressData.formatted_address}` : '',
+    addressData.latitude && addressData.longitude ? `Coords: ${addressData.latitude},${addressData.longitude}` : '',
+    addressData.place_id ? `PlaceID: ${addressData.place_id}` : ''
+  ].filter(Boolean);
+
+  return addressParts.join(' | ');
+};
+
 const addressService = {
   // Create a new address
   createAddress: async (addressData) => {
@@ -14,22 +32,16 @@ const addressService = {
       const token = getToken();
       if (!token) throw new Error('No authentication token found');
 
-      const response = await fetch(`${API_URL}/addresses`, {
+      const addressDetail = formatAddressDetail(addressData);
+
+      const response = await fetch(`${API_URL}/customer/address`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          street: addressData.street || '',
-          city: addressData.city || '',
-          state: addressData.state || '',
-          zipCode: addressData.zipCode || '',
-          country: addressData.country || '',
-          latitude: addressData.latitude,
-          longitude: addressData.longitude,
-          formattedAddress: addressData.formatted_address,
-          placeId: addressData.place_id || null,
+          addressDetail: addressDetail,
           isDefault: addressData.isDefault || false
         })
       });
@@ -46,7 +58,7 @@ const addressService = {
       const token = getToken();
       if (!token) throw new Error('No authentication token found');
 
-      const response = await fetch(`${API_URL}/addresses/user`, {
+      const response = await fetch(`${API_URL}/customer/address`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -86,6 +98,8 @@ const addressService = {
       const token = getToken();
       if (!token) throw new Error('No authentication token found');
 
+      const addressDetail = formatAddressDetail(addressData);
+
       const response = await fetch(`${API_URL}/addresses/${addressId}`, {
         method: 'PUT',
         headers: {
@@ -93,15 +107,7 @@ const addressService = {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          street: addressData.street || '',
-          city: addressData.city || '',
-          state: addressData.state || '',
-          zipCode: addressData.zipCode || '',
-          country: addressData.country || '',
-          latitude: addressData.latitude,
-          longitude: addressData.longitude,
-          formattedAddress: addressData.formatted_address,
-          placeId: addressData.place_id || null,
+          addressDetail: addressDetail,
           isDefault: addressData.isDefault || false
         })
       });

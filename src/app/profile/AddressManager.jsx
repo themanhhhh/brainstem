@@ -38,20 +38,27 @@ const AddressManager = () => {
   const loadAddresses = async () => {
     try {
       setLoading(true);
-      // For now, use localStorage since we don't have backend API
+      const response = await addressService.getUserAddresses();
+      if (response.success) {
+        setAddresses(response.data || []);
+      } else {
+        console.error('Failed to load addresses:', response.message);
+        // Fallback to localStorage if API fails
+        const savedAddresses = localStorage.getItem('userAddresses');
+        if (savedAddresses) {
+          setAddresses(JSON.parse(savedAddresses));
+        }
+      }
+    } catch (error) {
+      console.error('Error loading addresses:', error);
+      // Fallback to localStorage if API fails
       const savedAddresses = localStorage.getItem('userAddresses');
       if (savedAddresses) {
         setAddresses(JSON.parse(savedAddresses));
       }
-    } catch (error) {
-      console.error('Error loading addresses:', error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const saveToLocalStorage = (addressList) => {
-    localStorage.setItem('userAddresses', JSON.stringify(addressList));
   };
 
   const handleAddressSelect = (addressData) => {
@@ -109,7 +116,6 @@ const AddressManager = () => {
       setSaving(true);
       
       const addressData = {
-        id: editingAddress ? editingAddress.id : Date.now(),
         label: formData.label === 'OTHER' ? formData.customLabel : formData.label,
         street: formData.street,
         apt: formData.apt,
@@ -121,35 +127,26 @@ const AddressManager = () => {
         longitude: formData.longitude,
         formatted_address: formData.formatted_address,
         place_id: formData.place_id,
-        isDefault: formData.isDefault,
-        createdAt: editingAddress ? editingAddress.createdAt : new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        isDefault: formData.isDefault
       };
 
-      let updatedAddresses;
+      let response;
       if (editingAddress) {
         // Update existing address
-        updatedAddresses = addresses.map(addr => 
-          addr.id === editingAddress.id ? addressData : addr
-        );
+        response = await addressService.updateAddress(editingAddress.id, addressData);
       } else {
         // Add new address
-        updatedAddresses = [...addresses, addressData];
+        response = await addressService.createAddress(addressData);
       }
 
-      // If this address is set as default, remove default from others
-      if (formData.isDefault) {
-        updatedAddresses = updatedAddresses.map(addr => ({
-          ...addr,
-          isDefault: addr.id === addressData.id
-        }));
+      if (response.success) {
+        // Reload addresses from server
+        await loadAddresses();
+        resetForm();
+        alert(editingAddress ? 'Address updated successfully!' : 'Address saved successfully!');
+      } else {
+        throw new Error(response.message || 'Failed to save address');
       }
-
-      setAddresses(updatedAddresses);
-      saveToLocalStorage(updatedAddresses);
-      resetForm();
-      
-      alert(editingAddress ? 'Address updated successfully!' : 'Address saved successfully!');
     } catch (error) {
       console.error('Error saving address:', error);
       alert('Failed to save address. Please try again.');
@@ -178,21 +175,38 @@ const AddressManager = () => {
     setShowAddForm(true);
   };
 
-  const handleDeleteAddress = (addressId) => {
+  const handleDeleteAddress = async (addressId) => {
     if (confirm('Are you sure you want to delete this address?')) {
-      const updatedAddresses = addresses.filter(addr => addr.id !== addressId);
-      setAddresses(updatedAddresses);
-      saveToLocalStorage(updatedAddresses);
+      try {
+        const response = await addressService.deleteAddress(addressId);
+        if (response.success) {
+          // Reload addresses from server
+          await loadAddresses();
+          alert('Address deleted successfully!');
+        } else {
+          throw new Error(response.message || 'Failed to delete address');
+        }
+      } catch (error) {
+        console.error('Error deleting address:', error);
+        alert('Failed to delete address. Please try again.');
+      }
     }
   };
 
-  const handleSetDefault = (addressId) => {
-    const updatedAddresses = addresses.map(addr => ({
-      ...addr,
-      isDefault: addr.id === addressId
-    }));
-    setAddresses(updatedAddresses);
-    saveToLocalStorage(updatedAddresses);
+  const handleSetDefault = async (addressId) => {
+    try {
+      const response = await addressService.setDefaultAddress(addressId);
+      if (response.success) {
+        // Reload addresses from server
+        await loadAddresses();
+        alert('Default address updated successfully!');
+      } else {
+        throw new Error(response.message || 'Failed to set default address');
+      }
+    } catch (error) {
+      console.error('Error setting default address:', error);
+      alert('Failed to set default address. Please try again.');
+    }
   };
 
   const getLabelIcon = (label) => {

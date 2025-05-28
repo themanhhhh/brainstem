@@ -3,6 +3,7 @@ import Image from "next/image";
 import {FaUserAlt,FaRegImage,FaUserEdit} from "react-icons/fa";
 import { MdHelpCenter, MdPerson } from "react-icons/md";
 import { TbDownloadOff, TbDownload} from "react-icons/tb";
+import { TbInvoice } from "react-icons/tb";
 import { useAuth } from "../../../context/AuthContext";
 
 import Style from "./Profile.module.css";
@@ -57,9 +58,9 @@ const Profile = () => {
             </p>
           </div>
           <div className={Style.profile_menu_one_item}>
-            <FaRegImage/>
+            <TbInvoice/>
             <p>
-              <Link href={{pathname: '/author'}}>My Items</Link>
+              <Link href={{pathname: '/orders'}}>My Orders</Link>
             </p>
           </div>
           <div className={Style.profile_menu_one_item}>
