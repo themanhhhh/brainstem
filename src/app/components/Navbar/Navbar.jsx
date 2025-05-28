@@ -18,6 +18,8 @@ import {Button,Error} from "../componentsindex";
 import images from "../../img";
 import CartIcon from "./CartIcon/CartIcon";
 import { useAuth } from "../../context/AuthContext";
+import LanguageSelector from "../LanguageSelector/LanguageSelector";
+import { useTranslation } from "../../hooks/useTranslation";
 
 // Import from smart contract
 
@@ -30,6 +32,7 @@ const Navbar = () => {
     const [openSideMenu , setOpenSideMenu] = useState(false);
     const { user, profile: userProfile, logout } = useAuth();
     const router = useRouter();
+    const t = useTranslation();
 
 
     const openSideBar = () => {
@@ -63,42 +66,38 @@ const Navbar = () => {
                         <Image src={images.logo} alt="footer logo" height={150} width={150} />
                     </div>
                 </div>
-                <div className={Style.navbar_container_right}>
+                <div className={Style.navbar_container_center}>
                     <div className={Style.navbar_container_right_discover}>
-                        {/*About us*/}
                         <Link href="/">
-                            <p>Home</p>
+                            <p>{t('nav.home')}</p>
                         </Link>
                     </div>
                     <div className={Style.navbar_container_right_discover}>
-                        {/*About us*/}
                         <Link href="/aboutus">
-                            <p>About us</p>
+                            <p>{t('nav.about')}</p>
                         </Link>
                     </div>
                     <div className={Style.navbar_container_right_services}>
-                        {/*Services*/}
                         <Link href="/service">
-                            <p>Services</p>
+                            <p>{t('nav.services')}</p>
                         </Link>
                     </div>
                     <div className={Style.navbar_container_right_menu}>          
                         <Link href="/menu">
-                            <p>Menu</p>
+                            <p>{t('nav.menu')}</p>
                         </Link>
                     </div>
-                    
-
                     <div className={Style.navbar_container_right_button}>
-                        <Button btnName="Book a table"/>
+                        <Button btnName={t('nav.bookTable')}/>
                     </div>
-          
-                    {/*Cart Icon*/}
                     <div className={Style.navbar_container_right_cart} style={{zIndex: 10000000}}>
                         <CartIcon />
                     </div>
-
-                    {/*User profile hoặc Login Button*/}
+                    <div className={Style.navbar_container_right_language}>
+                        <LanguageSelector />
+                    </div>
+                </div>
+                <div className={Style.navbar_container_right}>
                     {user ? (
                         <div className={Style.navbar_container_right_profile_box} style={{zIndex: 10000000}}>
                             <div className={Style.navbar_container_right_profile}>
@@ -135,17 +134,9 @@ const Navbar = () => {
                         </div>
                     ) : (
                         <div className={Style.navbar_container_right_login}>
-                            <Button btnName="Login" onClick={handleLoginClick} />
+                            <Button btnName={t('nav.login')} onClick={handleLoginClick} />
                         </div>
                     )}
-
-                    {/*Menu button*/}
-                    <div className={Style.navbar_container_right_menuBtn}>
-                        <CgMenuRight 
-                        className={Style.menuIcon}
-                        onClick={()=>openSideBar()}
-                        />
-                    </div>
                 </div>
             </div>
             {/*Side bar component*/}

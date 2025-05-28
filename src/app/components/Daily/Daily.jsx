@@ -6,15 +6,15 @@ import { BsCheckCircle , BsCheckCircleFill } from "react-icons/bs";
 import { FaStar } from "react-icons/fa6";
 import { motion } from "framer-motion";
 
-
 import Style from "./Daily.module.css";
 import images from "../../img";
 import { Button } from "../componentsindex";
 import { Router } from "next/router";
-
+import { useTranslation } from "../../hooks/useTranslation";
 
 const Daily = () => {
     const router = useRouter();
+    const t = useTranslation();
   return (
     <div className={Style.Daily}>
         <div className={Style.Daily_box}>
@@ -26,17 +26,17 @@ const Daily = () => {
                 />
             </div>
             <div className={Style.Daily_box_left}>
-                <span className={Style.Daily_box_left_span}> • OUR DAILY OFFERS</span>
-                <h1>TASTE THE SAVINGS WITH OUR <span className={Style.Daily_box_left_hightlight}>DAILY SPECIALS</span></h1>
+                <span className={Style.Daily_box_left_span}> • {t('daily.ourDailyOffers')}</span>
+                <h1>{t('daily.tasteTheSavingsWithOur')} <span className={Style.Daily_box_left_hightlight}>{t('daily.dailySpecials')}</span></h1>
                 <br></br>
-                <p>Every day is an opportunity to enjoy your favorites at a discounted price. Explore our daily rotating specials and indulge in flavorful meals at a fraction of the cost.</p>
+                <p>{t('daily.intro')}</p>
                 <br></br>
-                <p><BsCheckCircleFill className={Style.Daily_box_left_icon}/>  Seasonal & Locally Sourced Ingredients</p>
-                <p><BsCheckCircleFill className={Style.Daily_box_left_icon}/>  Vegetarian & Dietary-Friendly Options</p>
-                <p><BsCheckCircleFill className={Style.Daily_box_left_icon}/>  Exquisite Pairings & Unique Flavors</p>
+                <p><BsCheckCircleFill className={Style.Daily_box_left_icon}/>  {t('daily.seasonalIngredients')}</p>
+                <p><BsCheckCircleFill className={Style.Daily_box_left_icon}/>  {t('daily.vegetarianOptions')}</p>
+                <p><BsCheckCircleFill className={Style.Daily_box_left_icon}/>  {t('daily.exquisitePairings')}</p>
                 <div className={Style.Daily_box_left_btn}>
-                    <Button btnName="Book Table" onClick={()=>router.push("/upload-nft")}/>
-                    <Button btnName="Explore Menu" onClick={()=>{}}/>
+                    <Button btnName={t('daily.bookTable')} onClick={()=>router.push("/upload-nft")}/>
+                    <Button btnName={t('daily.exploreMenu')} onClick={()=>{}}/>
                 </div>
             </div>
         </div>
@@ -49,7 +49,7 @@ const Daily = () => {
                         repeat: Infinity,
                     }}
                 >
-                <span className={Style.Daily_box_right_description_span}>Delicious Burger</span>
+                <span className={Style.Daily_box_right_description_span}>{t('daily.deliciousBurger')}</span>
                 <p>
                     <FaStar className={Style.star}/>
                     <FaStar className={Style.star}/>
@@ -57,10 +57,10 @@ const Daily = () => {
                     <FaStar className={Style.star}/>
                     <FaStar className={Style.star}/>
                 </p>
-                <p><BsCheckCircleFill/> Tomato Sauces</p>
-                <p><BsCheckCircleFill/> Vegitables</p>
-                <p><BsCheckCircleFill/> Lettuce</p>
-                <p><BsCheckCircleFill/> Cheese slice</p>
+                <p><BsCheckCircleFill/> {t('daily.tomatoSauces')}</p>
+                <p><BsCheckCircleFill/> {t('daily.vegetables')}</p>
+                <p><BsCheckCircleFill/> {t('daily.lettuce')}</p>
+                <p><BsCheckCircleFill/> {t('daily.cheeseSlice')}</p>
         </motion.div>
     </div>
   )

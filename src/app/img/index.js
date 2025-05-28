@@ -84,6 +84,7 @@ import team3 from "./team-3.jpg";
 import team4 from "./team-4.jpg";
 
 import user from "./user.png";
+import sliderimg from "./sliderimg.jpg";
 
 export default {
   aboutusimg1 ,
@@ -163,4 +164,5 @@ export default {
   team3,
   team4,
   user,
+  sliderimg,
 };

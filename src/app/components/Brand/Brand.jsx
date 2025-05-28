@@ -7,7 +7,7 @@ import { FaStar } from "react-icons/fa6";
 import classNames from "classnames";
 import { GiRibbonMedal } from "react-icons/gi";
 import { PiMedalLight } from "react-icons/pi";
-
+import { useTranslation } from "../../hooks/useTranslation";
 
 import Style from "./Brand.module.css";
 import images from "../../img";
@@ -15,10 +15,9 @@ import { Button } from "../componentsindex";
 import { Router } from "next/router";
 import { motion } from "framer-motion";
 
-
-
 const Brand = () => {
     const router = useRouter();
+    const t = useTranslation();
   return (
     <div className={Style.Brand}>
         <div className={Style.Brand_box}>
@@ -39,17 +38,17 @@ const Brand = () => {
                 </div> */}
             </div>
             <div className={Style.Brand_box_left}>
-                <span className={Style.Brand_box_left_span}> • ART OF FINE DINING</span>
-                <h1>OUR COMMITMENT TO AUTHENTICITY & <span className={Style.Brand_box_left_hightlight}>EXCELLENCE</span></h1>
+                <span className={Style.Brand_box_left_span}> • {t('brand.artOfFineDining')}</span>
+                <h1>{t('brand.ourCommitment')} <span className={Style.Brand_box_left_hightlight}>{t('brand.excellence')}</span></h1>
                 <br></br>
-                <p>Every dish we create is a celebration of connection, crafted with passion and inspired by diverse flavors. Join us in an inviting space where every bite sparks joy and every moment becomes a cherished memory.</p>
+                <p>{t('brand.celebration')}</p>
                 <br></br>
-                <p><BsCheckCircleFill className={Style.Brand_box_left_icon}/>  Seasonal & Locally Sourced Ingredients</p>
-                <p><BsCheckCircleFill className={Style.Brand_box_left_icon}/>  Vegetarian & Dietary-Friendly Options</p>
-                <p><BsCheckCircleFill className={Style.Brand_box_left_icon}/>  Exquisite Pairings & Unique Flavors</p>
+                <p><BsCheckCircleFill className={Style.Brand_box_left_icon}/>  {t('brand.seasonalIngredients')}</p>
+                <p><BsCheckCircleFill className={Style.Brand_box_left_icon}/>  {t('brand.vegetarianOptions')}</p>
+                <p><BsCheckCircleFill className={Style.Brand_box_left_icon}/>  {t('brand.exquisitePairings')}</p>
                 <div className={Style.Brand_box_left_btn}>
-                    <Button btnName="Order now" onClick={()=>router.push("/upload-nft")}/>
-                    <Button btnName="Read more" onClick={()=>{}}/>
+                    <Button btnName={t('brand.orderNow')} onClick={()=>router.push("/upload-nft")}/>
+                    <Button btnName={t('brand.readMore')} onClick={()=>{}}/>
                 </div>
             </div>
         </div>
@@ -63,7 +62,7 @@ const Brand = () => {
                     }}
                 >
                 <p className={Style.icon}><PiMedalLight/></p>
-                <span>30 years of experience</span>
+                <span>{t('brand.yearsOfExperience')}</span>
         </motion.div>
     </div>
   )

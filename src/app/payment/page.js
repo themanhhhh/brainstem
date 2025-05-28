@@ -5,16 +5,19 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '../context/CartContext';
 import { discountService } from '../api/discount/discountService';
 import { createOrder } from '../api/order/orderService';
+import { addressService } from '../api/address/addressService';
 import AddressAutocomplete from '../components/AddressAutocomplete/AddressAutocomplete';
 import styles from '../styles/payment.module.css';
-import { FaLock, FaCreditCard, FaUser, FaEnvelope, FaPhone, FaTag, FaPercent, FaTimes, FaMapMarkerAlt, FaClipboardList } from 'react-icons/fa';
+import { FaLock, FaCreditCard, FaUser, FaEnvelope, FaPhone, FaTag, FaPercent, FaTimes, FaMapMarkerAlt, FaClipboardList, FaHome, FaBriefcase, FaHeart, FaPlus } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import Footer from '../components/Footer/Footer';
 import Navbar from '../components/Navbar/Navbar';
+import { useTranslation } from '../hooks/useTranslation';
 
 const PaymentPage = () => {
   const router = useRouter();
   const { cartItems, getCartTotal, clearCart } = useCart();
+  const t = useTranslation();
   const [discounts, setDiscounts] = useState([]);
   const [selectedDiscount, setSelectedDiscount] = useState(null);
   const [discountCode, setDiscountCode] = useState('');
@@ -22,6 +25,10 @@ const PaymentPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showDiscountModal, setShowDiscountModal] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState(null);
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [loadingAddresses, setLoadingAddresses] = useState(false);
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [selectedSavedAddress, setSelectedSavedAddress] = useState(null);
   const [formData, setFormData] = useState({
     // Order information
     name: '',
@@ -48,7 +55,37 @@ const PaymentPage = () => {
 
   useEffect(() => {
     fetchDiscounts();
+    fetchSavedAddresses();
   }, []);
+
+  const fetchSavedAddresses = async () => {
+    try {
+      setLoadingAddresses(true);
+      const response = await addressService.getUserAddresses();
+      
+      if (response && Array.isArray(response)) {
+        setSavedAddresses(response);
+        // If no saved addresses and no address form shown, show the form
+        if (response.length === 0) {
+          setShowAddressForm(true);
+        }
+      } else if (response && response.data && Array.isArray(response.data)) {
+        setSavedAddresses(response.data);
+        if (response.data.length === 0) {
+          setShowAddressForm(true);
+        }
+      } else {
+        setSavedAddresses([]);
+        setShowAddressForm(true);
+      }
+    } catch (error) {
+      console.error('Error fetching addresses:', error);
+      setSavedAddresses([]);
+      setShowAddressForm(true);
+    } finally {
+      setLoadingAddresses(false);
+    }
+  };
 
   const fetchDiscounts = async () => {
     try {
@@ -82,6 +119,80 @@ const PaymentPage = () => {
       latitude: addressData.latitude,
       longitude: addressData.longitude
     }));
+  };
+
+  const handleSavedAddressSelect = (address) => {
+    setSelectedSavedAddress(address);
+    // Parse the address details from the addressDetail string
+    const addressParts = address.addressDetail.split(' | ');
+    let parsedAddress = {
+      label: 'HOME',
+      street: '',
+      city: '',
+      zipCode: '',
+      country: '',
+      formatted_address: '',
+      latitude: null,
+      longitude: null
+    };
+
+    addressParts.forEach(part => {
+      if (part.startsWith('Full: ')) {
+        parsedAddress.formatted_address = part.replace('Full: ', '');
+      } else if (part.startsWith('Coords: ')) {
+        const coords = part.replace('Coords: ', '').split(',');
+        parsedAddress.latitude = parseFloat(coords[0]);
+        parsedAddress.longitude = parseFloat(coords[1]);
+      } else if (['HOME', 'WORK'].includes(part)) {
+        parsedAddress.label = part;
+      } else if (part.startsWith('Apt: ')) {
+        // Skip apartment info
+      } else if (part.startsWith('PlaceID: ')) {
+        // Skip place ID
+      } else {
+        // Try to identify parts
+        if (part.match(/^\d{5}$/)) {
+          parsedAddress.zipCode = part;
+        } else if (parsedAddress.street === '') {
+          parsedAddress.street = part;
+        } else if (parsedAddress.city === '') {
+          parsedAddress.city = part;
+        }
+      }
+    });
+
+    setFormData(prev => ({
+      ...prev,
+      address: parsedAddress.formatted_address || parsedAddress.street,
+      city: parsedAddress.city,
+      zipCode: parsedAddress.zipCode,
+      latitude: parsedAddress.latitude,
+      longitude: parsedAddress.longitude
+    }));
+    setShowAddressForm(false);
+  };
+
+  const saveNewAddress = async (addressData) => {
+    try {
+      const newAddress = {
+        label: 'HOME',
+        street: addressData.address,
+        city: addressData.city,
+        zipCode: addressData.zipCode,
+        latitude: addressData.latitude,
+        longitude: addressData.longitude,
+        formatted_address: addressData.address,
+        isDefault: savedAddresses.length === 0 // Make first address default
+      };
+
+      const response = await addressService.createAddress(newAddress);
+      if (response) {
+        // Refresh address list
+        await fetchSavedAddresses();
+      }
+    } catch (error) {
+      console.error('Error saving address:', error);
+    }
   };
 
   const handleDiscountSelect = (discount) => {
@@ -134,13 +245,24 @@ const PaymentPage = () => {
     setSubmitting(true);
     
     try {
+      // Save address if it's a new one
+      if (selectedAddress && savedAddresses.length === 0) {
+        await saveNewAddress({
+          address: formData.address,
+          city: formData.city,
+          zipCode: formData.zipCode,
+          latitude: formData.latitude,
+          longitude: formData.longitude
+        });
+      }
+
       // Prepare order data according to the new format
       const orderData = {
         name: formData.name || `Order for ${formData.fullName}`,
         description: formData.description || `Order containing ${cartItems.length} items`,
         discountId: selectedDiscount ? selectedDiscount.id : null,
         price: getFinalTotal(),
-        addressId: 1, // Default address ID as specified
+        addressId: selectedSavedAddress ? selectedSavedAddress.id : 1, // Use selected address ID or default
         orderType: formData.orderType,
         orderState: "PENDING", // Default state for new orders
         foodIds: cartItems.map(item => item.id) // Extract food IDs from cart items
@@ -167,11 +289,19 @@ const PaymentPage = () => {
     }
   };
 
+  const getLabelIcon = (label) => {
+    switch (label) {
+      case 'HOME': return <FaHome />;
+      case 'WORK': return <FaBriefcase />;
+      default: return <FaHeart />;
+    }
+  };
+
   if (cartItems.length === 0) {
     return (
       <div className={styles.emptyCart}>
-        <h2>Your cart is empty</h2>
-        <p>Please add items to your cart before proceeding to payment.</p>
+        <h2>{t('payment.emptyCart.title')}</h2>
+        <p>{t('payment.emptyCart.message')}</p>
       </div>
     );
   }
@@ -188,18 +318,18 @@ const PaymentPage = () => {
           <div className={styles.paymentForm}>
             <div className={styles.formHeader}>
               <FaLock className={styles.lockIcon} />
-              <h1>Secure Payment</h1>
+              <h1>{t('payment.title')}</h1>
             </div>
 
             <form onSubmit={handleSubmit}>
               {/* Order Information */}
               <div className={styles.formSection}>
-                <h2><FaClipboardList className={styles.sectionIcon} /> Order Information</h2>
+                <h2><FaClipboardList className={styles.sectionIcon} /> {t('payment.orderInfo')}</h2>
                 <div className={styles.inputGroup}>
                   <input
                     type="text"
                     name="name"
-                    placeholder="Order Name (Optional)"
+                    placeholder={t('payment.orderName')}
                     value={formData.name}
                     onChange={handleInputChange}
                   />
@@ -207,7 +337,7 @@ const PaymentPage = () => {
                 <div className={styles.inputGroup}>
                   <textarea
                     name="description"
-                    placeholder="Order Description (Optional)"
+                    placeholder={t('payment.orderDescription')}
                     value={formData.description}
                     onChange={handleInputChange}
                     rows={3}
@@ -222,22 +352,22 @@ const PaymentPage = () => {
                     required
                     className={styles.selectInput}
                   >
-                    <option value="DELIVERY">Delivery</option>
-                    <option value="PICKUP">Pickup</option>
-                    <option value="DINE_IN">Dine In</option>
+                    <option value="DELIVERY">{t('payment.orderType.delivery')}</option>
+                    <option value="PICKUP">{t('payment.orderType.pickup')}</option>
+                    <option value="DINE_IN">{t('payment.orderType.dineIn')}</option>
                   </select>
                 </div>
               </div>
 
               {/* Personal Information */}
               <div className={styles.formSection}>
-                <h2><FaUser className={styles.sectionIcon} /> Personal Information</h2>
+                <h2><FaUser className={styles.sectionIcon} /> {t('payment.personalInfo')}</h2>
                 <div className={styles.inputGroup}>
                   <FaUser className={styles.inputIcon} />
                   <input
                     type="text"
                     name="fullName"
-                    placeholder="Full Name"
+                    placeholder={t('payment.fullName')}
                     value={formData.fullName}
                     onChange={handleInputChange}
                     required
@@ -248,7 +378,7 @@ const PaymentPage = () => {
                   <input
                     type="email"
                     name="email"
-                    placeholder="Email Address"
+                    placeholder={t('payment.email')}
                     value={formData.email}
                     onChange={handleInputChange}
                     required
@@ -259,7 +389,7 @@ const PaymentPage = () => {
                   <input
                     type="tel"
                     name="phone"
-                    placeholder="Phone Number"
+                    placeholder={t('payment.phone')}
                     value={formData.phone}
                     onChange={handleInputChange}
                     required
@@ -269,13 +399,13 @@ const PaymentPage = () => {
 
               {/* Payment Details */}
               <div className={styles.formSection}>
-                <h2><FaCreditCard className={styles.sectionIcon} /> Payment Details</h2>
+                <h2><FaCreditCard className={styles.sectionIcon} /> {t('payment.paymentDetails')}</h2>
                 <div className={styles.inputGroup}>
                   <FaCreditCard className={styles.inputIcon} />
                   <input
                     type="text"
                     name="cardNumber"
-                    placeholder="Card Number"
+                    placeholder={t('payment.cardNumber')}
                     value={formData.cardNumber}
                     onChange={handleInputChange}
                     required
@@ -287,7 +417,7 @@ const PaymentPage = () => {
                     <input
                       type="text"
                       name="expiryDate"
-                      placeholder="MM/YY"
+                      placeholder={t('payment.expiryDate')}
                       value={formData.expiryDate}
                       onChange={handleInputChange}
                       required
@@ -298,7 +428,7 @@ const PaymentPage = () => {
                     <input
                       type="text"
                       name="cvv"
-                      placeholder="CVV"
+                      placeholder={t('payment.cvv')}
                       value={formData.cvv}
                       onChange={handleInputChange}
                       required
@@ -312,60 +442,106 @@ const PaymentPage = () => {
               {formData.orderType === 'DELIVERY' && (
                 <div className={styles.formSection}>
                   <h2><FaMapMarkerAlt className={styles.sectionIcon} /> Delivery Address</h2>
-                  <div className={styles.inputGroup}>
-                    <AddressAutocomplete
-                      placeholder="Search for your delivery address..."
-                      onAddressSelect={handleAddressSelect}
-                      value={formData.address}
-                      onChange={(e) => handleInputChange(e)}
-                      required={formData.orderType === 'DELIVERY'}
-                    />
-                  </div>
                   
-                  {/* Show selected address details */}
-                  {selectedAddress && (
-                    <div className={styles.selectedAddressInfo}>
-                      <h4>Selected Address:</h4>
-                      <p><strong>Address:</strong> {selectedAddress.formatted_address}</p>
-                      <p><strong>Coordinates:</strong> {selectedAddress.latitude.toFixed(6)}, {selectedAddress.longitude.toFixed(6)}</p>
+                  {/* Saved Addresses List */}
+                  {loadingAddresses ? (
+                    <div className={styles.loadingAddresses}>Loading saved addresses...</div>
+                  ) : savedAddresses.length > 0 ? (
+                    <div className={styles.savedAddresses}>
+                      <h3>Select from saved addresses:</h3>
+                      <div className={styles.addressList}>
+                        {savedAddresses.map((address) => {
+                          const addressParts = address.addressDetail.split(' | ');
+                          const label = addressParts[0] || 'HOME';
+                          const displayAddress = addressParts.find(part => part.startsWith('Full: '))?.replace('Full: ', '') || 
+                                               addressParts.slice(1).filter(part => !part.startsWith('Coords:') && !part.startsWith('PlaceID:')).join(', ');
+                          
+                          return (
+                            <div 
+                              key={address.id} 
+                              className={`${styles.addressCard} ${selectedSavedAddress?.id === address.id ? styles.selectedCard : ''}`}
+                              onClick={() => handleSavedAddressSelect(address)}
+                            >
+                              <div className={styles.addressLabel}>
+                                {getLabelIcon(label)}
+                                <span>{label}</span>
+                                {address.isDefault && <span className={styles.defaultBadge}>Default</span>}
+                              </div>
+                              <p className={styles.addressText}>{displayAddress}</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <button
+                        type="button"
+                        className={styles.addNewAddressBtn}
+                        onClick={() => setShowAddressForm(!showAddressForm)}
+                      >
+                        <FaPlus /> {showAddressForm ? 'Hide Form' : 'Add New Address'}
+                      </button>
                     </div>
-                  )}
-                  
-                  {/* Fallback manual inputs if needed */}
-                  <details className={styles.manualAddressToggle}>
-                    <summary>Enter address manually</summary>
-                    <div className={styles.manualAddressInputs}>
+                  ) : null}
+
+                  {/* Address Form - Show when no saved addresses or user wants to add new */}
+                  {(showAddressForm || savedAddresses.length === 0) && (
+                    <div className={styles.addressForm}>
+                      {savedAddresses.length > 0 && <h3>Add new address:</h3>}
                       <div className={styles.inputGroup}>
-                        <input
-                          type="text"
-                          name="address"
-                          placeholder="Street Address"
+                        <AddressAutocomplete
+                          placeholder="Search for your delivery address..."
+                          onAddressSelect={handleAddressSelect}
                           value={formData.address}
-                          onChange={handleInputChange}
+                          onChange={(e) => handleInputChange(e)}
+                          required={formData.orderType === 'DELIVERY' && !selectedSavedAddress}
                         />
                       </div>
-                      <div className={styles.addressDetails}>
-                        <div className={styles.inputGroup}>
-                          <input
-                            type="text"
-                            name="city"
-                            placeholder="City"
-                            value={formData.city}
-                            onChange={handleInputChange}
-                          />
+                      
+                      {/* Show selected address details */}
+                      {selectedAddress && (
+                        <div className={styles.selectedAddressInfo}>
+                          <h4>Selected Address:</h4>
+                          <p><strong>Address:</strong> {selectedAddress.formatted_address}</p>
+                          <p><strong>Coordinates:</strong> {selectedAddress.latitude.toFixed(6)}, {selectedAddress.longitude.toFixed(6)}</p>
                         </div>
-                        <div className={styles.inputGroup}>
-                          <input
-                            type="text"
-                            name="zipCode"
-                            placeholder="ZIP Code"
-                            value={formData.zipCode}
-                            onChange={handleInputChange}
-                          />
+                      )}
+                      
+                      {/* Fallback manual inputs if needed */}
+                      <details className={styles.manualAddressToggle}>
+                        <summary>Enter address manually</summary>
+                        <div className={styles.manualAddressInputs}>
+                          <div className={styles.inputGroup}>
+                            <input
+                              type="text"
+                              name="address"
+                              placeholder="Street Address"
+                              value={formData.address}
+                              onChange={handleInputChange}
+                            />
+                          </div>
+                          <div className={styles.addressDetails}>
+                            <div className={styles.inputGroup}>
+                              <input
+                                type="text"
+                                name="city"
+                                placeholder="City"
+                                value={formData.city}
+                                onChange={handleInputChange}
+                              />
+                            </div>
+                            <div className={styles.inputGroup}>
+                              <input
+                                type="text"
+                                name="zipCode"
+                                placeholder="ZIP Code"
+                                value={formData.zipCode}
+                                onChange={handleInputChange}
+                              />
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      </details>
                     </div>
-                  </details>
+                  )}
                 </div>
               )}
 

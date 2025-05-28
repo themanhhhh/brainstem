@@ -25,9 +25,10 @@
 
 
 .heroSection_box_left h1{
+    
     color: azure;
     font-size: 4.5rem;
-    line-height: 1;
+    line-height: 1.2;
 }
 .heroSection_box_left p{
     color: azure;

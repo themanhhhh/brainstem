@@ -24,7 +24,7 @@ import { Style } from "@mui/icons-material";
 
 const menuItems = [
   {
-    title: "Pages",
+    title: "Management",
     list: [
       {
         title: "Dashboard",

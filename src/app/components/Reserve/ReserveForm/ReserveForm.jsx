@@ -17,8 +17,10 @@ import {
 import Style from "./ReserveForm.module.css";
 import { Button } from "../../componentsindex";
 import ordertableService from "../../../api/ordertable/ordertableService";
+import { useTranslation } from "../../../hooks/useTranslation";
 
 const Form = () => {
+  const t = useTranslation();
   const [loading, setLoading] = useState(false);
   const [tables, setTables] = useState([]);
   const [tablesLoading, setTablesLoading] = useState(true);
@@ -211,12 +213,12 @@ const Form = () => {
       <div className={Style.Form_box}>
         <form onSubmit={handleSubmit}>
           <div className={Style.Form_box_input}>
-            <label htmlFor="fullName">Full Name *</label>
+            <label htmlFor="fullName">{t('reserve.form.fullName')} *</label>
             <input 
               type="text"
               name="fullName"
               id="fullName"
-              placeholder="Enter your full name"  
+              placeholder={t('reserve.form.fullName')}  
               className={Style.Form_box_input_userName}
               value={formData.fullName}
               onChange={handleInputChange}
@@ -227,7 +229,7 @@ const Form = () => {
 
           <div className={Style.Form_box_contact}>
             <div className={Style.Form_box_contact_input}>
-                <label htmlFor="email">Email *</label>
+                <label htmlFor="email">{t('reserve.form.email')} *</label>
                 <div className={Style.Form_box_contact_input_box}>
                 <div className={Style.Form_box_input_box_icon}>
                     <HiOutlineMail/>
@@ -236,7 +238,7 @@ const Form = () => {
                   type="email"
                   name="email"
                   id="email"
-                  placeholder="your@email.com" 
+                  placeholder={t('reserve.form.email')} 
                   className={Style.Form_box_input_Email}
                   value={formData.email}
                   onChange={handleInputChange}
@@ -246,7 +248,7 @@ const Form = () => {
                 {errors.email && <span className={Style.error}>{errors.email}</span>}
             </div>
             <div className={Style.Form_box_contact_input}>
-                <label htmlFor="phoneNumber">Phone Number *</label>
+                <label htmlFor="phoneNumber">{t('reserve.form.phone')} *</label>
                 <div className={Style.Form_box_contact_input_box}>
                     <div className={Style.Form_box_input_box_icon}>
                         <FaPhoneAlt/>
@@ -255,7 +257,7 @@ const Form = () => {
                       type="tel"
                       name="phoneNumber"
                       id="phoneNumber"
-                      placeholder="Your phone number" 
+                      placeholder={t('reserve.form.phone')} 
                       className={Style.Form_box_input_Email}
                       value={formData.phoneNumber}
                       onChange={handleInputChange}
@@ -268,7 +270,7 @@ const Form = () => {
 
           <div className={Style.Form_box_input_social}>
             <div className={Style.Form_box_input}> 
-              <label htmlFor="orderTime">Date & Time *</label>
+              <label htmlFor="orderTime">{t('reserve.form.dateTime')} *</label>
               <div className={Style.Form_box_input_box}>
                 <div className={Style.Form_box_input_box_icon}>
                   <CiCalendarDate/>
@@ -287,7 +289,7 @@ const Form = () => {
             </div>
 
             <div className={Style.Form_box_input}> 
-              <label htmlFor="periodType">Period Type *</label>
+              <label htmlFor="periodType">{t('reserve.form.periodType')} *</label>
               <div className={Style.Form_box_input_box}>
                 <div className={Style.Form_box_input_box_icon}>
                   <CiTimer/>
@@ -300,16 +302,15 @@ const Form = () => {
                   className={Style.select}
                   required
                 >
-                  <option value="MORNING">Morning</option>
-                  <option value="LUNCH">Lunch</option>
-                  <option value="AFTERNOON">Afternoon</option>
-                  <option value="EVENING">Evening</option>
+                  <option value="BREAKFAST">{t('reserve.form.breakfast')}</option>
+                  <option value="LUNCH">{t('reserve.form.lunch')}</option>
+                  <option value="DINNER">{t('reserve.form.dinner')}</option>
                 </select>
               </div>
             </div>
 
             <div className={Style.Form_box_input}> 
-              <label htmlFor="tableId">Select Table *</label>
+              <label htmlFor="tableId">{t('reserve.form.selectTable')} *</label>
               <div className={Style.Form_box_input_box}>
                 <div className={Style.Form_box_input_box_icon}>
                   <MdTableRestaurant/>
@@ -324,12 +325,12 @@ const Form = () => {
                   disabled={tablesLoading}
                 >
                   <option value="">
-                    {tablesLoading ? 'Loading...' : 'Choose table'}
+                    {tablesLoading ? t('reserve.form.loading') : t('reserve.form.chooseTable')}
                   </option>
                   {!tablesLoading && tables.length > 0 && 
                     tables.map((table) => (
                       <option key={table.id} value={table.id}>
-                        {table.name} - {table.numberOfChair} seats
+                        {table.name} - {table.numberOfChair} {t('reserve.form.seats')}
                       </option>
                     ))
                   }
@@ -340,11 +341,11 @@ const Form = () => {
           </div>
 
           <div className={Style.Form_box_input}>
-            <label htmlFor="description">Special Requests (min 5 characters) *</label>
+            <label htmlFor="description">{t('reserve.form.specialRequests')} *</label>
             <textarea
               name="description"
               id="description"
-              placeholder="Any special requests or dietary requirements... (minimum 5 characters)"
+              placeholder={t('reserve.form.placeholder')}
               className={Style.Form_box_input_textarea}
               rows="3"
               value={formData.description}
@@ -353,7 +354,7 @@ const Form = () => {
             />
             {errors.description && <span className={Style.error}>{errors.description}</span>}
             <small className={Style.charCount}>
-              {formData.description.length}/5 characters minimum
+              {formData.description.length}/5 {t('reserve.form.charMin')}
             </small>
           </div>
 
@@ -366,10 +367,10 @@ const Form = () => {
                 {loading ? (
                   <>
                     <FaSpinner className={Style.spinning} />
-                    <span className={Style.btnText}>Processing...</span>
+                    <span className={Style.btnText}>{t('reserve.form.processing')}</span>
                   </>
                 ) : (
-                  <span className={Style.btnText}>Reserve Now</span>
+                  <span className={Style.btnText}>{t('reserve.form.reserveNow')}</span>
                 )}
             </button>
           </div>
@@ -380,22 +381,22 @@ const Form = () => {
       {showConfirmModal && (
         <div className={Style.modalOverlay}>
           <div className={Style.modal}>
-            <h3 className={Style.modalTitle}>Confirm Reservation</h3>
+            <h3 className={Style.modalTitle}>{t('reserve.form.confirmReservation')}</h3>
             <p className={Style.modalMessage}>
-              Are you sure you want to create this reservation for <strong>{formData.fullName}</strong>?
+              {t('reserve.form.confirmMessage')} <strong>{formData.fullName}</strong>?
             </p>
             <div className={Style.modalButtons}>
               <button
                 className={Style.cancelButton}
                 onClick={() => handleConfirmOrder(false)}
               >
-                Cancel
+                {t('reserve.form.cancel')}
               </button>
               <button
                 className={Style.confirmButton}
                 onClick={() => handleConfirmOrder(true)}
               >
-                Confirm
+                {t('reserve.form.confirm')}
               </button>
             </div>
           </div>

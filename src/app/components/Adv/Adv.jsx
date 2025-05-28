@@ -9,10 +9,12 @@ import Style from "./Adv.module.css";
 import images from "../../img";
 import { Button } from "../componentsindex";
 import { Router } from "next/router";
+import { useTranslation } from "../../hooks/useTranslation";
 
 
 const Adv = () => {
     const router = useRouter();
+    const t = useTranslation();
   return (
     <div className={Style.Adv}>
         <div className={Style.Adv_box}>
@@ -26,9 +28,9 @@ const Adv = () => {
                 </div>
             </div>
             <div className={Style.Adv_box_left}>
-                <span className={Style.Adv_box_left_span}> • OUR INGREDIENTS</span>
-                <h1>CRAFTING DISHES WITH  <span className={Style.Adv_box_left_hightlight}>FRESHEST FLAVORS</span><br/></h1>
-                <p>We take pride in using only the freshest, hand-picked ingredients that are free from preservatives and artificial additives. Taste the difference with every bite as we serve dishes made from nature’s finest.</p>
+                <span className={Style.Adv_box_left_span}> • {t('adv.ourIngredients')}</span>
+                <h1>{t('adv.craftingDishesWith')} <span className={Style.Adv_box_left_hightlight}>{t('adv.freshestFlavors')}</span><br/></h1>
+                <p>{t('adv.intro')}</p>
                 <div className={Style.Adv_box_left_information}>
                     <div className={Style.Adv_box_left_information_box}>
                         <Image 
@@ -38,7 +40,7 @@ const Adv = () => {
                             alt="ing1"
                             className={Style.Adv_box_left_information_box_img1}
                         />
-                        <h4>Best Qualities</h4>
+                        <h4>{t('adv.bestQualities')}</h4>
                     </div>
                     <div className={Style.Adv_box_left_information_box}>
                     <Image 
@@ -48,7 +50,7 @@ const Adv = () => {
                             alt="ing2"
                             className={Style.Adv_box_left_information_box_img2}
                         />
-                        <h4>Discount System</h4>
+                        <h4>{t('adv.discountSystem')}</h4>
                     </div>
                     <div className={Style.Adv_box_left_information_box}>
                     <Image 
@@ -58,11 +60,11 @@ const Adv = () => {
                             alt="ing3"
                             className={Style.Adv_box_left_information_box_img3}
                         />
-                        <h4>First Delivery</h4>
+                        <h4>{t('adv.firstDelivery')}</h4>
                     </div>
                 </div>
                 <div className={Style.Adv_box_left_btn}>
-                    <Button btnName="Book Table" onClick={()=>router.push("/upload-nft")}/>               
+                    <Button btnName={t('adv.bookTable')} onClick={()=>router.push("/upload-nft")}/>               
                 </div>
             </div>
         </div>
@@ -73,7 +75,7 @@ const Adv = () => {
                 </div>
                 <div className={Style.Adv_achiv_box_right}>
                     <h1>309</h1>
-                    <p>Professional Chefs</p>
+                    <p>{t('adv.professionalChefs')}</p>
                 </div>
             </div>
             <div className={Style.Adv_achiv_box}>
@@ -82,7 +84,7 @@ const Adv = () => {
                 </div>
                 <div className={Style.Adv_achiv_box_right}>
                     <h1>1000 +</h1>
-                    <p>Delicious Dishes</p>
+                    <p>{t('adv.deliciousDishes')}</p>
                 </div>
             </div>
             <div className={Style.Adv_achiv_box}>
@@ -91,7 +93,7 @@ const Adv = () => {
                 </div>
                 <div className={Style.Adv_achiv_box_right}>
                     <h1>25 +</h1>
-                    <p>Years Of Experience</p>
+                    <p>{t('adv.yearsOfExperience')}</p>
                 </div>
             </div>
             <div className={Style.Adv_achiv_box}>
@@ -100,7 +102,7 @@ const Adv = () => {
                 </div>
                 <div className={Style.Adv_achiv_box_right}>
                     <h1>300 +</h1>
-                    <p>Satisfied Clients</p>
+                    <p>{t('adv.satisfiedClients')}</p>
                 </div>
             </div>
         </div>

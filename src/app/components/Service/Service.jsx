@@ -2,14 +2,16 @@ import React from "react";
 import Image from "next/image";
 import Style from "./Service.module.css";
 import images from "../../img";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const Service = () => {
+  const t = useTranslation();
   return (
     <div className={Style.service}>
         <div className={Style.service_box_text_center}>
-            <h2 className={Style.service_box_text_center_small}>• Our Main Dishes</h2>
+            <h2 className={Style.service_box_text_center_small}>• {t('service.mainDishes')}</h2>
             <h1 className={Style.service_box_text_center_large}>
-            SATISFY YOUR CRAVINGS WITH <br /> OUR <span className={Style.service_box_text_center_large_hightlight}>SIGNATURE MAINS</span>
+            {t('service.satisfyYourCravings')} <br /> {t('service.our')} <span className={Style.service_box_text_center_large_hightlight}>{t('service.signatureMains')}</span>
             </h1>
         </div>
         <div className={Style.service_box}>
@@ -19,8 +21,8 @@ const Service = () => {
                 alt="Filter & Discover"
                 className={Style.service_box_item_img}
                 />
-                <h3>Soups</h3>
-                <p>Warm, comforting, and full of flavor, our soups avre the perfect start to any meal.</p>
+                <h3>{t('service.soups')}</h3>
+                <p>{t('service.soupsDesc')}</p>
             </div>
 
             <div className={Style.service_box_item}>
@@ -29,8 +31,8 @@ const Service = () => {
                 alt="Filter & Discover"
                 className={Style.service_box_item_img}
                 />
-                <h3>Salads</h3>
-                <p>Refreshing, vibrant, and full of fresh flavors, our salads are crafted to senses.</p>
+                <h3>{t('service.salads')}</h3>
+                <p>{t('service.saladsDesc')}</p>
             </div>
             <div className={Style.service_box_item}>
                 <Image 
@@ -38,8 +40,8 @@ const Service = () => {
                 alt="Connect Wallet"
                 className={Style.service_box_item_img}
                 />
-                <h3>Main Dishes</h3>
-                <p>Offering bold flavors and expertly crafted recipes that cater to every taste.</p>
+                <h3>{t('service.mainDishesTitle')}</h3>
+                <p>{t('service.mainDishesDesc')}</p>
             </div>
             <div className={Style.service_box_item}>
                 <Image 
@@ -47,8 +49,8 @@ const Service = () => {
                 alt="Filter & Discover"
                 className={Style.service_box_item_img}
                 />
-                <h3>Appetizers</h3>
-                <p>Our appetizers are the perfect way to begin your dining experience flavors.</p>
+                <h3>{t('service.appetizers')}</h3>
+                <p>{t('service.appetizersDesc')}</p>
             </div>
         </div>
     </div>
