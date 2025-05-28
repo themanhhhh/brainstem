@@ -174,7 +174,7 @@ const Page = () => {
     switch (status) {
       case 'AVAILABLE':
         return Style.available;
-      case 'OCCUPIED':
+      case 'IN_AVAILABLE':
         return Style.occupied;
       case 'RESERVED':
         return Style.reserved;

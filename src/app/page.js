@@ -35,7 +35,9 @@ export default function Home() {
         <Slider/>
         {/* <Blog/> */}
         <FAQ/>
-        <Reserve/>
+        <div id="reserve">
+          <Reserve/>
+        </div>
         <Footer/>
     </div>
   );

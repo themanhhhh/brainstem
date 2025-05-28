@@ -58,6 +58,14 @@ const Navbar = () => {
         router.push('/login');
     };
 
+    const handleBookTableClick = (e) => {
+        e.preventDefault();
+        const reserveSection = document.getElementById('reserve');
+        if (reserveSection) {
+            reserveSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
     return  (
         <div className={Style.navbar}>
             <div className={Style.navbar_container}>
@@ -88,7 +96,7 @@ const Navbar = () => {
                         </Link>
                     </div>
                     <div className={Style.navbar_container_right_button}>
-                        <Button btnName={t('nav.bookTable')}/>
+                        <Button btnName={t('nav.bookTable')} onClick={handleBookTableClick}/>
                     </div>
                     <div className={Style.navbar_container_right_cart} style={{zIndex: 10000000}}>
                         <CartIcon />
