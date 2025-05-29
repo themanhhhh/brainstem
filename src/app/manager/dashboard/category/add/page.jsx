@@ -1,9 +1,13 @@
 import React from 'react';
 import styles from './add.module.css';
+import LanguageSelector from '../../../../components/LanguageSelector/LanguageSelector';
 
 const page = () => {
   return (
-    <div>page</div>
+    <div>
+      <LanguageSelector />
+      page
+    </div>
   )
 }
 

@@ -8,7 +8,7 @@ const getToken = () => {
 };
 
 export const foodService = {
-    getFoods: async (page = 0, size = 10, language = 'EN') => {
+    getFoods: async (page = 0, size = 10, language = 'VI') => {
         const token = getToken();
         if (!token) throw new Error('No authentication token found');
 
@@ -23,7 +23,7 @@ export const foodService = {
     },
 
     // Get foods with filtering
-    getAllFoods: async (name = '', categoryId = null, state = null, page = 0, pageSize = 10, signal = null, language = 'EN') => {
+    getAllFoods: async (name = '', categoryId = null, state = null, page = 0, pageSize = 10, signal = null, language = 'VI') => {
         const token = getToken();
         if (!token) throw new Error('No authentication token found');
         
@@ -50,7 +50,7 @@ export const foodService = {
     },
 
     // Lấy thông tin một món ăn theo ID
-    getFoodById: async (id, language = 'EN') => {
+    getFoodById: async (id, language = 'VI') => {
         const token = getToken();
         if (!token) throw new Error('No authentication token found');
 
@@ -89,7 +89,7 @@ export const foodService = {
     },
 
     // Cập nhật thông tin món ăn
-    updateFood: async (id, name, description, price, imgUrl, categoryId, state, quantity, language = 'EN') => {
+    updateFood: async (id, name, description, price, imgUrl, categoryId, state, quantity, language = 'VI') => {
         const token = getToken();
         if (!token) throw new Error('No authentication token found');
 
@@ -126,7 +126,7 @@ export const foodService = {
         return response.json();
     },
 
-    getFoodView: async (size = 100 , language = 'EN') => {
+    getFoodView: async (size = 100 , language = 'VI') => {
         const response = await fetch(`${API_URL}/food/view?size=${size}&state=AVAILABLE&language=${language}`, {
             method: 'GET',
         }); 

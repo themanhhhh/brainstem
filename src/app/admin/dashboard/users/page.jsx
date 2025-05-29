@@ -175,10 +175,7 @@ const Page = () => {
 
   return (
     <div className={Style.userr}>
-      <div className={Style.header}>
-        <h1></h1>
-        <LogoutButton />
-      </div>
+      
       <div className={Style.container}>
         <div className={Style.top}>
             <Suspense fallback={<div>Loading...</div>}>

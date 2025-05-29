@@ -188,10 +188,7 @@ const Page = () => {
 
   return (
     <div className={Style.tablee}>
-      <div className={Style.header}>
-        <h1></h1>
-        <LogoutButton />
-      </div>
+      
       <div className={Style.container}>
       <div className={Style.top}>
         <h1>Table Management</h1>

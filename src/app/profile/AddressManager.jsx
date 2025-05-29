@@ -39,8 +39,8 @@ const AddressManager = () => {
     try {
       setLoading(true);
       const response = await addressService.getUserAddresses();
-      if (response.success) {
-        setAddresses(response.data || []);
+      if (response && Array.isArray(response.data)) {
+        setAddresses(response.data);
       } else {
         console.error('Failed to load addresses:', response.message);
         // Fallback to localStorage if API fails
@@ -107,43 +107,45 @@ const AddressManager = () => {
   };
 
   const handleSaveAddress = async () => {
-    if (!selectedAddress && !formData.street) {
+    if (!formData.street && !formData.formatted_address) {
       alert('Please select or enter an address');
       return;
     }
 
     try {
       setSaving(true);
-      
-      const addressData = {
-        label: formData.label === 'OTHER' ? formData.customLabel : formData.label,
-        street: formData.street,
-        apt: formData.apt,
-        city: formData.city,
-        state: formData.state,
-        zipCode: formData.zipCode,
-        country: formData.country,
-        latitude: formData.latitude,
-        longitude: formData.longitude,
-        formatted_address: formData.formatted_address,
-        place_id: formData.place_id,
-        isDefault: formData.isDefault
-      };
-
+      // Ghép addressDetail từ các trường (bỏ apt)
+      const addressDetail = [
+        formData.street,
+        formData.city,
+        formData.state,
+        formData.zipCode,
+        formData.country
+      ].filter(Boolean).join(', ');
+      // Lấy IP client
+      const ipRes = await fetch('https://api.ipify.org?format=json');
+      const ipData = await ipRes.json();
+      const addressIp = ipData.ip;
+      const isDefault = formData.isDefault;
       let response;
       if (editingAddress) {
-        // Update existing address
-        response = await addressService.updateAddress(editingAddress.id, addressData);
+        // Update: giữ nguyên logic cũ (nếu API update cần addressIp thì sửa tương tự)
+        response = await addressService.updateAddress(editingAddress.id, {
+          addressDetail,
+          isDefault
+        });
       } else {
         // Add new address
-        response = await addressService.createAddress(addressData);
+        response = await addressService.createAddress({
+          addressDetail,
+          addressIp,
+          isDefault
+        });
       }
-
-      if (response.success) {
-        // Reload addresses from server
+      if (response && response.id) {
         await loadAddresses();
-      resetForm();
-      alert(editingAddress ? 'Address updated successfully!' : 'Address saved successfully!');
+        resetForm();
+        alert(editingAddress ? 'Address updated successfully!' : 'Address saved successfully!');
       } else {
         throw new Error(response.message || 'Failed to save address');
       }
@@ -195,13 +197,12 @@ const AddressManager = () => {
 
   const handleSetDefault = async (addressId) => {
     try {
-      const response = await addressService.setDefaultAddress(addressId);
-      if (response.success) {
-        // Reload addresses from server
+      const response = await addressService.updateAddressDefault(addressId);
+      if (response === true) {
         await loadAddresses();
         alert('Default address updated successfully!');
       } else {
-        throw new Error(response.message || 'Failed to set default address');
+        throw new Error('Failed to set default address');
       }
     } catch (error) {
       console.error('Error setting default address:', error);
@@ -254,7 +255,6 @@ const AddressManager = () => {
               <FaTimes />
             </button>
           </div>
-
           <div className={styles.formContent}>
             {/* Address Search */}
             <div className={styles.inputGroup}>
@@ -478,18 +478,8 @@ const AddressManager = () => {
 
                 <div className={styles.addressContent}>
                   <p className={styles.addressText}>
-                    {address.street}
-                    {address.apt && `, ${address.apt}`}
+                    {address.addressDetail}
                   </p>
-                  <p className={styles.addressSecondary}>
-                    {[address.city, address.state, address.zipCode].filter(Boolean).join(', ')}
-                  </p>
-                  {address.country && (
-                    <p className={styles.addressSecondary}>{address.country}</p>
-                  )}
-                  {address.formatted_address && (
-                    <p className={styles.fullAddress}>{address.formatted_address}</p>
-                  )}
                 </div>
 
                 <div className={styles.addressActions}>

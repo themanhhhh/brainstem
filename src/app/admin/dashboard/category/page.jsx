@@ -8,6 +8,7 @@ import { useCart } from "../../../context/CartContext";
 import Image from "next/image";
 import LogoutButton from "@/app/components/LogoutButton/LogoutButton";
 import Link from "next/link";
+import LanguageSelector from "@/app/components/LanguageSelector/LanguageSelector";
 
 const Page = () => {
   const { categoryService, language } = useLanguageService();
@@ -361,6 +362,9 @@ const Page = () => {
           <div className={Style.modal}>
             <h2>Edit Category</h2>
             <form onSubmit={handleEditSubmit}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+                <LanguageSelector />
+              </div>
               <div className={Style.formGroup}>
                 <label>Name:</label>
                 <input

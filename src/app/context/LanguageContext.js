@@ -12,7 +12,7 @@ export const useLanguage = () => {
 };
 
 export const LanguageProvider = ({ children }) => {
-  const [language, setLanguage] = useState('EN');
+  const [language, setLanguage] = useState('VI');
   const [isClient, setIsClient] = useState(false);
 
   // Ensure we're on client side and load saved language
@@ -26,7 +26,8 @@ export const LanguageProvider = ({ children }) => {
       if (savedLanguage && (savedLanguage === 'EN' || savedLanguage === 'VI')) {
         setLanguage(savedLanguage);
       } else {
-        localStorage.setItem('language', 'EN');
+        setLanguage('VI');
+        localStorage.setItem('language', 'VI');
       }
     }
   }, []);

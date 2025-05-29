@@ -28,10 +28,7 @@ const Dashboard = () => {
   ]
   return (
     <div className={Style.dashboard}>
-      <div className={Style.header}>
-        <h1>Admin Dashboard</h1>
-        <LogoutButton />
-      </div>
+      
       <div className={Style.content}>
         <div className={styles.wrapper}>
           <div className={styles.main}>

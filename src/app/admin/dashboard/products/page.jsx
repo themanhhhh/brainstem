@@ -413,7 +413,7 @@ const Page = () => {
               <td className={Style.description}>{food.description}</td>
               <td>${food.price}</td>
               <td>
-                {activeCategories.find(cat => cat.id === food.categoryId)?.name || "Unknown"}
+                {food.categoryName}
               </td>
               <td>
                 <span className={`${Style.status} ${food.state === 'AVAILABLE' ? Style.active : Style.inactive}`}>

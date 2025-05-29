@@ -11,7 +11,7 @@ import {
 import { useEffect, useState, useRef } from "react";
 import { authService } from "@/app/api/auth/authService";
 import ProfilePopup from "@/app/components/Navbar/Profile/ProfilePopup";
-import LanguageSelector from "@/app/components/LanguageSelector/LanguageSelector";
+
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -56,7 +56,7 @@ const Navbar = () => {
           <MdOutlineChat size={20} />
           <MdNotifications size={20} />
           <MdPublic size={20} />
-          <LanguageSelector />
+         
         </div>
         {/* Avatar + Profile menu */}
         <div className={styles.avatarWrapper} ref={avatarRef}>

@@ -32,7 +32,9 @@ const addressService = {
       const token = getToken();
       if (!token) throw new Error('No authentication token found');
 
-      const addressDetail = formatAddressDetail(addressData);
+      // addressDetail là string, addressIp là string, isDefault là boolean
+      const { addressDetail, addressIp, isDefault } = addressData;
+      if (!addressDetail || !addressIp) throw new Error('addressDetail and addressIp are required');
 
       const response = await fetch(`${API_URL}/customer/address`, {
         method: 'POST',
@@ -41,8 +43,9 @@ const addressService = {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          addressDetail: addressDetail,
-          isDefault: addressData.isDefault || false
+          addressDetail,
+          addressIp,
+          isDefault: isDefault || false
         })
       });
       return response.json();
@@ -53,12 +56,12 @@ const addressService = {
   },
 
   // Get all addresses for current user
-  getUserAddresses: async () => {
+  getUserAddresses: async (page = 0, size = 10) => {
     try {
       const token = getToken();
       if (!token) throw new Error('No authentication token found');
 
-      const response = await fetch(`${API_URL}/customer/address`, {
+      const response = await fetch(`${API_URL}/customer/address?page=${page}&size=${size}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -227,6 +230,25 @@ const addressService = {
     } catch (error) {
       console.error('Error reverse geocoding:', error);
       return null;
+    }
+  },
+  updateAddressDefault: async (addressId) => {
+    try {
+      const token = getToken();
+      if (!token) throw new Error('No authentication token found');
+      const response = await fetch(`${API_URL}/customer/address/default/${addressId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ isDefault: true })
+      });
+      return response.json();
+    }
+    catch (error) {
+      console.error('Error updating address default:', error);
+      throw error;
     }
   }
 };

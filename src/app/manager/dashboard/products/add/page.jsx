@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import styles from "./add.module.css";
 import { useLanguageService } from "../../../../hooks/useLanguageService";
 import { useRouter } from "next/navigation";
+import LanguageSelector from '../../../../components/LanguageSelector/LanguageSelector';
 
 const AddFoodPage = () => {
   const { foodService, categoryService, language } = useLanguageService();
@@ -80,6 +81,7 @@ const AddFoodPage = () => {
 
   return (
     <div className={styles.container}>
+      <LanguageSelector />
       <form className={styles.form} onSubmit={handleSubmit}>
         <div className={styles.formGroup}>
           <label>Name:</label>

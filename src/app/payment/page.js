@@ -13,11 +13,13 @@ import { motion } from 'framer-motion';
 import Footer from '../components/Footer/Footer';
 import Navbar from '../components/Navbar/Navbar';
 import { useTranslation } from '../hooks/useTranslation';
+import { useAuth } from '../context/AuthContext';
 
 const PaymentPage = () => {
   const router = useRouter();
   const { cartItems, getCartTotal, clearCart } = useCart();
   const t = useTranslation();
+  const { user, profile: userProfile } = useAuth();
   const [discounts, setDiscounts] = useState([]);
   const [selectedDiscount, setSelectedDiscount] = useState(null);
   const [discountCode, setDiscountCode] = useState('');
@@ -29,6 +31,7 @@ const PaymentPage = () => {
   const [loadingAddresses, setLoadingAddresses] = useState(false);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [selectedSavedAddress, setSelectedSavedAddress] = useState(null);
+  const [showAddressListModal, setShowAddressListModal] = useState(false);
   const [formData, setFormData] = useState({
     // Order information
     name: '',
@@ -58,24 +61,30 @@ const PaymentPage = () => {
     fetchSavedAddresses();
   }, []);
 
+  useEffect(() => {
+    if (userProfile) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: userProfile.fullName || '',
+        email: userProfile.email || '',
+        phone: userProfile.phone || ''
+      }));
+    }
+  }, [userProfile]);
+
   const fetchSavedAddresses = async () => {
     try {
       setLoadingAddresses(true);
       const response = await addressService.getUserAddresses();
-      
+      let addresses = [];
       if (response && Array.isArray(response)) {
-        setSavedAddresses(response);
-        // If no saved addresses and no address form shown, show the form
-        if (response.length === 0) {
-          setShowAddressForm(true);
-        }
+        addresses = response;
       } else if (response && response.data && Array.isArray(response.data)) {
-        setSavedAddresses(response.data);
-        if (response.data.length === 0) {
-          setShowAddressForm(true);
-        }
-      } else {
-        setSavedAddresses([]);
+        addresses = response.data;
+      }
+      setSavedAddresses(addresses);
+      // If no saved addresses and no address form shown, show the form
+      if (addresses.length === 0) {
         setShowAddressForm(true);
       }
     } catch (error) {
@@ -297,6 +306,20 @@ const PaymentPage = () => {
     }
   };
 
+  // Lấy địa chỉ mặc định
+  const defaultAddress = savedAddresses.find(addr => addr.isDefault);
+
+  // Hàm chọn địa chỉ khác làm mặc định
+  const handleSetDefaultAddress = async (addressId) => {
+    try {
+      await addressService.updateAddressDefault(addressId);
+      await fetchSavedAddresses();
+      setShowAddressListModal(false);
+    } catch (error) {
+      alert('Failed to set default address');
+    }
+  };
+
   if (cartItems.length === 0) {
     return (
       <div className={styles.emptyCart}>
@@ -322,6 +345,140 @@ const PaymentPage = () => {
             </div>
 
             <form onSubmit={handleSubmit}>
+              {/* Địa chỉ lên đầu form */}
+              {formData.orderType === 'DELIVERY' && (
+                <div className={styles.formSection}>
+                  <h2><FaMapMarkerAlt className={styles.sectionIcon} /> Delivery Address</h2>
+                  {/* Hiển thị địa chỉ mặc định */}
+                  {loadingAddresses ? (
+                    <div className={styles.loadingAddresses}>Loading saved addresses...</div>
+                  ) : defaultAddress ? (
+                    <div className={styles.savedAddresses}>
+                      <h3>Default Address:</h3>
+                      <div className={styles.addressCard}>
+                        <div className={styles.addressLabel}>
+                          {getLabelIcon('HOME')}
+                          <span>HOME</span>
+                          <span className={styles.defaultBadge}>Default</span>
+                        </div>
+                        <p className={styles.addressText}>{defaultAddress.addressDetail}</p>
+                      </div>
+                      <button
+                        type="button"
+                        className={styles.addNewAddressBtn}
+                        onClick={() => setShowAddressListModal(true)}
+                      >
+                        Chọn địa chỉ khác
+                      </button>
+                    </div>
+                  ) : (
+                    <div className={styles.savedAddresses}>
+                      <p>No default address found. Please add a new address.</p>
+                      <button
+                        type="button"
+                        className={styles.addNewAddressBtn}
+                        onClick={() => setShowAddressForm(true)}
+                      >
+                        Add New Address
+                      </button>
+                    </div>
+                  )}
+                  {/* Modal chọn địa chỉ khác */}
+                  {showAddressListModal && (
+                    <div className={styles.modalOverlay} onClick={() => setShowAddressListModal(false)}>
+                      <div className={styles.discountModal} onClick={e => e.stopPropagation()}>
+                        <div className={styles.modalHeader}>
+                          <h3>Chọn địa chỉ làm mặc định</h3>
+                          <button className={styles.closeModal} onClick={() => setShowAddressListModal(false)}><FaTimes /></button>
+                        </div>
+                        <div className={styles.modalContent}>
+                          {savedAddresses.length > 0 ? (
+                            <div className={styles.addressList}>
+                              {savedAddresses.map(address => (
+                                <div
+                                  key={address.id}
+                                  className={styles.addressCard}
+                                  style={{ cursor: 'pointer', border: address.isDefault ? '2px solid #10b981' : '1px solid #eee' }}
+                                  onClick={() => handleSetDefaultAddress(address.id)}
+                                >
+                                  <div className={styles.addressLabel}>
+                                    {getLabelIcon('HOME')}
+                                    <span>HOME</span>
+                                    {address.isDefault && <span className={styles.defaultBadge}>Default</span>}
+                                  </div>
+                                  <p className={styles.addressText}>{address.addressDetail}</p>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p>No addresses found.</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {(showAddressForm || savedAddresses.length === 0) && (
+                    <div className={styles.addressForm}>
+                      {savedAddresses.length > 0 && <h3>Add new address:</h3>}
+                      <div className={styles.inputGroup}>
+                        <AddressAutocomplete
+                          placeholder="Search for your delivery address..."
+                          onAddressSelect={handleAddressSelect}
+                          value={formData.address}
+                          onChange={(e) => handleInputChange(e)}
+                          required={formData.orderType === 'DELIVERY' && !selectedSavedAddress}
+                        />
+                      </div>
+                      
+                      {/* Show selected address details */}
+                      {selectedAddress && (
+                        <div className={styles.selectedAddressInfo}>
+                          <h4>Selected Address:</h4>
+                          <p><strong>Address:</strong> {selectedAddress.formatted_address}</p>
+                          <p><strong>Coordinates:</strong> {selectedAddress.latitude.toFixed(6)}, {selectedAddress.longitude.toFixed(6)}</p>
+                        </div>
+                      )}
+                      
+                      {/* Fallback manual inputs if needed */}
+                      <details className={styles.manualAddressToggle}>
+                        <summary>Enter address manually</summary>
+                        <div className={styles.manualAddressInputs}>
+                          <div className={styles.inputGroup}>
+                            <input
+                              type="text"
+                              name="address"
+                              placeholder="Street Address"
+                              value={formData.address}
+                              onChange={handleInputChange}
+                            />
+                          </div>
+                          <div className={styles.addressDetails}>
+                            <div className={styles.inputGroup}>
+                              <input
+                                type="text"
+                                name="city"
+                                placeholder="City"
+                                value={formData.city}
+                                onChange={handleInputChange}
+                              />
+                            </div>
+                            <div className={styles.inputGroup}>
+                              <input
+                                type="text"
+                                name="zipCode"
+                                placeholder="ZIP Code"
+                                value={formData.zipCode}
+                                onChange={handleInputChange}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </details>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Order Information */}
               <div className={styles.formSection}>
                 <h2><FaClipboardList className={styles.sectionIcon} /> {t('payment.orderInfo')}</h2>
@@ -437,113 +594,6 @@ const PaymentPage = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Delivery Address with AddressAutocomplete */}
-              {formData.orderType === 'DELIVERY' && (
-                <div className={styles.formSection}>
-                  <h2><FaMapMarkerAlt className={styles.sectionIcon} /> Delivery Address</h2>
-                  
-                  {/* Saved Addresses List */}
-                  {loadingAddresses ? (
-                    <div className={styles.loadingAddresses}>Loading saved addresses...</div>
-                  ) : savedAddresses.length > 0 ? (
-                    <div className={styles.savedAddresses}>
-                      <h3>Select from saved addresses:</h3>
-                      <div className={styles.addressList}>
-                        {savedAddresses.map((address) => {
-                          const addressParts = address.addressDetail.split(' | ');
-                          const label = addressParts[0] || 'HOME';
-                          const displayAddress = addressParts.find(part => part.startsWith('Full: '))?.replace('Full: ', '') || 
-                                               addressParts.slice(1).filter(part => !part.startsWith('Coords:') && !part.startsWith('PlaceID:')).join(', ');
-                          
-                          return (
-                            <div 
-                              key={address.id} 
-                              className={`${styles.addressCard} ${selectedSavedAddress?.id === address.id ? styles.selectedCard : ''}`}
-                              onClick={() => handleSavedAddressSelect(address)}
-                            >
-                              <div className={styles.addressLabel}>
-                                {getLabelIcon(label)}
-                                <span>{label}</span>
-                                {address.isDefault && <span className={styles.defaultBadge}>Default</span>}
-                              </div>
-                              <p className={styles.addressText}>{displayAddress}</p>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <button
-                        type="button"
-                        className={styles.addNewAddressBtn}
-                        onClick={() => setShowAddressForm(!showAddressForm)}
-                      >
-                        <FaPlus /> {showAddressForm ? 'Hide Form' : 'Add New Address'}
-                      </button>
-                    </div>
-                  ) : null}
-
-                  {/* Address Form - Show when no saved addresses or user wants to add new */}
-                  {(showAddressForm || savedAddresses.length === 0) && (
-                    <div className={styles.addressForm}>
-                      {savedAddresses.length > 0 && <h3>Add new address:</h3>}
-                      <div className={styles.inputGroup}>
-                        <AddressAutocomplete
-                          placeholder="Search for your delivery address..."
-                          onAddressSelect={handleAddressSelect}
-                          value={formData.address}
-                          onChange={(e) => handleInputChange(e)}
-                          required={formData.orderType === 'DELIVERY' && !selectedSavedAddress}
-                        />
-                      </div>
-                      
-                      {/* Show selected address details */}
-                      {selectedAddress && (
-                        <div className={styles.selectedAddressInfo}>
-                          <h4>Selected Address:</h4>
-                          <p><strong>Address:</strong> {selectedAddress.formatted_address}</p>
-                          <p><strong>Coordinates:</strong> {selectedAddress.latitude.toFixed(6)}, {selectedAddress.longitude.toFixed(6)}</p>
-                        </div>
-                      )}
-                      
-                      {/* Fallback manual inputs if needed */}
-                      <details className={styles.manualAddressToggle}>
-                        <summary>Enter address manually</summary>
-                        <div className={styles.manualAddressInputs}>
-                          <div className={styles.inputGroup}>
-                            <input
-                              type="text"
-                              name="address"
-                              placeholder="Street Address"
-                              value={formData.address}
-                              onChange={handleInputChange}
-                            />
-                          </div>
-                          <div className={styles.addressDetails}>
-                            <div className={styles.inputGroup}>
-                              <input
-                                type="text"
-                                name="city"
-                                placeholder="City"
-                                value={formData.city}
-                                onChange={handleInputChange}
-                              />
-                            </div>
-                            <div className={styles.inputGroup}>
-                              <input
-                                type="text"
-                                name="zipCode"
-                                placeholder="ZIP Code"
-                                value={formData.zipCode}
-                                onChange={handleInputChange}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </details>
-                    </div>
-                  )}
-                </div>
-              )}
 
               <button type="submit" className={styles.payButton} disabled={submitting}>
                 {submitting ? 'Processing...' : `Pay $${getFinalTotal().toFixed(2)}`}

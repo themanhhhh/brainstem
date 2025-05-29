@@ -272,10 +272,7 @@ const Page = () => {
 
   return (
     <div className={Style.discountt}>
-      <div className={Style.header}>
-        <h1></h1>
-        <LogoutButton />
-      </div>
+      
       <div className={Style.container}>
       <div className={Style.top}>
         <h1>Discounts Management</h1>

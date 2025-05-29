@@ -80,6 +80,11 @@ const Navbar = () => {
                             <p>{t('nav.home')}</p>
                         </Link>
                     </div>
+                    <div className={Style.navbar_container_right_menu}>          
+                        <Link href="/menu">
+                            <p>{t('nav.menu')}</p>
+                        </Link>
+                    </div>
                     <div className={Style.navbar_container_right_discover}>
                         <Link href="/aboutus">
                             <p>{t('nav.about')}</p>
@@ -88,11 +93,6 @@ const Navbar = () => {
                     <div className={Style.navbar_container_right_services}>
                         <Link href="/service">
                             <p>{t('nav.services')}</p>
-                        </Link>
-                    </div>
-                    <div className={Style.navbar_container_right_menu}>          
-                        <Link href="/menu">
-                            <p>{t('nav.menu')}</p>
                         </Link>
                     </div>
                     <div className={Style.navbar_container_right_button}>

@@ -8,7 +8,7 @@ const getToken = () => {
 };
 
 export const categoryService = {
-  getCategories: async (page = 0, pageSize = 10, language = 'EN') => {
+  getCategories: async (page = 0, pageSize = 10, language = 'VI') => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
 
@@ -24,7 +24,7 @@ export const categoryService = {
   },
 
   // Get categories with filter options
-  getAllCategories: async (name = '', state = null, page = 0, pageSize = 10, language = 'EN') => {
+  getAllCategories: async (name = '', state = null, page = 0, pageSize = 10, language = 'VI') => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
 
@@ -43,7 +43,7 @@ export const categoryService = {
     return response.json();
   },
 
-  getCategoryById: async (id, language = 'EN') => {
+  getCategoryById: async (id, language = 'VI') => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
 
@@ -74,7 +74,7 @@ export const categoryService = {
     return response.json();
   },
 
-  updateCategory: async (id, category , language = 'EN') => {
+  updateCategory: async (id, category , language = 'VI') => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
 
@@ -119,7 +119,7 @@ export const categoryService = {
 
     return response.json();
   },
-  getCategoryView: async (size = 100 , language = 'EN') => {
+  getCategoryView: async (size = 100 , language = 'VI') => {
     const response = await fetch(`${API_URL}/category/view?state=ACTIVE&size=${size}&language=${language}`, {
       method: 'GET',  
     });
