@@ -105,6 +105,12 @@ export const authService = {
   getProfile: async () => {
     try {
       const token = getToken();
+      
+      // Nếu không có token, trả về null thay vì gọi API
+      if (!token) {
+        return null;
+      }
+      
       const response = await fetch(`${API_URL}/auth/profile`, {
         headers: {
           'Content-Type': 'application/json',
@@ -120,8 +126,9 @@ export const authService = {
 
       return data;
     } catch (error) {
-      console.error('Profile fetch error:', error);
-      throw error;
+      // Silent error - không log để tránh spam console
+      // console.error('Profile fetch error:', error);
+      return null;
     }
   },
 

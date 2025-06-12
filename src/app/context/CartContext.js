@@ -74,15 +74,17 @@ export function CartProvider({ children }) {
       const existingItem = prevItems.find(item => item.id === product.id);
       
       if (existingItem) {
-        // Nếu sản phẩm đã tồn tại, tăng số lượng
+        // Nếu sản phẩm đã tồn tại, tăng số lượng theo quantity được truyền vào (mặc định +1)
+        const quantityToAdd = product.quantity || 1;
         return prevItems.map(item =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + quantityToAdd }
             : item
         );
       } else {
-        // Nếu sản phẩm chưa tồn tại, thêm mới
-        return [...prevItems, { ...product, quantity: 1 }];
+        // Nếu sản phẩm chưa tồn tại, thêm mới với quantity từ product (mặc định 1)
+        const initialQuantity = product.quantity || 1;
+        return [...prevItems, { ...product, quantity: initialQuantity }];
       }
     });
     return true;

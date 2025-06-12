@@ -492,7 +492,7 @@ export const translations = {
     heroSection: {
       artOfFineDining: "NGHỆ THUẬT ẨM THỰC ĐỈNH CAO",
       diningRedefinedWith: "TRẢI NGHIỆM ẨM THỰC ĐỈNH CAO VỚI",
-      everyBite: "MỖI MIẾNG ĂN",
+      everyBite: "MỖI BỮA ĂN",
       description: "Đắm chìm trong trải nghiệm ẩm thực độc đáo, nơi mỗi món ăn là một kiệt tác hương vị, được chế biến tỉ mỉ từ những nguyên liệu tươi ngon nhất.",
       bookTable: "Đặt bàn ngay"
     },

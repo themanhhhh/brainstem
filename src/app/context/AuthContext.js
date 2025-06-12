@@ -33,11 +33,18 @@ export function AuthProvider({ children }) {
   // Fetch profile function
   const fetchProfile = async () => {
     try {
+      // Chỉ fetch profile khi có token
+      const token = getCookie('token');
+      if (!token) {
+        return null;
+      }
+      
       const profileData = await authService.getProfile();
       setProfile(profileData);
       return profileData;
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      // Silent error handling - không log error để tránh console spam
+      // console.error('Error fetching profile:', error);
       return null;
     }
   };

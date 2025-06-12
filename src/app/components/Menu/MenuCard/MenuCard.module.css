@@ -5,23 +5,35 @@
     grid-template-columns: 25% 75%;
     border-radius: 8px;
     padding: 16px;
+    position: relative;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  
 }
+
+
+
 .MenuCard_left {
     display: flex;
     align-items: center;
 }
+
 .MenuCard_right {
     display: grid;
     grid-template-rows: 25% 75%;
 }
+
 .MenuCard_right_name_price{
     align-items: center;
     display: grid;
     grid-template-columns: 1.0fr 1.5fr;
 }
+
+
 .MenuCard_description {
     color: var(--font--color);
 }
+
 .MenuCard_right_price_box {
     margin-left: 20px;
     width: 80px;
@@ -32,14 +44,52 @@
     align-items: center;
     justify-content: center;
 }
+
 .MenuCard_price{
     display: grid;
     grid-template-columns: 75% 25%;
 }
+
 .MenuCard_right_price_line{
     display: grid;
     grid-template-rows: 50% 50%;
 }
+
 .MenuCard_right_price_line_up{
     border-bottom: 1px solid var(--icons-color);
+}
+
+/* Styles for add to cart button */
+.MenuCard_add_btn {
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    width: 45px;
+    height: 45px;
+    background-color: var(--icons-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+}
+
+.MenuCard_add_btn:hover {
+    background-color: #ff6b35;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.MenuCard_add_icon {
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.MenuCard_add_btn:active {
+    transform: translateY(-50%) scale(0.95);
 }
