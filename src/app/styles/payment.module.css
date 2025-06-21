@@ -785,4 +785,358 @@
   .addressText {
     font-size: 0.85rem;
   }
+}
+
+/* Order Information Display */
+.loadingOrder {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+  font-style: italic;
+}
+
+.orderInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.orderInfoItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.orderInfoItem:last-child {
+  border-bottom: none;
+}
+
+.orderInfoItem label {
+  font-weight: 600;
+  color: #495057;
+  min-width: 120px;
+}
+
+.orderInfoItem span {
+  flex: 1;
+  text-align: right;
+  color: #212529;
+}
+
+.orderStatus {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.orderPrice {
+  font-weight: 700;
+  color: #28a745;
+  font-size: 1.1rem;
+}
+
+.orderInfoFallback {
+  /* Existing form styles remain the same */
+}
+
+.emptyOrder {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+  font-style: italic;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+}
+
+/* Responsive design for order info */
+@media (max-width: 768px) {
+  .orderInfoItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .orderInfoItem span {
+    text-align: left;
+  }
+}
+
+/* Payment Status Overlay */
+.paymentOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+.paymentStatusModal {
+  background: white;
+  border-radius: 16px;
+  padding: 3rem 2rem;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 100%;
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.spinnerContainer {
+  margin-bottom: 1.5rem;
+}
+
+.paymentSpinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #2563eb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+.paymentStatusModal h2 {
+  color: #333;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+}
+
+.paymentStatusModal p {
+  color: #666;
+  margin: 0.5rem 0;
+  line-height: 1.5;
+}
+
+.subText {
+  font-size: 0.9rem;
+  color: #888 !important;
+  font-style: italic;
+}
+
+.redirectText {
+  color: #2563eb !important;
+  font-weight: 500;
+}
+
+/* Status Icons */
+.successIcon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #10b981;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin: 0 auto 1.5rem auto;
+  animation: bounceIn 0.6s ease-out;
+}
+
+.errorIcon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin: 0 auto 1.5rem auto;
+  animation: bounceIn 0.6s ease-out;
+}
+
+.warningIcon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #f59e0b;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin: 0 auto 1.5rem auto;
+  animation: bounceIn 0.6s ease-out;
+}
+
+.successTitle {
+  color: #10b981 !important;
+}
+
+.errorTitle {
+  color: #ef4444 !important;
+}
+
+.warningTitle {
+  color: #f59e0b !important;
+}
+
+/* Action Buttons */
+.waitingActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.cancelPaymentBtn {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 1.5rem;
+}
+
+.cancelPaymentBtn:hover {
+  background: #4b5563;
+}
+
+.manualConfirmBtn {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.manualConfirmBtn:hover {
+  background: #059669;
+}
+
+.failedActions,
+.timeoutActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.retryPaymentBtn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.retryPaymentBtn:hover {
+  background: #1d4ed8;
+}
+
+.backToCartBtn {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.backToCartBtn:hover {
+  background: #4b5563;
+}
+
+.checkOrderBtn {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.checkOrderBtn:hover {
+  background: #059669;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .paymentStatusModal {
+    padding: 2rem 1.5rem;
+    margin: 1rem;
+  }
+
+  .paymentStatusModal h2 {
+    font-size: 1.3rem;
+  }
+
+  .successIcon,
+  .errorIcon,
+  .warningIcon {
+    width: 60px;
+    height: 60px;
+    font-size: 2rem;
+  }
+
+  .failedActions,
+  .timeoutActions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .waitingActions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .retryPaymentBtn,
+  .backToCartBtn,
+  .checkOrderBtn,
+  .cancelPaymentBtn,
+  .manualConfirmBtn {
+    width: 100%;
+    padding: 1rem;
+  }
 } 

@@ -7,12 +7,28 @@ const getToken = () => {
     return null;
 };
 
+// Helper functions for order ID cookie management
+export const getOrderId = () => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; orderId=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+};
+
+export const setOrderId = (orderId) => {
+    document.cookie = `orderId=${orderId}; path=/; max-age=${60 * 60 * 24}`; // Lưu 24 giờ
+};
+
+export const clearOrderId = () => {
+    document.cookie = 'orderId=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+};
+
 // Get all orders
 export const getOrders = async (page = 0, size = 10) => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
     try {
-        const response = await fetch(`${API_URL}/orders?page=${page}&size=${size}`, {
+        const response = await fetch(`${API_URL}/customer/order?page=${page}&size=${size}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
@@ -34,7 +50,7 @@ export const getOrderById = async (id) => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
     try {
-        const response = await fetch(`${API_URL}/orders/${id}`, {
+        const response = await fetch(`${API_URL}/customer/order/${id}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
@@ -51,18 +67,18 @@ export const getOrderById = async (id) => {
     }
 };
 
-// Create a new order
-export const createOrder = async (orderData) => {
+// Create a new order - nhận mảng foodInfo với foodId và quantity
+export const createOrder = async (foodInfo) => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
     try {
-        const response = await fetch(`${API_URL}/orders`, {
+        const response = await fetch(`${API_URL}/customer/order`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(orderData),
+            body: JSON.stringify({ foodInfo }),
         });
         if (!response.ok) {
             throw new Error('Failed to create order');
@@ -80,7 +96,7 @@ export const updateOrderState = async (id, orderData) => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
     try {
-        const response = await fetch(`${API_URL}/orders/${id}`, {
+            const response = await fetch(`${API_URL}/customer/order/${id}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -97,5 +113,87 @@ export const updateOrderState = async (id, orderData) => {
         console.error('Error updating order:', error);
         throw error;
     }
+};
+
+// Payment service for VNPay
+// NOTE: VNPay return URL should be configured to point to FRONTEND:
+// Example: http://localhost:3000/payment/vnpay-return (for development)
+// Example: https://yourdomain.com/payment/vnpay-return (for production)
+// NOT to backend API - frontend will catch params and send via postMessage
+export const createPayment = async (orderId) => {
+    const token = getToken();
+    if (!token) throw new Error('No authentication token found');
+    try {
+        const response = await fetch(`${API_URL}/payment/vnpay`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ orderId }),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to create payment');
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error creating payment:', error);
+        throw error;
+    }
+};
+
+// Check payment status by checking order status
+// VNPay callbacks to backend API which updates order status
+export const checkPaymentStatus = async (orderId) => {
+    const token = getToken();
+    if (!token) throw new Error('No authentication token found');
+    try {
+        // Get order data to check payment status
+        // VNPay callback updates the order status in backend
+        const response = await fetch(`${API_URL}/orders/${orderId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const orderData = await response.json();
+        console.log('Order data for payment status check:', orderData);
+        
+        // Map order state to payment status
+        if (orderData.orderState) {
+            return {
+                status: mapOrderStateToPaymentStatus(orderData.orderState),
+                orderData: orderData
+            };
+        }
+        
+        // Fallback - assume pending if no order state
+        return { status: 'PENDING', orderData: orderData };
+    } catch (error) {
+        console.error('Error checking payment status:', error);
+        // Return a default pending status instead of throwing error
+        return { status: 'PENDING', error: error.message };
+    }
+};
+
+// Helper function to map order states to payment statuses
+const mapOrderStateToPaymentStatus = (orderState) => {
+    const stateMap = {
+        'PAID': 'PAID',
+        'COMPLETED': 'SUCCESS',
+        'CONFIRMED': 'SUCCESS',
+        'SUCCESS': 'SUCCESS',
+        'FAILED': 'FAILED',
+        'CANCELLED': 'CANCELLED',
+        'PENDING': 'PENDING'
+    };
+    console.log(`Mapping order state "${orderState}" to payment status "${stateMap[orderState] || 'PENDING'}"`);
+    return stateMap[orderState] || 'PENDING';
 };
 

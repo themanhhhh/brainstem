@@ -27,8 +27,8 @@
 }
 .MenuCard_right_price_box {
     margin-left: 20px;
-    width: 80px;
-    height: 30px;
+    width: 100px;
+    height: 40px;
     border-radius: 5rem;
     background-color: var(--icons-color);
     display: flex;

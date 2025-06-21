@@ -411,7 +411,7 @@ const Page = () => {
               </td>
               <td>{food.name}</td>
               <td className={Style.description}>{food.description}</td>
-              <td>${food.price}</td>
+              <td>{food.price} VNĐ</td>
               <td>
                 {food.categoryName}
               </td>

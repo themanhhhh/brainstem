@@ -43,6 +43,21 @@ export const discountService = {
     return response.json();
   },
 
+  getDiscountByPrice: async (price) => {
+    const token = getToken();
+    if (!token) throw new Error('No authentication token found');
+
+    const response = await fetch(`${API_URL}/discount/requirement-totalPrice/${price}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json', 
+      },
+      method: 'GET',
+    });
+
+    return response.json();
+  },
+
   getDiscountById: async (id) => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');

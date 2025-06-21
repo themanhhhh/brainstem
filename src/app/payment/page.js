@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../context/CartContext';
 import { discountService } from '../api/discount/discountService';
-import { createOrder } from '../api/order/orderService';
+import { createOrder, getOrderId, clearOrderId, getOrderById, createPayment, checkPaymentStatus } from '../api/order/orderService';
 import { addressService } from '../api/address/addressService';
 import AddressAutocomplete from '../components/AddressAutocomplete/AddressAutocomplete';
 import styles from '../styles/payment.module.css';
@@ -32,6 +32,11 @@ const PaymentPage = () => {
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [selectedSavedAddress, setSelectedSavedAddress] = useState(null);
   const [showAddressListModal, setShowAddressListModal] = useState(false);
+  const [orderData, setOrderData] = useState(null);
+  const [loadingOrder, setLoadingOrder] = useState(false);
+  const [waitingForPayment, setWaitingForPayment] = useState(false);
+  const [paymentWindow, setPaymentWindow] = useState(null);
+  const [paymentStatus, setPaymentStatus] = useState(null);
   const [formData, setFormData] = useState({
     // Order information
     name: '',
@@ -57,8 +62,14 @@ const PaymentPage = () => {
   });
 
   useEffect(() => {
-    fetchDiscounts();
     fetchSavedAddresses();
+    
+    // Log current orderId if exists
+    const currentOrderId = getOrderId();
+    if (currentOrderId) {
+      console.log('Current order ID from cookie:', currentOrderId);
+      fetchOrderData(currentOrderId);
+    }
   }, []);
 
   useEffect(() => {
@@ -71,6 +82,12 @@ const PaymentPage = () => {
       }));
     }
   }, [userProfile]);
+
+  useEffect(() => {
+    if (cartItems.length > 0) {
+      fetchDiscounts();
+    }
+  }, [cartItems]);
 
   const fetchSavedAddresses = async () => {
     try {
@@ -99,7 +116,9 @@ const PaymentPage = () => {
   const fetchDiscounts = async () => {
     try {
       setLoading(true);
-      const response = await discountService.getAllDiscounts('', 'AVAILABLE', 0, 100);
+      const total = getOrderTotal();
+      const response = await discountService.getDiscountByPrice(total);
+      console.log('Order total for discount calculation:', total);
       if (response.data && Array.isArray(response.data)) {
         setDiscounts(response.data);
       }
@@ -107,6 +126,20 @@ const PaymentPage = () => {
       console.error('Error fetching discounts:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchOrderData = async (orderId) => {
+    try {
+      setLoadingOrder(true);
+      const response = await getOrderById(orderId);
+      console.log('Order data fetched:', response);
+      setOrderData(response);
+    } catch (error) {
+      console.error('Error fetching order data:', error);
+      // Nếu không lấy được order data, có thể chuyển về cart hoặc hiển thị lỗi
+    } finally {
+      setLoadingOrder(false);
     }
   };
 
@@ -205,15 +238,14 @@ const PaymentPage = () => {
   };
 
   const handleDiscountSelect = (discount) => {
-    // Check if order meets minimum requirements
-    const subtotal = getCartTotal();
-    if (discount.minOrderValue && subtotal < discount.minOrderValue) {
-      alert(`Minimum order value of $${discount.minOrderValue} required for this discount.`);
+    // Check if discount is applicable
+    if (discount.applyState === 'INAPPLICABLE') {
+      alert(`Discount not applicable. Minimum order value of ${discount.discountRequirement.valueRequirement.toLocaleString()} VNĐ required.`);
       return;
     }
     
     setSelectedDiscount(discount);
-    setDiscountCode(discount.code || discount.name);
+    setDiscountCode(discount.name);
     setShowDiscountModal(false);
   };
 
@@ -223,30 +255,26 @@ const PaymentPage = () => {
   };
 
   const calculateDiscount = () => {
-    if (!selectedDiscount) return 0;
+    if (!selectedDiscount || selectedDiscount.applyState === 'INAPPLICABLE') return 0;
     
-    const subtotal = getCartTotal();
+    const subtotal = getOrderTotal();
     
-    // Check minimum order value
-    if (selectedDiscount.minOrderValue && subtotal < selectedDiscount.minOrderValue) {
-      return 0;
+    // Sử dụng totalPriceAfterDiscount để tính discount
+    const discountAmount = subtotal - selectedDiscount.totalPriceAfterDiscount;
+    return Math.max(0, discountAmount);
+  };
+
+  const getOrderTotal = () => {
+    // Nếu có orderData, sử dụng totalPrice từ orderData
+    if (orderData && orderData.totalPrice) {
+      return orderData.totalPrice;
     }
-    
-    if (selectedDiscount.discountType === 'PERCENTAGE') {
-      const discountAmount = (subtotal * selectedDiscount.discountValue) / 100;
-      // Apply maximum discount limit if exists
-      if (selectedDiscount.maxDiscountAmount) {
-        return Math.min(discountAmount, selectedDiscount.maxDiscountAmount);
-      }
-      return discountAmount;
-    } else if (selectedDiscount.discountType === 'FIXED') {
-      return Math.min(selectedDiscount.discountValue, subtotal);
-    }
-    return 0;
+    // Fallback về cartTotal nếu không có orderData
+    return getCartTotal();
   };
 
   const getFinalTotal = () => {
-    return getCartTotal() - calculateDiscount();
+    return getOrderTotal() - calculateDiscount();
   };
 
   const handleSubmit = async (e) => {
@@ -254,45 +282,55 @@ const PaymentPage = () => {
     setSubmitting(true);
     
     try {
-      // Save address if it's a new one
-      if (selectedAddress && savedAddresses.length === 0) {
-        await saveNewAddress({
-          address: formData.address,
-          city: formData.city,
-          zipCode: formData.zipCode,
-          latitude: formData.latitude,
-          longitude: formData.longitude
-        });
+      // Lấy orderId từ cookie
+      const currentOrderId = getOrderId();
+      if (!currentOrderId) {
+        alert('Không tìm thấy thông tin đơn hàng. Vui lòng thử lại!');
+        router.push('/cart');
+        return;
       }
 
-      // Prepare order data according to the new format
-      const orderData = {
-        name: formData.name || `Order for ${formData.fullName}`,
-        description: formData.description || `Order containing ${cartItems.length} items`,
-        discountId: selectedDiscount ? selectedDiscount.id : null,
-        price: getFinalTotal(),
-        addressId: selectedSavedAddress ? selectedSavedAddress.id : 1, // Use selected address ID or default
-        orderType: formData.orderType,
-        orderState: "PENDING", // Default state for new orders
-        foodIds: cartItems.map(item => item.id) // Extract food IDs from cart items
-      };
-
-      console.log('Creating order with data:', orderData);
-      console.log('Selected address:', selectedAddress);
+      console.log('Creating payment for order ID:', currentOrderId);
       
-      // Create the order
-      const response = await createOrder(orderData);
+      // Gọi API tạo thanh toán VNPay
+      const paymentResponse = await createPayment(currentOrderId);
       
-      if (response) {
-        alert('Order created successfully!');
-        clearCart(); // Clear the cart after successful order
-        // Redirect to home page or order confirmation page
-        router.push('/');
+      console.log('Payment response:', paymentResponse);
+      
+      // Kiểm tra response
+      if (paymentResponse.code === '00' && paymentResponse.paymentUrl) {
+        // Mở VNPay trong tab mới
+        const newWindow = window.open(paymentResponse.paymentUrl, '_blank', 'width=800,height=600');
+        setPaymentWindow(newWindow);
+        
+        // Bắt đầu trạng thái chờ thanh toán
+        setWaitingForPayment(true);
+        setPaymentStatus(null);
+        
+        // Chờ nhận message từ VNPay callback window
+        console.log('Waiting for VNPay payment result via postMessage...');
+        
+        // Monitor tab closure
+        const checkClosed = setInterval(() => {
+          if (newWindow.closed) {
+            clearInterval(checkClosed);
+            if (waitingForPayment) {
+              // Tab was closed manually - treat as cancelled
+              console.log('Payment window closed by user');
+              setWaitingForPayment(false);
+              setPaymentStatus('failed');
+            }
+          }
+        }, 1000);
+        
+      } else {
+        // Xử lý lỗi
+        alert(paymentResponse.message || 'Có lỗi xảy ra khi tạo thanh toán!');
       }
       
     } catch (error) {
-      console.error('Error creating order:', error);
-      alert('Failed to create order. Please try again.');
+      console.error('Error creating payment:', error);
+      alert('Có lỗi xảy ra khi tạo thanh toán. Vui lòng thử lại!');
     } finally {
       setSubmitting(false);
     }
@@ -320,7 +358,71 @@ const PaymentPage = () => {
     }
   };
 
-  if (cartItems.length === 0) {
+  const handleDiscountModalOpen = async () => {
+    setShowDiscountModal(true);
+    await fetchDiscounts();
+  };
+
+  // Listen for messages from VNPay callback window
+  useEffect(() => {
+    const handleMessage = (event) => {
+      // Verify origin for security
+      if (event.origin !== window.location.origin) {
+        return;
+      }
+
+      if (event.data.type === 'VNPAY_PAYMENT_RESULT') {
+        console.log('Received VNPay payment result:', event.data.data);
+        const result = event.data.data;
+        
+        // Stop waiting
+        setWaitingForPayment(false);
+        
+        if (result.success) {
+          // Payment successful
+          setPaymentStatus('success');
+          clearCart();
+          clearOrderId();
+          
+          // Close payment window
+          if (paymentWindow && !paymentWindow.closed) {
+            paymentWindow.close();
+          }
+          
+          // Show success message briefly then redirect
+          setTimeout(() => {
+            router.push('/');
+          }, 3000);
+        } else {
+          // Payment failed
+          setPaymentStatus('failed');
+          console.log('Payment failed:', result.message, 'Error code:', result.errorCode);
+        }
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('message', handleMessage);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [paymentWindow, router, clearCart]);
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      // Close payment window if still open when component unmounts
+      if (paymentWindow && !paymentWindow.closed) {
+        paymentWindow.close();
+      }
+      // Stop waiting for payment
+      setWaitingForPayment(false);
+    };
+  }, [paymentWindow]);
+
+  if (!orderData && cartItems.length === 0) {
     return (
       <div className={styles.emptyCart}>
         <h2>{t('payment.emptyCart.title')}</h2>
@@ -482,38 +584,51 @@ const PaymentPage = () => {
               {/* Order Information */}
               <div className={styles.formSection}>
                 <h2><FaClipboardList className={styles.sectionIcon} /> {t('payment.orderInfo')}</h2>
-                <div className={styles.inputGroup}>
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder={t('payment.orderName')}
-                    value={formData.name}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className={styles.inputGroup}>
-                  <textarea
-                    name="description"
-                    placeholder={t('payment.orderDescription')}
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className={styles.textArea}
-                  />
-                </div>
-                <div className={styles.inputGroup}>
-                  <select
-                    name="orderType"
-                    value={formData.orderType}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.selectInput}
-                  >
-                    <option value="DELIVERY">{t('payment.orderType.delivery')}</option>
-                    <option value="PICKUP">{t('payment.orderType.pickup')}</option>
-                    <option value="DINE_IN">{t('payment.orderType.dineIn')}</option>
-                  </select>
-                </div>
+                {loadingOrder ? (
+                  <div className={styles.loadingOrder}>Đang tải thông tin đơn hàng...</div>
+                ) : orderData ? (
+                  <div className={styles.orderInfo}>
+                    <div className={styles.orderInfoItem}>
+                      <label>Tên đơn hàng:</label>
+                      <span>{orderData.name || 'Chưa có tên'}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className={styles.orderInfoFallback}>
+                    <div className={styles.inputGroup}>
+                      <input
+                        type="text"
+                        name="name"
+                        placeholder={t('payment.orderName')}
+                        value={formData.name}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className={styles.inputGroup}>
+                      <textarea
+                        name="description"
+                        placeholder={t('payment.orderDescription')}
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        rows={3}
+                        className={styles.textArea}
+                      />
+                    </div>
+                    <div className={styles.inputGroup}>
+                      <select
+                        name="orderType"
+                        value={formData.orderType}
+                        onChange={handleInputChange}
+                        required
+                        className={styles.selectInput}
+                      >
+                        <option value="DELIVERY">{t('payment.orderType.delivery')}</option>
+                        <option value="PICKUP">{t('payment.orderType.pickup')}</option>
+                        <option value="DINE_IN">{t('payment.orderType.dineIn')}</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Personal Information */}
@@ -555,48 +670,10 @@ const PaymentPage = () => {
               </div>
 
               {/* Payment Details */}
-              <div className={styles.formSection}>
-                <h2><FaCreditCard className={styles.sectionIcon} /> {t('payment.paymentDetails')}</h2>
-                <div className={styles.inputGroup}>
-                  <FaCreditCard className={styles.inputIcon} />
-                  <input
-                    type="text"
-                    name="cardNumber"
-                    placeholder={t('payment.cardNumber')}
-                    value={formData.cardNumber}
-                    onChange={handleInputChange}
-                    required
-                    maxLength={16}
-                  />
-                </div>
-                <div className={styles.cardDetails}>
-                  <div className={styles.inputGroup}>
-                    <input
-                      type="text"
-                      name="expiryDate"
-                      placeholder={t('payment.expiryDate')}
-                      value={formData.expiryDate}
-                      onChange={handleInputChange}
-                      required
-                      maxLength={5}
-                    />
-                  </div>
-                  <div className={styles.inputGroup}>
-                    <input
-                      type="text"
-                      name="cvv"
-                      placeholder={t('payment.cvv')}
-                      value={formData.cvv}
-                      onChange={handleInputChange}
-                      required
-                      maxLength={3}
-                    />
-                  </div>
-                </div>
-              </div>
+              
 
               <button type="submit" className={styles.payButton} disabled={submitting}>
-                {submitting ? 'Processing...' : `Pay $${getFinalTotal().toFixed(2)}`}
+                {submitting ? 'Đang xử lý...' : `Thanh toán ${getFinalTotal().toLocaleString()} VNĐ`}
               </button>
             </form>
           </div>
@@ -604,12 +681,25 @@ const PaymentPage = () => {
           <div className={styles.orderSummary}>
             <h2>Order Summary</h2>
             <div className={styles.orderItems}>
-              {cartItems.map((item) => (
-                <div key={item.id} className={styles.orderItem}>
-                  <span>{item.name} x {item.quantity}</span>
-                  <span>${(item.price * item.quantity).toFixed(2)}</span>
+              {orderData?.foodInfos?.length > 0 ? (
+                orderData.foodInfos.map((item, index) => (
+                  <div key={index} className={styles.orderItem}>
+                    <span>{item.foodName || 'Unknown Food'} x {item.quantity}</span>
+                    <span>Số lượng: {item.quantity}</span>
+                  </div>
+                ))
+              ) : cartItems.length > 0 ? (
+                cartItems.map((item) => (
+                  <div key={item.id} className={styles.orderItem}>
+                    <span>{item.name} x {item.quantity}</span>
+                    <span>{(item.price * item.quantity).toLocaleString()} VNĐ</span>
+                  </div>
+                ))
+              ) : (
+                <div className={styles.emptyOrder}>
+                  <p>Không có sản phẩm trong đơn hàng</p>
                 </div>
-              ))}
+              )}
             </div>
 
             {/* Discount Section in Order Summary */}
@@ -630,9 +720,9 @@ const PaymentPage = () => {
                     </button>
                   </div>
                   <div className={styles.discountValue}>
-                    {selectedDiscount.discountType === 'PERCENTAGE' 
-                      ? `${selectedDiscount.discountValue}% OFF`
-                      : `$${selectedDiscount.discountValue} OFF`
+                    {selectedDiscount.valueType === 'PERCENT' 
+                      ? `${selectedDiscount.value}% OFF`
+                      : `${selectedDiscount.value.toLocaleString()} VNĐ OFF`
                     }
                   </div>
                 </div>
@@ -640,7 +730,7 @@ const PaymentPage = () => {
                 <button 
                   type="button"
                   className={styles.addDiscountBtn}
-                  onClick={() => setShowDiscountModal(true)}
+                  onClick={handleDiscountModalOpen}
                 >
                   <FaTag className={styles.discountIcon} />
                   <span>Add Discount Code</span>
@@ -651,12 +741,12 @@ const PaymentPage = () => {
             <div className={styles.orderTotal}>
               <div className={styles.totalRow}>
                 <span>Subtotal</span>
-                <span>${getCartTotal().toFixed(2)}</span>
+                <span>{getOrderTotal().toLocaleString()} VNĐ</span>
               </div>
               {selectedDiscount && (
                 <div className={styles.totalRow} style={{ color: '#28a745' }}>
                   <span>Discount ({selectedDiscount.name})</span>
-                  <span>-${calculateDiscount().toFixed(2)}</span>
+                  <span>-{calculateDiscount().toLocaleString()} VNĐ</span>
                 </div>
               )}
               <div className={styles.totalRow}>
@@ -665,7 +755,7 @@ const PaymentPage = () => {
               </div>
               <div className={styles.totalRow}>
                 <span>Total</span>
-                <span>${getFinalTotal().toFixed(2)}</span>
+                <span>{getFinalTotal().toLocaleString()} VNĐ</span>
               </div>
             </div>
           </div>
@@ -691,41 +781,44 @@ const PaymentPage = () => {
                 ) : discounts.length > 0 ? (
                   <div className={styles.discountList}>
                     {discounts.map((discount) => {
-                      const subtotal = getCartTotal();
-                      const isEligible = !discount.minOrderValue || subtotal >= discount.minOrderValue;
+                      const isApplicable = discount.applyState === 'APPLICABLE';
                       
                       return (
                         <div 
                           key={discount.id} 
-                          className={`${styles.discountCard} ${!isEligible ? styles.discountCardDisabled : ''}`}
-                          onClick={() => isEligible && handleDiscountSelect(discount)}
+                          className={`${styles.discountCard} ${!isApplicable ? styles.discountCardDisabled : ''}`}
+                          onClick={() => isApplicable && handleDiscountSelect(discount)}
+                          style={{ 
+                            opacity: isApplicable ? 1 : 0.5,
+                            cursor: isApplicable ? 'pointer' : 'not-allowed'
+                          }}
                         >
                           <div className={styles.discountHeader}>
                             <FaPercent className={styles.discountIcon} />
                             <span className={styles.discountName}>{discount.name}</span>
-                            {!isEligible && (
-                              <span className={styles.ineligibleBadge}>Not Eligible</span>
+                            {!isApplicable && (
+                              <span className={styles.ineligibleBadge}>Không áp dụng được</span>
                             )}
                           </div>
                           <div className={styles.discountDetails}>
                             <span className={styles.discountValue}>
-                              {discount.discountType === 'PERCENTAGE' 
-                                ? `${discount.discountValue}% OFF`
-                                : `$${discount.discountValue} OFF`
+                              {discount.valueType === 'PERCENT' 
+                                ? `${discount.value}% OFF`
+                                : `${discount.value.toLocaleString()} VNĐ OFF`
                               }
                             </span>
-                            {discount.minOrderValue && (
-                              <span className={`${styles.minOrder} ${!isEligible ? styles.minOrderNotMet : ''}`}>
-                                Min order: ${discount.minOrderValue}
+                            {discount.discountRequirement && discount.discountType !== 'FIRST_ORDER' && (
+                              <span className={`${styles.minOrder} ${!isApplicable ? styles.minOrderNotMet : ''}`}>
+                                Đơn tối thiểu: {discount.discountRequirement.valueRequirement.toLocaleString()} VNĐ
                               </span>
                             )}
                           </div>
                           {discount.description && (
                             <p className={styles.discountDescription}>{discount.description}</p>
                           )}
-                          {discount.maxDiscountAmount && discount.discountType === 'PERCENTAGE' && (
-                            <p className={styles.maxDiscount}>
-                              Max discount: ${discount.maxDiscountAmount}
+                          {isApplicable && discount.totalPriceAfterDiscount && (
+                            <p className={styles.finalPrice}>
+                              Thành tiền sau giảm: {discount.totalPriceAfterDiscount.toLocaleString()} VNĐ
                             </p>
                           )}
                         </div>
@@ -740,6 +833,96 @@ const PaymentPage = () => {
           </div>
         )}
       </motion.div>
+      
+      {/* Payment Status Overlay */}
+      {(waitingForPayment || paymentStatus) && (
+        <div className={styles.paymentOverlay}>
+          <div className={styles.paymentStatusModal}>
+            {waitingForPayment && !paymentStatus && (
+              <>
+                <div className={styles.spinnerContainer}>
+                  <div className={styles.paymentSpinner}></div>
+                </div>
+                <h2>Đang chờ thanh toán...</h2>
+                <p>Vui lòng hoàn thành thanh toán trong tab đã mở.</p>
+                <p className={styles.subText}>Hệ thống sẽ tự động cập nhật khi tab VNPay trả về kết quả.</p>
+                <div className={styles.waitingActions}>
+                  <button 
+                    className={styles.cancelPaymentBtn}
+                    onClick={() => {
+                      setWaitingForPayment(false);
+                      if (paymentWindow && !paymentWindow.closed) {
+                        paymentWindow.close();
+                      }
+                    }}
+                  >
+                    Hủy thanh toán
+                  </button>
+                </div>
+              </>
+            )}
+            
+            {paymentStatus === 'success' && (
+              <>
+                <div className={styles.successIcon}>✓</div>
+                <h2 className={styles.successTitle}>Thanh toán thành công!</h2>
+                <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.</p>
+                <p className={styles.redirectText}>Đang chuyển về trang chủ...</p>
+              </>
+            )}
+            
+            {paymentStatus === 'failed' && (
+              <>
+                <div className={styles.errorIcon}>✗</div>
+                <h2 className={styles.errorTitle}>Thanh toán thất bại!</h2>
+                <p>Đã có lỗi xảy ra trong quá trình thanh toán.</p>
+                <div className={styles.failedActions}>
+                  <button 
+                    className={styles.retryPaymentBtn}
+                    onClick={() => {
+                      setPaymentStatus(null);
+                      setWaitingForPayment(false);
+                      // Reset to try payment again
+                    }}
+                  >
+                    Thử lại
+                  </button>
+                  <button 
+                    className={styles.backToCartBtn}
+                    onClick={() => router.push('/cart')}
+                  >
+                    Về giỏ hàng
+                  </button>
+                </div>
+              </>
+            )}
+            
+            {paymentStatus === 'timeout' && (
+              <>
+                <div className={styles.warningIcon}>⚠</div>
+                <h2 className={styles.warningTitle}>Hết thời gian chờ</h2>
+                <p>Không thể xác định trạng thái thanh toán.</p>
+                <p className={styles.subText}>Vui lòng kiểm tra lại đơn hàng hoặc liên hệ hỗ trợ.</p>
+                <div className={styles.timeoutActions}>
+                  <button 
+                    className={styles.checkOrderBtn}
+                    onClick={() => router.push('/orders')}
+                  >
+                    Kiểm tra đơn hàng
+                  </button>
+                  <button 
+                    className={styles.backToCartBtn}
+                    onClick={() => router.push('/cart')}
+                  >
+                    Về giỏ hàng
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      
       <Footer />
     </>
   );

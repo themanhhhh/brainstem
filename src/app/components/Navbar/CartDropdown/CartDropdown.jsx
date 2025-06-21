@@ -1,7 +1,9 @@
 "use client"
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useCart } from '../../../context/CartContext';
+import { createOrder, setOrderId } from '../../../api/order/orderService';
+import { useRouter } from 'next/navigation';
 import styles from './CartDropdown.module.css';
 import { FaTrash } from 'react-icons/fa';
 import Link from 'next/link';
@@ -9,6 +11,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const CartDropdown = () => {
   const { cartItems, removeFromCart, getCartTotal } = useCart();
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+  const router = useRouter();
 
   const handleRemoveClick = (e, itemId) => {
     e.preventDefault();
@@ -18,6 +22,52 @@ const CartDropdown = () => {
 
   const handleDropdownClick = (e) => {
     e.stopPropagation(); // Prevent event bubbling to parent elements
+  };
+
+  const handleCheckout = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (cartItems.length === 0) {
+      alert('Giỏ hàng trống!');
+      return;
+    }
+
+    try {
+      setIsCreatingOrder(true);
+      
+      // Chuyển đổi cartItems thành foodInfo format
+      const foodInfo = cartItems.map(item => ({
+        foodId: item.id,
+        quantity: item.quantity
+      }));
+
+      console.log('Creating order with foodInfo:', foodInfo);
+      
+      // Gọi API tạo order
+      const response = await createOrder(foodInfo);
+      
+      // Lấy orderId từ response (có thể là response.id hoặc chỉ là response nếu response là số)
+      const orderId = typeof response === 'number' ? response : response.id || response.data?.id;
+      
+      console.log('Order created with ID:', orderId);
+      
+      if (!orderId) {
+        throw new Error('Không thể lấy ID đơn hàng từ response');
+      }
+      
+      // Lưu orderId vào cookie
+      setOrderId(orderId);
+      
+      // Chuyển hướng đến trang payment
+      router.push('/payment');
+      
+    } catch (error) {
+      console.error('Error creating order:', error);
+      alert('Có lỗi xảy ra khi tạo đơn hàng. Vui lòng thử lại!');
+    } finally {
+      setIsCreatingOrder(false);
+    }
   };
 
   return (
@@ -51,7 +101,7 @@ const CartDropdown = () => {
                 <img src={item.image} alt={item.name} className={styles.itemImage} />
                 <div className={styles.itemDetails}>
                   <h4>{item.name}</h4>
-                  <p>${item.price.toFixed(2)} x {item.quantity}</p>
+                  <p>{item.price} VNĐ x {item.quantity}</p>
                 </div>
                 <button
                   onClick={(e) => handleRemoveClick(e, item.id)}
@@ -69,15 +119,19 @@ const CartDropdown = () => {
         <>
           <div className={styles.cartTotal}>
             <span>Total:</span>
-            <span>${getCartTotal().toFixed(2)}</span>
+            <span>{getCartTotal()} VNĐ</span>
           </div>
           <div className={styles.cartActions}>
             <Link href="/cart" className={styles.viewCartButton}>
               View Cart
             </Link>
-            <Link href="/payment" className={styles.checkoutButton}>
-              Checkout
-            </Link>
+            <button 
+              onClick={handleCheckout}
+              className={styles.checkoutButton}
+              disabled={isCreatingOrder}
+            >
+              {isCreatingOrder ? 'Đang xử lý...' : 'Checkout'}
+            </button>
           </div>
         </>
       )}

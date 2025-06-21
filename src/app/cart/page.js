@@ -10,12 +10,15 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import Footer from '../components/Footer/Footer';
 import Navbar from '../components/Navbar/Navbar';
+import { createOrder } from '../api/order/orderService';
+import { toast } from 'react-hot-toast';
 
 const CartPage = () => {
-  const { cartItems, removeFromCart, updateQuantity, getCartTotal } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
   const [discountCode, setDiscountCode] = useState('');
   const [discountApplied, setDiscountApplied] = useState(false);
   const [discountError, setDiscountError] = useState('');
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
   const { user } = useAuth();
   const router = useRouter();
 
@@ -60,26 +63,36 @@ const CartPage = () => {
 
   const finalTotal = getCartTotal() - calculateDiscount();
 
-  if (cartItems.length === 0) {
-    return (
-      <>
-        <Navbar />
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={styles.cartEmpty}
-        >
-          <FaShoppingCart size={64} className={styles.emptyCartIcon} />
-          <h2>Your cart is empty</h2>
-          <p>Looks like you haven't added anything to your cart yet.</p>
-          <Link href="/menu" className={styles.continueShopping}>
-            <FaArrowLeft /> Continue Shopping
-          </Link>
-        </motion.div>
-        <Footer />
-      </>
-    );
-  }
+  // Xử lý checkout - tạo order mới
+  const handleCheckout = async () => {
+    if (cartItems.length === 0) {
+      toast.error('Your cart is empty');
+      return;
+    }
+
+    setIsCheckingOut(true);
+    try {
+      // Tạo mảng foodIds từ giỏ hàng (bao gồm cả quantity)
+      const foodIds = cartItems.flatMap(item => 
+        Array(item.quantity).fill(item.id)
+      );
+
+      // Gọi API tạo order
+      const response = await createOrder(foodIds);
+      
+      if (response) {
+        toast.success('Order created successfully!');
+        clearCart(); // Xóa giỏ hàng sau khi đặt hàng thành công
+        router.push('/payment'); 
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast.error(error.message || 'Failed to create order. Please try again.');
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
+
 
   return (
     <>
@@ -110,7 +123,7 @@ const CartPage = () => {
                   </div>
                   <div className={styles.itemDetails}>
                     <h3>{item.name}</h3>
-                    <p className={styles.itemPrice}>${item.price.toFixed(2)}</p>
+                    <p className={styles.itemPrice}>{item.price} VNĐ</p>
                     <div className={styles.quantityControls}>
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
@@ -129,7 +142,7 @@ const CartPage = () => {
                     </div>
                   </div>
                   <div className={styles.itemTotal}>
-                    <span>${(item.price * item.quantity).toFixed(2)}</span>
+                    <span>{item.price * item.quantity} VNĐ</span>
                   </div>
                   <button
                     className={styles.removeButton}
@@ -179,13 +192,13 @@ const CartPage = () => {
 
               <div className={styles.summaryRow}>
                 <span>Subtotal</span>
-                <span>${getCartTotal().toFixed(2)}</span>
+                <span>${getCartTotal()}</span>
               </div>
               {discountApplied && (
                 <div className={styles.summaryRow}>
                   <span>Discount</span>
                   <span className={styles.discountAmount}>
-                    -${calculateDiscount().toFixed(2)}
+                    -${calculateDiscount()}
                   </span>
                 </div>
               )}
@@ -196,11 +209,15 @@ const CartPage = () => {
               <div className={styles.summaryDivider} />
               <div className={`${styles.summaryRow} ${styles.totalRow}`}>
                 <span>Total</span>
-                <span>${finalTotal.toFixed(2)}</span>
+                <span>{finalTotal} VNĐ</span>
               </div>
-              <Link href="/payment" className={styles.checkoutButton}>
-                Proceed to Checkout
-              </Link>
+              <button 
+                onClick={handleCheckout}
+                disabled={isCheckingOut}
+                className={styles.checkoutButton}
+              >
+                {isCheckingOut ? 'Processing...' : 'Proceed to Checkout'}
+              </button>
               <Link href="/menu" className={styles.continueShopping}>
                 <FaArrowLeft /> Continue Shopping
               </Link>

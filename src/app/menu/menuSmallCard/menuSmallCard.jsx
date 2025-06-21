@@ -111,7 +111,7 @@ const MenuSmallCard = ({ id, name, price, description, image = null, imgUrl = nu
             <div className={Style.MenuCard_price}>
               
               <div className={Style.MenuCard_right_price_box}>
-                  <p>{displayPrice} $</p>
+                  <p>{displayPrice} vnđ</p>
               </div>
             </div>
         </div>
