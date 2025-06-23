@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import styles from "./order.module.css";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
@@ -6,7 +7,7 @@ import { Pagination, FilterableSearch } from "../../ui/dashboard/dashboardindex"
 import { useLanguageService } from "../../../hooks/useLanguageService";
 
 const OrderPage = () => {
-    const { orderService } = useLanguageService(); // ✅ gọi từ languageService
+    const { orderService } = useLanguageService();
     const [orders, setOrders] = useState([]);
     const [metadata, setMetadata] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -45,11 +46,15 @@ const OrderPage = () => {
                 setOrders(response.data);
                 setMetadata(response.metadata || null);
             } else {
+                console.warn("Unexpected orders response format", response);
                 setOrders([]);
+                setMetadata(null);
             }
             setError(null);
         } catch (err) {
             console.error("Error fetching orders:", err);
+            setOrders([]);
+            setMetadata(null);
             setError("Failed to fetch orders");
         } finally {
             setLoading(false);
@@ -87,9 +92,9 @@ const OrderPage = () => {
                     statusFilter={selectedStatus}
                     onStatusChange={handleStatusChange}
                     statusOptions={[
-                        { value: '', label: 'All Statuses' },
-                        { value: 'PENDING', label: 'Pending' },
-                        { value: 'COMPLETED', label: 'Completed' },
+                        { value: "", label: "All Statuses" },
+                        { value: "PENDING", label: "Pending" },
+                        { value: "COMPLETED", label: "Completed" },
                     ]}
                 />
             </div>
@@ -107,7 +112,9 @@ const OrderPage = () => {
                 <tbody>
                 {orders.length === 0 ? (
                     <tr>
-                        <td colSpan="5" className={styles.noData}>Không có đơn hàng nào</td>
+                        <td colSpan="5" className={styles.noData}>
+                            Hiển thị 0 / 0 bản ghi
+                        </td>
                     </tr>
                 ) : (
                     orders.map((order) => (
@@ -116,35 +123,60 @@ const OrderPage = () => {
                             <td>{order.tableId}</td>
                             <td>{order.customerName || "N/A"}</td>
                             <td>
-          <span className={`${styles.status} ${order.status === 'COMPLETED' ? styles.active : styles.inactive}`}>
-            {order.status}
-          </span>
+                  <span
+                      className={`${styles.status} ${
+                          order.status === "COMPLETED" ? styles.active : styles.inactive
+                      }`}
+                  >
+                    {order.status}
+                  </span>
                             </td>
                             <td>
-                                <button className={styles.viewButton} onClick={() => handleView(order.id)}>View</button>
+                                <button
+                                    className={styles.viewButton}
+                                    onClick={() => handleView(order.id)}
+                                >
+                                    View
+                                </button>
                             </td>
                         </tr>
                     ))
                 )}
                 </tbody>
-
             </table>
 
-            <Pagination metadata={metadata || { page: 0, totalPages: 1 }} />
+            <Pagination
+                metadata={metadata || { page: 0, totalPages: 1, count: 0, totalElements: 0 }}
+            />
 
             {showDetailModal && selectedOrder && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modal}>
                         <h2>Order Details</h2>
                         <div>
-                            <p><strong>ID:</strong> {selectedOrder.id}</p>
-                            <p><strong>Table:</strong> {selectedOrder.tableId}</p>
-                            <p><strong>Customer:</strong> {selectedOrder.customerName || "N/A"}</p>
-                            <p><strong>Status:</strong> {selectedOrder.status}</p>
-                            <p><strong>Total:</strong> {selectedOrder.totalPriceAfterDiscount}</p>
+                            <p>
+                                <strong>ID:</strong> {selectedOrder.id}
+                            </p>
+                            <p>
+                                <strong>Table:</strong> {selectedOrder.tableId}
+                            </p>
+                            <p>
+                                <strong>Customer:</strong> {selectedOrder.customerName || "N/A"}
+                            </p>
+                            <p>
+                                <strong>Status:</strong> {selectedOrder.status}
+                            </p>
+                            <p>
+                                <strong>Total:</strong> {selectedOrder.totalPriceAfterDiscount}
+                            </p>
                         </div>
                         <div className={styles.modalButtons}>
-                            <button className={styles.cancelButton} onClick={() => setShowDetailModal(false)}>Close</button>
+                            <button
+                                className={styles.cancelButton}
+                                onClick={() => setShowDetailModal(false)}
+                            >
+                                Close
+                            </button>
                         </div>
                     </div>
                 </div>
