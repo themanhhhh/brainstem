@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useCart } from '../../../context/CartContext';
 import { createOrder, setOrderId } from '../../../api/order/orderService';
+import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import styles from './CartDropdown.module.css';
 import { FaTrash } from 'react-icons/fa';
@@ -11,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const CartDropdown = () => {
   const { cartItems, removeFromCart, getCartTotal } = useCart();
+  const { user } = useAuth();
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const router = useRouter();
 
@@ -30,6 +32,13 @@ const CartDropdown = () => {
     
     if (cartItems.length === 0) {
       alert('Giỏ hàng trống!');
+      return;
+    }
+
+    // Kiểm tra xem người dùng đã đăng nhập chưa
+    if (!user) {
+      alert('Vui lòng đăng nhập để tiếp tục!');
+      router.push('/login');
       return;
     }
 

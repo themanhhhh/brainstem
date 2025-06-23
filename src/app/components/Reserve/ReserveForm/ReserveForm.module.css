@@ -5,6 +5,22 @@
     padding: 20px;
 }
 
+.loginNotice {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.loginNotice p {
+    margin: 0;
+    color: #856404;
+    font-weight: 500;
+    font-size: 1rem;
+}
+
 .Form_box_input{
     margin-top: 2rem;
 }

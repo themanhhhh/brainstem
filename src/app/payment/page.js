@@ -34,9 +34,7 @@ const PaymentPage = () => {
   const [showAddressListModal, setShowAddressListModal] = useState(false);
   const [orderData, setOrderData] = useState(null);
   const [loadingOrder, setLoadingOrder] = useState(false);
-  const [waitingForPayment, setWaitingForPayment] = useState(false);
-  const [paymentWindow, setPaymentWindow] = useState(null);
-  const [paymentStatus, setPaymentStatus] = useState(null);
+
   const [formData, setFormData] = useState({
     // Order information
     name: '',
@@ -299,29 +297,8 @@ const PaymentPage = () => {
       
       // Kiểm tra response
       if (paymentResponse.code === '00' && paymentResponse.paymentUrl) {
-        // Mở VNPay trong tab mới
-        const newWindow = window.open(paymentResponse.paymentUrl, '_blank', 'width=800,height=600');
-        setPaymentWindow(newWindow);
-        
-        // Bắt đầu trạng thái chờ thanh toán
-        setWaitingForPayment(true);
-        setPaymentStatus(null);
-        
-        // Chờ nhận message từ VNPay callback window
-        console.log('Waiting for VNPay payment result via postMessage...');
-        
-        // Monitor tab closure
-        const checkClosed = setInterval(() => {
-          if (newWindow.closed) {
-            clearInterval(checkClosed);
-            if (waitingForPayment) {
-              // Tab was closed manually - treat as cancelled
-              console.log('Payment window closed by user');
-              setWaitingForPayment(false);
-              setPaymentStatus('failed');
-            }
-          }
-        }, 1000);
+        // Chuyển hướng trực tiếp đến VNPay (không mở cửa sổ mới)
+        window.location.href = paymentResponse.paymentUrl;
         
       } else {
         // Xử lý lỗi
@@ -363,64 +340,7 @@ const PaymentPage = () => {
     await fetchDiscounts();
   };
 
-  // Listen for messages from VNPay callback window
-  useEffect(() => {
-    const handleMessage = (event) => {
-      // Verify origin for security
-      if (event.origin !== window.location.origin) {
-        return;
-      }
 
-      if (event.data.type === 'VNPAY_PAYMENT_RESULT') {
-        console.log('Received VNPay payment result:', event.data.data);
-        const result = event.data.data;
-        
-        // Stop waiting
-        setWaitingForPayment(false);
-        
-        if (result.success) {
-          // Payment successful
-          setPaymentStatus('success');
-          clearCart();
-          clearOrderId();
-          
-          // Close payment window
-          if (paymentWindow && !paymentWindow.closed) {
-            paymentWindow.close();
-          }
-          
-          // Show success message briefly then redirect
-          setTimeout(() => {
-            router.push('/');
-          }, 3000);
-        } else {
-          // Payment failed
-          setPaymentStatus('failed');
-          console.log('Payment failed:', result.message, 'Error code:', result.errorCode);
-        }
-      }
-    };
-
-    // Add event listener
-    window.addEventListener('message', handleMessage);
-    
-    // Cleanup
-    return () => {
-      window.removeEventListener('message', handleMessage);
-    };
-  }, [paymentWindow, router, clearCart]);
-
-  // Cleanup effect
-  useEffect(() => {
-    return () => {
-      // Close payment window if still open when component unmounts
-      if (paymentWindow && !paymentWindow.closed) {
-        paymentWindow.close();
-      }
-      // Stop waiting for payment
-      setWaitingForPayment(false);
-    };
-  }, [paymentWindow]);
 
   if (!orderData && cartItems.length === 0) {
     return (
@@ -834,94 +754,7 @@ const PaymentPage = () => {
         )}
       </motion.div>
       
-      {/* Payment Status Overlay */}
-      {(waitingForPayment || paymentStatus) && (
-        <div className={styles.paymentOverlay}>
-          <div className={styles.paymentStatusModal}>
-            {waitingForPayment && !paymentStatus && (
-              <>
-                <div className={styles.spinnerContainer}>
-                  <div className={styles.paymentSpinner}></div>
-                </div>
-                <h2>Đang chờ thanh toán...</h2>
-                <p>Vui lòng hoàn thành thanh toán trong tab đã mở.</p>
-                <p className={styles.subText}>Hệ thống sẽ tự động cập nhật khi tab VNPay trả về kết quả.</p>
-                <div className={styles.waitingActions}>
-                  <button 
-                    className={styles.cancelPaymentBtn}
-                    onClick={() => {
-                      setWaitingForPayment(false);
-                      if (paymentWindow && !paymentWindow.closed) {
-                        paymentWindow.close();
-                      }
-                    }}
-                  >
-                    Hủy thanh toán
-                  </button>
-                </div>
-              </>
-            )}
-            
-            {paymentStatus === 'success' && (
-              <>
-                <div className={styles.successIcon}>✓</div>
-                <h2 className={styles.successTitle}>Thanh toán thành công!</h2>
-                <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.</p>
-                <p className={styles.redirectText}>Đang chuyển về trang chủ...</p>
-              </>
-            )}
-            
-            {paymentStatus === 'failed' && (
-              <>
-                <div className={styles.errorIcon}>✗</div>
-                <h2 className={styles.errorTitle}>Thanh toán thất bại!</h2>
-                <p>Đã có lỗi xảy ra trong quá trình thanh toán.</p>
-                <div className={styles.failedActions}>
-                  <button 
-                    className={styles.retryPaymentBtn}
-                    onClick={() => {
-                      setPaymentStatus(null);
-                      setWaitingForPayment(false);
-                      // Reset to try payment again
-                    }}
-                  >
-                    Thử lại
-                  </button>
-                  <button 
-                    className={styles.backToCartBtn}
-                    onClick={() => router.push('/cart')}
-                  >
-                    Về giỏ hàng
-                  </button>
-                </div>
-              </>
-            )}
-            
-            {paymentStatus === 'timeout' && (
-              <>
-                <div className={styles.warningIcon}>⚠</div>
-                <h2 className={styles.warningTitle}>Hết thời gian chờ</h2>
-                <p>Không thể xác định trạng thái thanh toán.</p>
-                <p className={styles.subText}>Vui lòng kiểm tra lại đơn hàng hoặc liên hệ hỗ trợ.</p>
-                <div className={styles.timeoutActions}>
-                  <button 
-                    className={styles.checkOrderBtn}
-                    onClick={() => router.push('/orders')}
-                  >
-                    Kiểm tra đơn hàng
-                  </button>
-                  <button 
-                    className={styles.backToCartBtn}
-                    onClick={() => router.push('/cart')}
-                  >
-                    Về giỏ hàng
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+
       
       <Footer />
     </>

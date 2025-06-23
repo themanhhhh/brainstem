@@ -18,9 +18,11 @@ import Style from "./ReserveForm.module.css";
 import { Button } from "../../componentsindex";
 import ordertableService from "../../../api/ordertable/ordertableService";
 import { useTranslation } from "../../../hooks/useTranslation";
+import { useAuth } from "../../../context/AuthContext";
 
 const Form = () => {
   const t = useTranslation();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [tables, setTables] = useState([]);
   const [tablesLoading, setTablesLoading] = useState(true);
@@ -37,14 +39,21 @@ const Form = () => {
 
   const [errors, setErrors] = useState({});
 
-  // Fetch available tables when component mounts
+  // Fetch available tables when component mounts or user changes
   useEffect(() => {
     fetchTables();
-  }, []);
+  }, [user]);
 
   const fetchTables = async () => {
     try {
       setTablesLoading(true);
+      
+      // Chỉ fetch tables khi người dùng đã đăng nhập
+      if (!user) {
+        setTables([]);
+        return;
+      }
+      
       const response = await ordertableService.getActiveTable(0, 100);
       
       if (response && Array.isArray(response)) {
@@ -153,6 +162,12 @@ const Form = () => {
     try {
       setLoading(true);
       
+      // Kiểm tra authentication trước khi tạo order
+      if (!user) {
+        alert('Vui lòng đăng nhập để đặt bàn!');
+        return;
+      }
+      
       // Format datetime for API
       const formattedDateTime = formatDateTimeForAPI(formData.orderTime);
       
@@ -211,6 +226,11 @@ const Form = () => {
   return (
     <div className={Style.Form}>
       <div className={Style.Form_box}>
+        {!user && (
+          <div className={Style.loginNotice}>
+            <p>⚠️ Vui lòng đăng nhập để có thể đặt bàn và xem danh sách bàn trống.</p>
+          </div>
+        )}
         <form onSubmit={handleSubmit}>
           <div className={Style.Form_box_input}>
             <label htmlFor="fullName">{t('reserve.form.fullName')} *</label>
