@@ -13,8 +13,20 @@ import { authService } from "@/app/api/auth/authService";
 import ProfilePopup from "@/app/components/Navbar/Profile/ProfilePopup";
 
 
+const formatTitle = (slug) => {
+  if (!slug) return '';
+  // Tách camelCase bằng regex
+  const words = slug.replace(/([A-Z])/g, ' $1').trim();
+  // Viết hoa chữ cái đầu
+  return words
+      .split(' ')
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+};
 const Navbar = () => {
   const pathname = usePathname();
+  const titleSlug = pathname.split('/').pop();
+  const formattedTitle = formatTitle(titleSlug);
   const [profile, setProfile] = useState(null);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const avatarRef = useRef(null);
@@ -50,7 +62,7 @@ const Navbar = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.title}>{pathname.split("/").pop()}</div>
+      <div className={styles.title}>{formattedTitle}</div>
       <div className={styles.menu}>
         <div className={styles.icons}>
           <MdOutlineChat size={20} />
