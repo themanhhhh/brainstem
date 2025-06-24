@@ -105,9 +105,11 @@ export const authService = {
   getProfile: async () => {
     try {
       const token = getToken();
+      console.log('🔍 getProfile called with token:', token ? 'exists' : 'null');
       
       // Nếu không có token, trả về null thay vì gọi API
       if (!token) {
+        console.log('⚠️ No token in getProfile, returning null');
         return null;
       }
       
@@ -119,16 +121,19 @@ export const authService = {
       });
 
       const data = await response.json();
+      console.log('📡 getProfile API response:', { status: response.status, data });
 
       if (!response.ok) {
-        throw new Error(data.message || 'Profile fetch failed');
+        console.log('❌ Profile API failed, throwing error:', data);
+        throw new Error(data.message || data.error || 'Profile fetch failed');
       }
 
+      console.log('✅ Profile fetched successfully');
       return data;
     } catch (error) {
-      // Silent error - không log để tránh spam console
-      // console.error('Profile fetch error:', error);
-      return null;
+      console.log('❌ getProfile error:', error);
+      // Throw error thay vì return null để AuthContext có thể catch
+      throw error;
     }
   },
 

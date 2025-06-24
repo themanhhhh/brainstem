@@ -188,97 +188,115 @@
   width: 100%;
 }
 
-/* Simple CSS Charts */
-.simpleChart {
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-start;
-  height: 300px;
-  padding: 20px 20px 45px 20px;
+/* Line Chart Styles */
+.lineChartContainer {
   background: rgba(44, 62, 80, 0.2);
-  border-radius: 10px;
-  gap: 5px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  min-width: 100%;
-  position: relative;
+  border-radius: 15px;
+  padding: 20px;
+  margin-top: 10px;
 }
 
-/* Specific styling for order type chart */
-.orderTypeChart {
-  justify-content: space-evenly;
-  gap: 15px;
-}
-
-/* Custom scrollbar for chart */
-.simpleChart::-webkit-scrollbar {
-  height: 8px;
-}
-
-.simpleChart::-webkit-scrollbar-track {
-  background: rgba(44, 62, 80, 0.3);
-  border-radius: 4px;
-}
-
-.simpleChart::-webkit-scrollbar-thumb {
-  background: var(--icons-color);
-  border-radius: 4px;
-}
-
-.simpleChart::-webkit-scrollbar-thumb:hover {
-  background: rgba(166, 161, 130, 0.8);
-}
-
-.chartBar {
+.chartLegend {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+.legendItem {
+  display: flex;
   align-items: center;
-  justify-content: flex-end;
-  min-width: 45px;
-  max-width: 50px;
-  height: 100%;
-  position: relative;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--font--color);
+}
+
+.legendColor {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
   flex-shrink: 0;
 }
 
-.chartBarFill {
-  width: 100%;
-  max-width: 40px;
-  background: var(--icons-color);
-  border-radius: 4px 4px 0 0;
-  transition: all 0.3s ease;
-  margin-bottom: 10px;
-  min-height: 5px;
-}
-
-.chartBarFill:hover {
-  opacity: 0.8;
-  transform: scaleX(1.1);
-}
-
-.chartValue {
-  font-size: 0.55rem;
-  color: var(--icons-color);
-  text-align: center;
-  font-weight: 600;
+.lineChart {
+  position: relative;
+  height: 350px;
+  background: rgba(35, 35, 37, 0.3);
+  border-radius: 10px;
+  padding: 20px;
   overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 50px;
-  margin-bottom: 5px;
 }
 
-.chartLabel {
-  font-size: 0.65rem;
+.chartGrid {
+  position: absolute;
+  top: 20px;
+  left: 60px;
+  right: 20px;
+  bottom: 40px;
+  pointer-events: none;
+}
+
+.gridLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(166, 161, 130, 0.2);
+  display: flex;
+  align-items: center;
+}
+
+.gridLabel {
+  position: absolute;
+  left: -50px;
+  font-size: 0.75rem;
   color: var(--font--color);
-  text-align: center;
-  font-weight: 500;
+  background: rgba(35, 35, 37, 0.8);
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.chartSvg {
+  position: absolute;
+  top: 20px;
+  left: 60px;
+  right: 20px;
+  bottom: 40px;
+  width: calc(100% - 80px);
+  height: calc(100% - 60px);
+}
+
+.chartLine {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: all 0.3s ease;
+}
+
+.chartLine:hover {
+  stroke-width: 3;
+  filter: drop-shadow(0 0 6px currentColor);
+}
+
+.xAxisLabels {
+  position: absolute;
+  bottom: 10px;
+  left: 60px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.xAxisLabel {
+  font-size: 0.7rem;
+  color: var(--font--color);
   transform: rotate(-45deg);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 50px;
-  position: absolute;
-  bottom: -25px;
+  transform-origin: center;
 }
 
 /* Table Styles */
@@ -397,29 +415,31 @@
     grid-template-columns: 1fr;
   }
   
-  .simpleChart {
-    height: 250px;
-    padding: 15px 15px 40px 15px;
-    gap: 3px;
+  .lineChartContainer {
+    padding: 15px;
   }
   
-  .orderTypeChart {
+  .lineChart {
+    height: 280px;
+  }
+  
+  .chartLegend {
     gap: 10px;
+    font-size: 0.8rem;
   }
   
-  .chartBar {
-    min-width: 35px;
-    max-width: 40px;
+  .legendColor {
+    width: 14px;
+    height: 14px;
   }
   
-  .chartLabel {
-    font-size: 0.55rem;
-    max-width: 40px;
+  .gridLabel {
+    font-size: 0.7rem;
+    left: -45px;
   }
   
-  .chartValue {
-    font-size: 0.5rem;
-    max-width: 40px;
+  .xAxisLabel {
+    font-size: 0.65rem;
   }
   
   .dataTable th,
@@ -449,29 +469,47 @@
     font-size: 1.5rem;
   }
   
-  .simpleChart {
-    height: 200px;
-    padding: 10px 10px 35px 10px;
-    gap: 2px;
+  .lineChartContainer {
+    padding: 10px;
   }
   
-  .orderTypeChart {
+  .lineChart {
+    height: 220px;
+  }
+  
+  .chartLegend {
     gap: 8px;
+    font-size: 0.75rem;
+    flex-direction: column;
+    align-items: flex-start;
   }
   
-  .chartBar {
-    min-width: 30px;
-    max-width: 35px;
+  .legendColor {
+    width: 12px;
+    height: 12px;
   }
   
-  .chartLabel {
-    font-size: 0.5rem;
-    max-width: 35px;
+  .chartGrid {
+    left: 40px;
   }
   
-  .chartValue {
-    font-size: 0.45rem;
-    max-width: 35px;
+  .chartSvg {
+    left: 40px;
+    width: calc(100% - 60px);
+  }
+  
+  .xAxisLabels {
+    left: 40px;
+    right: 20px;
+  }
+  
+  .gridLabel {
+    font-size: 0.65rem;
+    left: -35px;
+  }
+  
+  .xAxisLabel {
+    font-size: 0.6rem;
   }
   
   .tableWrapper {
@@ -482,4 +520,29 @@
   .dataTable td {
     padding: 0.4rem;
   }
+}
+
+/* Recharts Container Styles */
+.rechartsContainer {
+  background: rgba(44, 62, 80, 0.2);
+  border-radius: 15px;
+  padding: 20px;
+  margin-top: 10px;
+}
+
+.rechartsContainer .recharts-wrapper {
+  border-radius: 10px;
+}
+
+.rechartsContainer .recharts-cartesian-grid-horizontal line,
+.rechartsContainer .recharts-cartesian-grid-vertical line {
+  stroke: rgba(255, 255, 255, 0.1);
+}
+
+.rechartsContainer .recharts-text {
+  fill: var(--font--color);
+}
+
+.rechartsContainer .recharts-legend-item-text {
+  color: var(--font--color) !important;
 }

@@ -45,6 +45,29 @@ export const getOrders = async (page = 0, size = 10) => {
     }
 };
 
+export const updateOrderInfo = async (id, orderData) => {
+    const token = getToken();
+    if (!token) throw new Error('No authentication token found');
+    try {
+        const response = await fetch(`${API_URL}/customer/order/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(orderData),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to update order');
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error updating order:', error);
+        throw error;
+    }
+}
+
 // Get order by ID
 export const getOrderById = async (id) => {
     const token = getToken();
