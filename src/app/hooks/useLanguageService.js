@@ -2,7 +2,7 @@
 import { useLanguage } from '@/app/context/LanguageContext';
 import { categoryService } from '@/app/api/category/categoryService';
 import { foodService } from '@/app/api/food/foodService';
-import { orderService } from '@/app/api/order/orderService';
+import { getOrders, getOrderById, createOrder, updateOrderState, updateOrderInfo } from '@/app/api/order/orderService';
 
 export const useLanguageService = () => {
   const { language } = useLanguage();
@@ -37,10 +37,11 @@ export const useLanguageService = () => {
 
   // ✅ Order services
   const orderServiceWithLang = {
-    getOrders: orderService.getOrders,
-    getOrderById: orderService.getOrderById,
-    createOrder: orderService.createOrder,
-    updateOrderState: orderService.updateOrderState,
+    getOrders: getOrders,
+    getOrderById: getOrderById,
+    createOrder: createOrder,
+    updateOrderState: updateOrderState,
+    updateOrderInfo: updateOrderInfo,
     // Nếu bạn có thêm API như deleteOrder thì thêm vào đây
   };
 

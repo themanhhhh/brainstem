@@ -4,7 +4,7 @@ import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 import { LoadingProvider } from "./context/LoadingContext";
 import { LanguageProvider } from "./context/LanguageContext";
-import { ProfileSync } from "./components/ProfileSync/ProfileSync";
+
 import { Suspense } from "react";
 import { Toaster } from "react-hot-toast";
 
@@ -23,7 +23,6 @@ function ClientLayout({ children }) {
       <LanguageProvider>
         <AuthProvider>
           <CartProvider>
-            <ProfileSync />
             <Toaster position="top-center" />
             {children}
           </CartProvider>

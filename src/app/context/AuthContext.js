@@ -41,7 +41,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [profileFetched, setProfileFetched] = useState(false); // Để tránh fetch profile liên tục
   const [isRedirecting, setIsRedirecting] = useState(false); // Để tránh redirect liên tục
-  const [autoFetchDisabled, setAutoFetchDisabled] = useState(false); // Để tắt auto fetch khi có ProfileSync
+  const [lastProfileFetch, setLastProfileFetch] = useState(0); // Timestamp của lần fetch cuối
   const router = useRouter();
 
   // Fetch profile function
@@ -56,8 +56,17 @@ export function AuthProvider({ children }) {
         return null;
       }
       
+      // Kiểm tra cooldown (5 phút) để tránh fetch quá thường xuyên
+      const now = Date.now();
+      const FETCH_COOLDOWN = 5 * 60 * 1000; // 5 phút
+      
+      if (!forceRefetch && profileFetched && (now - lastProfileFetch < FETCH_COOLDOWN)) {
+        console.log('⏰ Profile fetch on cooldown, returning cached data');
+        return profile;
+      }
+      
       // Tránh fetch liên tục nếu đã fetch rồi và không force
-      if (profileFetched && !forceRefetch) {
+      if (profileFetched && !forceRefetch && profile) {
         console.log('⚠️ Profile already fetched, returning cached data');
         return profile;
       }
@@ -67,6 +76,7 @@ export function AuthProvider({ children }) {
       console.log('✅ Profile fetched successfully:', profileData);
       setProfile(profileData);
       setProfileFetched(true);
+      setLastProfileFetch(Date.now());
       return profileData;
     } catch (error) {
       console.log('❌ Error in fetchProfile:', error);
@@ -254,13 +264,9 @@ export function AuthProvider({ children }) {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
         
-        // Fetch profile data for complete user information (chỉ khi không có ProfileSync)
-        if (!autoFetchDisabled) {
-          console.log('🚀 Calling fetchProfile from useEffect...');
-          fetchProfile();
-        } else {
-          console.log('⚠️ Auto fetch disabled, skipping fetchProfile from useEffect');
-        }
+        // Không auto fetch profile trong useEffect để tránh gọi liên tục
+        // Profile sẽ được fetch khi cần thiết thông qua các component khác
+        console.log('✅ User loaded from cookies, profile will be fetched when needed');
         
         // Chỉ chuyển hướng khi cần thiết
         const currentPath = window.location.pathname;
@@ -403,15 +409,7 @@ export function AuthProvider({ children }) {
     return user?.role === "MANAGER";
   };
 
-  const disableAutoFetch = () => {
-    console.log('🔧 Auto fetch disabled');
-    setAutoFetchDisabled(true);
-  };
 
-  const enableAutoFetch = () => {
-    console.log('🔧 Auto fetch enabled');
-    setAutoFetchDisabled(false);
-  };
 
   return (
     <AuthContext.Provider value={{ 
@@ -424,9 +422,7 @@ export function AuthProvider({ children }) {
       fetchProfile,
       isAdmin, 
       isUser,
-      isManager,
-      disableAutoFetch,
-      enableAutoFetch
+      isManager
     }}>
       {children}
     </AuthContext.Provider>
