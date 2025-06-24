@@ -117,14 +117,6 @@ const RevenuePage = () => {
       <div className={styles.content}>
         {/* Dashboard Cards */}
         <div className={styles.dashboard}>
-        <div className={styles.card}>
-          <div className={styles.cardIcon}>👥</div>
-          <div className={styles.cardContent}>
-            <h3>Người dùng hoạt động</h3>
-            <p className={styles.cardNumber}>{statistics?.statisticTotal?.totalActiveUser || 0}</p>
-            <span className={styles.cardSubtext}>Tổng số</span>
-          </div>
-        </div>
 
         <div className={styles.card}>
           <div className={styles.cardIcon}>📊</div>
@@ -235,7 +227,32 @@ const RevenuePage = () => {
           </div>
         </div>
       </div>
-
+      {/* Order Type Details */}
+      <div className={styles.detailsSection}>
+        <h2>Chi tiết theo Loại Đơn hàng</h2>
+        <div className={styles.detailsGrid}>
+          <div className={styles.detailCard}>
+            <h4>Tại chỗ (Dine In)</h4>
+            <p>{statistics?.statisticTotal?.countOrderDineIn || 0} đơn</p>
+          </div>
+          <div className={styles.detailCard}>
+            <h4>Giao hàng (Ship)</h4>
+            <p>{statistics?.statisticTotal?.countOrderShip || 0} đơn</p>
+          </div>
+          <div className={styles.detailCard}>
+            <h4>Mang về (Take Away)</h4>
+            <p>{statistics?.statisticTotal?.countOrderTakeAway || 0} đơn</p>
+          </div>
+          <div className={styles.detailCard}>
+            <h4>Online</h4>
+            <p>{statistics?.statisticTotal?.countOrderOnline || 0} đơn</p>
+          </div>
+          <div className={styles.detailCard}>
+            <h4>Offline</h4>
+            <p>{statistics?.statisticTotal?.countOrderOffline || 0} đơn</p>
+          </div>
+        </div>
+      </div>            
       {/* Revenue Trend Table */}
       <div className={styles.detailsSection}>
         <h2>Chi tiết Doanh thu theo Ngày</h2>
@@ -268,32 +285,6 @@ const RevenuePage = () => {
         </div>
       </div>
 
-      {/* Order Type Details */}
-      <div className={styles.detailsSection}>
-        <h2>Chi tiết theo Loại Đơn hàng</h2>
-        <div className={styles.detailsGrid}>
-          <div className={styles.detailCard}>
-            <h4>Tại chỗ (Dine In)</h4>
-            <p>{statistics?.statisticTotal?.countOrderDineIn || 0} đơn</p>
-          </div>
-          <div className={styles.detailCard}>
-            <h4>Giao hàng (Ship)</h4>
-            <p>{statistics?.statisticTotal?.countOrderShip || 0} đơn</p>
-          </div>
-          <div className={styles.detailCard}>
-            <h4>Mang về (Take Away)</h4>
-            <p>{statistics?.statisticTotal?.countOrderTakeAway || 0} đơn</p>
-          </div>
-          <div className={styles.detailCard}>
-            <h4>Online</h4>
-            <p>{statistics?.statisticTotal?.countOrderOnline || 0} đơn</p>
-          </div>
-          <div className={styles.detailCard}>
-            <h4>Offline</h4>
-            <p>{statistics?.statisticTotal?.countOrderOffline || 0} đơn</p>
-          </div>
-        </div>
-      </div>
       </div>
     </div>
   );

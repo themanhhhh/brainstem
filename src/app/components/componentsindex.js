@@ -21,7 +21,6 @@ import Adv from "./Adv/Adv";
 import Slider from "./Slider/Slider";
 import Blog from "./Blog/Blog";
 import Menu from "./Menu/Menu";
-import { ProfileSync } from "./ProfileSync/ProfileSync";
 
 export {
     Button,
@@ -46,6 +45,5 @@ export {
     Adv,
     Slider,
     Blog,
-    Menu,
-    ProfileSync
+    Menu
 };
