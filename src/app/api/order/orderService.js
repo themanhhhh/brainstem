@@ -27,6 +27,10 @@ export const clearOrderId = () => {
 export const getOrders = async (page = 0, size = 10) => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
+
+    const query = new URLSearchParams({ page, size });
+    if (status) query.append('status', status);
+
     try {
         const response = await fetch(`${API_URL}/customer/order?page=${page}&size=${size}`, {
             headers: {
@@ -37,16 +41,14 @@ export const getOrders = async (page = 0, size = 10) => {
         if (!response.ok) {
             throw new Error('Failed to fetch orders');
         }
-        const data = await response.json();
-        return data;
+        return await response.json();
     } catch (error) {
         console.error('Error fetching orders:', error);
         throw error;
     }
 };
 
-// Get order by ID
-export const getOrderById = async (id) => {
+const getOrderById = async (id) => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
     try {
@@ -59,8 +61,7 @@ export const getOrderById = async (id) => {
         if (!response.ok) {
             throw new Error('Failed to fetch order');
         }
-        const data = await response.json();
-        return data;
+        return await response.json();
     } catch (error) {
         console.error('Error fetching order:', error);
         throw error;
@@ -83,8 +84,7 @@ export const createOrder = async (foodInfo) => {
         if (!response.ok) {
             throw new Error('Failed to create order');
         }
-        const data = await response.json();
-        return data;
+        return await response.json();
     } catch (error) {
         console.error('Error creating order:', error);
         throw error;
@@ -107,8 +107,7 @@ export const updateOrderState = async (id, orderData) => {
         if (!response.ok) {
             throw new Error('Failed to update order');
         }
-        const data = await response.json();
-        return data;
+        return await response.json();
     } catch (error) {
         console.error('Error updating order:', error);
         throw error;
