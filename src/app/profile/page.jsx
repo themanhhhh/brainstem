@@ -10,6 +10,7 @@ import UserInfoCard from './UserInfoCard';
 import AddressManager from './AddressManager';
 import Navbar from '@/app/components/Navbar/Navbar';
 import Footer from '@/app/components/Footer/Footer';
+import { useProfileCheck } from '@/app/hooks/useProfileCheck';
 
 const menu = [
   { label: 'My Info', desc: 'View your detailed profile information', icon: <MdInfoOutline className={styles.menuIcon} /> },
@@ -19,6 +20,9 @@ const menu = [
 ];
 
 const Profile = () => {
+  // Check profile when component mounts
+  useProfileCheck('Profile Page');
+  
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

@@ -24,7 +24,7 @@ export const clearOrderId = () => {
 };
 
 // Get all orders
-export const getOrders = async (page = 0, size = 10) => {
+export const getOrders = async (page = 0, size = 10, status = '') => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
 
@@ -32,7 +32,7 @@ export const getOrders = async (page = 0, size = 10) => {
     if (status) query.append('status', status);
 
     try {
-        const response = await fetch(`${API_URL}/customer/order?page=${page}&size=${size}`, {
+        const response = await fetch(`${API_URL}/customer/order?${query.toString()}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
@@ -48,7 +48,8 @@ export const getOrders = async (page = 0, size = 10) => {
     }
 };
 
-const getOrderById = async (id) => {
+// Get order by ID
+export const getOrderById = async (id) => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
     try {
@@ -91,12 +92,36 @@ export const createOrder = async (foodInfo) => {
     }
 };
 
-// Update an order
+// Update order information
+export const updateOrderInfo = async (id, orderData) => {
+    const token = getToken();
+    if (!token) throw new Error('No authentication token found');
+    try {
+        const response = await fetch(`${API_URL}/customer/order/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(orderData),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to update order');
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error updating order:', error);
+        throw error;
+    }
+};
+
+// Update order state
 export const updateOrderState = async (id, orderData) => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
     try {
-            const response = await fetch(`${API_URL}/customer/order/${id}`, {
+        const response = await fetch(`${API_URL}/customer/order/${id}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -142,6 +167,18 @@ export const createPayment = async (orderId) => {
     }
 };
 
+// Helper function to map order states to payment statuses
+const mapOrderStateToPaymentStatus = (orderState) => {
+    const stateMap = {
+        'PAID': 'PAID',
+        'COMPLETED': 'SUCCESS',
+        'PENDING': 'PENDING',
+        'FAILED': 'FAILED',
+        'CANCELLED': 'CANCELLED'
+    };
+    return stateMap[orderState] || 'PENDING';
+};
+
 // Check payment status by checking order status
 // VNPay callbacks to backend API which updates order status
 export const checkPaymentStatus = async (orderId) => {
@@ -179,20 +216,5 @@ export const checkPaymentStatus = async (orderId) => {
         // Return a default pending status instead of throwing error
         return { status: 'PENDING', error: error.message };
     }
-};
-
-// Helper function to map order states to payment statuses
-const mapOrderStateToPaymentStatus = (orderState) => {
-    const stateMap = {
-        'PAID': 'PAID',
-        'COMPLETED': 'SUCCESS',
-        'CONFIRMED': 'SUCCESS',
-        'SUCCESS': 'SUCCESS',
-        'FAILED': 'FAILED',
-        'CANCELLED': 'CANCELLED',
-        'PENDING': 'PENDING'
-    };
-    console.log(`Mapping order state "${orderState}" to payment status "${stateMap[orderState] || 'PENDING'}"`);
-    return stateMap[orderState] || 'PENDING';
 };
 

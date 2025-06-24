@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../context/CartContext';
 import { discountService } from '../api/discount/discountService';
-import { createOrder, getOrderId, clearOrderId, getOrderById, createPayment, checkPaymentStatus } from '../api/order/orderService';
+import { createOrder, getOrderId, clearOrderId, getOrderById, createPayment, checkPaymentStatus, updateOrderInfo } from '../api/order/orderService';
 import { addressService } from '../api/address/addressService';
 import AddressAutocomplete from '../components/AddressAutocomplete/AddressAutocomplete';
 import styles from '../styles/payment.module.css';
@@ -40,6 +40,7 @@ const PaymentPage = () => {
     name: '',
     description: '',
     orderType: 'DELIVERY', // DELIVERY, PICKUP, DINE_IN
+    notes: '', // Thêm trường ghi chú
     
     // Customer information
     fullName: '',
@@ -288,7 +289,28 @@ const PaymentPage = () => {
         return;
       }
 
-      console.log('Creating payment for order ID:', currentOrderId);
+      console.log('Updating order info before payment for order ID:', currentOrderId);
+      
+      // Cập nhật thông tin đơn hàng trước khi thanh toán
+      const orderUpdateData = {
+        name: formData.name || 'Đơn hàng mới',
+        description: formData.description || 'Đơn hàng từ website',
+        orderType: formData.orderType,
+        notes: formData.notes || '', // Thêm ghi chú
+        // Thêm thông tin khách hàng và địa chỉ nếu cần
+        customerInfo: {
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          zipCode: formData.zipCode
+        }
+      };
+
+      // Cập nhật thông tin đơn hàng
+      await updateOrderInfo(currentOrderId, orderUpdateData);
+      console.log('Order info updated successfully');
       
       // Gọi API tạo thanh toán VNPay
       const paymentResponse = await createPayment(currentOrderId);
@@ -535,17 +557,83 @@ const PaymentPage = () => {
                       />
                     </div>
                     <div className={styles.inputGroup}>
-                      <select
-                        name="orderType"
-                        value={formData.orderType}
+                      <label className={styles.fieldLabel}>Phương thức nhận hàng:</label>
+                      <div className={styles.takingMethodOptions}>
+                        <div className={styles.radioOption}>
+                          <input
+                            type="radio"
+                            id="delivery"
+                            name="orderType"
+                            value="DELIVERY"
+                            checked={formData.orderType === 'DELIVERY'}
+                            onChange={handleInputChange}
+                            className={styles.radioInput}
+                          />
+                          <label htmlFor="delivery" className={styles.radioLabel}>
+                            <div className={styles.radioContent}>
+                              <FaHome className={styles.radioIcon} />
+                              <div className={styles.radioText}>
+                                <span className={styles.radioTitle}>Giao hàng tận nơi</span>
+                                <span className={styles.radioDescription}>Chúng tôi sẽ giao hàng đến địa chỉ của bạn</span>
+                              </div>
+                            </div>
+                          </label>
+                        </div>
+                        
+                        <div className={styles.radioOption}>
+                          <input
+                            type="radio"
+                            id="pickup"
+                            name="orderType"
+                            value="PICKUP"
+                            checked={formData.orderType === 'PICKUP'}
+                            onChange={handleInputChange}
+                            className={styles.radioInput}
+                          />
+                          <label htmlFor="pickup" className={styles.radioLabel}>
+                            <div className={styles.radioContent}>
+                              <FaBriefcase className={styles.radioIcon} />
+                              <div className={styles.radioText}>
+                                <span className={styles.radioTitle}>Đến lấy tại cửa hàng</span>
+                                <span className={styles.radioDescription}>Bạn sẽ đến lấy hàng tại cửa hàng</span>
+                              </div>
+                            </div>
+                          </label>
+                        </div>
+                        
+                        <div className={styles.radioOption}>
+                          <input
+                            type="radio"
+                            id="dinein"
+                            name="orderType"
+                            value="DINE_IN"
+                            checked={formData.orderType === 'DINE_IN'}
+                            onChange={handleInputChange}
+                            className={styles.radioInput}
+                          />
+                          <label htmlFor="dinein" className={styles.radioLabel}>
+                            <div className={styles.radioContent}>
+                              <FaClipboardList className={styles.radioIcon} />
+                              <div className={styles.radioText}>
+                                <span className={styles.radioTitle}>Dùng tại chỗ</span>
+                                <span className={styles.radioDescription}>Thưởng thức tại nhà hàng</span>
+                              </div>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className={styles.inputGroup}>
+                      <label className={styles.fieldLabel}>Ghi chú đặc biệt:</label>
+                      <textarea
+                        name="notes"
+                        placeholder="Nhập ghi chú cho đơn hàng (tùy chọn)..."
+                        value={formData.notes}
                         onChange={handleInputChange}
-                        required
-                        className={styles.selectInput}
-                      >
-                        <option value="DELIVERY">{t('payment.orderType.delivery')}</option>
-                        <option value="PICKUP">{t('payment.orderType.pickup')}</option>
-                        <option value="DINE_IN">{t('payment.orderType.dineIn')}</option>
-                      </select>
+                        rows={4}
+                        className={styles.textArea}
+                      />
                     </div>
                   </div>
                 )}
