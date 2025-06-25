@@ -366,9 +366,14 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error('Logout error:', error);
       // Hiển thị thông báo lỗi khi logout
-      toast.error('Có lỗi khi đăng xuất, nhưng bạn đã được đăng xuất khỏi hệ thống.', {
+      toast.success('Đăng xuất thành công!', {
         duration: 2000,
         position: 'top-center',
+        style: {
+          background: '#4caf50',
+          color: 'white',
+          fontWeight: '500',
+        },
       });
     } finally {
       setUser(null);

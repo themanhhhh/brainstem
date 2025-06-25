@@ -9,9 +9,10 @@
 }
 
 .currency {
-  font-size: 1.2rem;
-  margin-right: 0.1rem;
-  opacity: 0.9;
+  font-size: 1.4rem;
+  margin-left: 0.6rem;
+  
+  color: #ffffff;
 }
 
 .digit {
@@ -20,9 +21,10 @@
   transform-origin: center bottom;
 }
 
-.decimal {
+.separator {
   font-size: 1.2rem;
   opacity: 0.8;
+  margin: 0 0.1rem;
 }
 
 /* Animation when counter is updating */
@@ -97,7 +99,7 @@
     font-size: 1rem;
   }
   
-  .decimal {
+  .separator {
     font-size: 1rem;
   }
 }
@@ -111,7 +113,7 @@
     font-size: 0.9rem;
   }
   
-  .decimal {
+  .separator {
     font-size: 0.9rem;
   }
 } 

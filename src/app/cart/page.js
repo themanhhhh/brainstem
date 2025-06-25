@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import Footer from '../components/Footer/Footer';
 import Navbar from '../components/Navbar/Navbar';
-import { createOrder } from '../api/order/orderService';
+import { createOrder, setOrderId } from '../api/order/orderService';
 import { toast } from 'react-hot-toast';
 
 const CartPage = () => {
@@ -66,28 +66,48 @@ const CartPage = () => {
   // Xử lý checkout - tạo order mới
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
-      toast.error('Your cart is empty');
+      toast.error('Giỏ hàng trống!');
+      return;
+    }
+
+    // Kiểm tra xem người dùng đã đăng nhập chưa
+    if (!user) {
+      toast.error('Vui lòng đăng nhập để tiếp tục!');
+      router.push('/login');
       return;
     }
 
     setIsCheckingOut(true);
     try {
-      // Tạo mảng foodIds từ giỏ hàng (bao gồm cả quantity)
-      const foodIds = cartItems.flatMap(item => 
-        Array(item.quantity).fill(item.id)
-      );
+      // Chuyển đổi cartItems thành foodInfo format
+      const foodInfo = cartItems.map(item => ({
+        foodId: item.id,
+        quantity: item.quantity
+      }));
+
+      console.log('Creating order with foodInfo:', foodInfo);
 
       // Gọi API tạo order
-      const response = await createOrder(foodIds);
+      const response = await createOrder(foodInfo);
       
-      if (response) {
-        toast.success('Order created successfully!');
-        clearCart(); // Xóa giỏ hàng sau khi đặt hàng thành công
-        router.push('/payment'); 
+      // Lấy orderId từ response (có thể là response.id hoặc chỉ là response nếu response là số)
+      const orderId = typeof response === 'number' ? response : response.id || response.data?.id;
+      
+      console.log('Order created with ID:', orderId);
+      
+      if (!orderId) {
+        throw new Error('Không thể lấy ID đơn hàng từ response');
       }
+      
+      // Lưu orderId vào cookie
+      setOrderId(orderId);
+      
+      toast.success('Đặt hàng thành công!');
+      clearCart(); // Xóa giỏ hàng sau khi đặt hàng thành công
+      router.push('/payment'); 
     } catch (error) {
       console.error('Checkout error:', error);
-      toast.error(error.message || 'Failed to create order. Please try again.');
+      toast.error(error.message || 'Có lỗi xảy ra khi tạo đơn hàng. Vui lòng thử lại!');
     } finally {
       setIsCheckingOut(false);
     }
@@ -123,7 +143,7 @@ const CartPage = () => {
                   </div>
                   <div className={styles.itemDetails}>
                     <h3>{item.name}</h3>
-                    <p className={styles.itemPrice}>{item.price} VNĐ</p>
+                    <p className={styles.itemPrice}>{item.price.toLocaleString()} VNĐ</p>
                     <div className={styles.quantityControls}>
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
@@ -142,7 +162,7 @@ const CartPage = () => {
                     </div>
                   </div>
                   <div className={styles.itemTotal}>
-                    <span>{item.price * item.quantity} VNĐ</span>
+                    <span>{(item.price * item.quantity).toLocaleString()} VNĐ</span>
                   </div>
                   <button
                     className={styles.removeButton}
@@ -163,53 +183,12 @@ const CartPage = () => {
           >
             <h3>Order Summary</h3>
             <div className={styles.summaryContent}>
-              <div className={styles.discountForm}>
-                <div className={styles.discountInput}>
-                  <FaTag className={styles.discountIcon} />
-                  <input
-                    type="text"
-                    placeholder="Enter discount code"
-                    value={discountCode}
-                    onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
-                    className={styles.discountInputField}
-                  />
-                  <button 
-                    onClick={handleApplyDiscount}
-                    className={styles.applyButton}
-                  >
-                    Apply
-                  </button>
-                </div>
-                {discountError && (
-                  <p className={styles.discountError}>{discountError}</p>
-                )}
-                {discountApplied && (
-                  <p className={styles.discountSuccess}>
-                    Discount applied successfully!
-                  </p>
-                )}
-              </div>
-
-              <div className={styles.summaryRow}>
-                <span>Subtotal</span>
-                <span>${getCartTotal()}</span>
-              </div>
-              {discountApplied && (
-                <div className={styles.summaryRow}>
-                  <span>Discount</span>
-                  <span className={styles.discountAmount}>
-                    -${calculateDiscount()}
-                  </span>
-                </div>
-              )}
-              <div className={styles.summaryRow}>
-                <span>Shipping</span>
-                <span className={styles.freeShipping}>Free</span>
-              </div>
+              
+              
               <div className={styles.summaryDivider} />
               <div className={`${styles.summaryRow} ${styles.totalRow}`}>
                 <span>Total</span>
-                <span>{finalTotal} VNĐ</span>
+                <span>{finalTotal.toLocaleString()} VNĐ</span>
               </div>
               <button 
                 onClick={handleCheckout}

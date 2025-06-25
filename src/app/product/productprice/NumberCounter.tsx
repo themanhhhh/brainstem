@@ -33,7 +33,7 @@ const NumberCounter: React.FC<NumberCounterProps> = ({
         const easeOut = 1 - Math.pow(1 - progress, 3);
         
         const currentValue = startValue + (endValue - startValue) * easeOut;
-        setDisplayValue(Math.round(currentValue * 100) / 100);
+        setDisplayValue(Math.round(currentValue));
         
         if (progress < 1) {
           requestAnimationFrame(animate);
@@ -47,9 +47,9 @@ const NumberCounter: React.FC<NumberCounterProps> = ({
     }
   }, [value, duration, displayValue]);
 
-  // Format number with 2 decimal places for currency
+  // Format number with Vietnamese currency format (no decimal places, comma separator)
   const formatValue = (num: number) => {
-    return num.toFixed(2);
+    return Math.round(num).toLocaleString('vi-VN');
   };
 
   // Split the formatted value into individual characters for animation
@@ -58,11 +58,11 @@ const NumberCounter: React.FC<NumberCounterProps> = ({
 
   return (
     <div className={`${styles.numberCounter} ${className} ${isAnimating ? styles.animating : ''}`}>
-      <span className={styles.currency}>$</span>
+     
       {characters.map((char, index) => (
         <span 
           key={`${index}-${char}`}
-          className={`${styles.digit} ${char === '.' ? styles.decimal : ''}`}
+          className={`${styles.digit} ${char === ',' ? styles.separator : ''}`}
           style={{
             animationDelay: `${index * 50}ms`
           }}
@@ -70,6 +70,7 @@ const NumberCounter: React.FC<NumberCounterProps> = ({
           {char}
         </span>
       ))}
+       <span className={styles.currency}>VNĐ</span>
     </div>
   );
 };
