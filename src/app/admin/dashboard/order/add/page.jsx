@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import styles from "./addOrder.module.css";
+import styles from "./add.module.css";
 import { useRouter } from "next/navigation";
-import { useLanguageService } from "../../../hooks/useLanguageService";
+import { useLanguageService } from "../../../../hooks/useLanguageService";
 
 const AddOrderPage = () => {
     const { orderService } = useLanguageService();
