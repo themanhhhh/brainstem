@@ -97,7 +97,7 @@ export const updateOrderInfo = async (id, orderData) => {
     const token = getToken();
     if (!token) throw new Error('No authentication token found');
     try {
-        const response = await fetch(`${API_URL}/customer/order/${id}`, {
+        const response = await fetch(`${API_URL}/customer/order/orderInfo/${id}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,

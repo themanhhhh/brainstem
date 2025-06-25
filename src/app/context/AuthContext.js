@@ -56,9 +56,9 @@ export function AuthProvider({ children }) {
         return null;
       }
       
-      // Kiểm tra cooldown (5 phút) để tránh fetch quá thường xuyên
+      // Kiểm tra cooldown (30 giây) để tránh fetch quá thường xuyên
       const now = Date.now();
-      const FETCH_COOLDOWN = 5 * 60 * 1000; // 5 phút
+      const FETCH_COOLDOWN = 30 * 1000; // 30 giây
       
       if (!forceRefetch && profileFetched && (now - lastProfileFetch < FETCH_COOLDOWN)) {
         console.log('⏰ Profile fetch on cooldown, returning cached data');

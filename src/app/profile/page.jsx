@@ -10,6 +10,7 @@ import UserInfoCard from './UserInfoCard';
 import AddressManager from './AddressManager';
 import Navbar from '@/app/components/Navbar/Navbar';
 import Footer from '@/app/components/Footer/Footer';
+import { usePageProfileFetch } from '@/app/hooks/usePageProfileFetch';
 
 
 const menu = [
@@ -20,25 +21,39 @@ const menu = [
 ];
 
 const Profile = () => {
+  // Sử dụng hook mới để fetch profile
+  const { profile: contextProfile } = usePageProfileFetch('Profile Page');
   
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
 
+  // Sync profile từ context
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const data = await authService.getProfile();
-        setProfile(data);
-      } catch (err) {
-        setError('Không thể tải thông tin người dùng.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfile();
-  }, []);
+    if (contextProfile) {
+      setProfile(contextProfile);
+      setLoading(false);
+      setError(null);
+    }
+  }, [contextProfile]);
+
+  // Fallback fetch nếu context profile chưa có
+  useEffect(() => {
+    if (!contextProfile && !profile) {
+      const fetchProfile = async () => {
+        try {
+          const data = await authService.getProfile();
+          setProfile(data);
+        } catch (err) {
+          setError('Không thể tải thông tin người dùng.');
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchProfile();
+    }
+  }, [contextProfile, profile]);
 
   const refreshProfile = async () => {
     setLoading(true);

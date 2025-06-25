@@ -4,7 +4,8 @@ import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 import { LoadingProvider } from "./context/LoadingContext";
 import { LanguageProvider } from "./context/LanguageContext";
-
+import { PageProfileFetcher } from "./components/PageProfileFetcher/PageProfileFetcher";
+import { ProfileFetchStatus } from "./components/ProfileFetchStatus/ProfileFetchStatus";
 import { Suspense } from "react";
 import { Toaster } from "react-hot-toast";
 
@@ -23,6 +24,8 @@ function ClientLayout({ children }) {
       <LanguageProvider>
         <AuthProvider>
           <CartProvider>
+            <PageProfileFetcher />
+            <ProfileFetchStatus />
             <Toaster position="top-center" />
             {children}
           </CartProvider>
