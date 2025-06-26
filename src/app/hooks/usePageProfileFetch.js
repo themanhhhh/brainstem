@@ -11,9 +11,9 @@ export const usePageProfileFetch = (pageName = 'Unknown Page') => {
   const lastFetchTimeRef = useRef(0);
   
   // Cấu hình
-  const DEBOUNCE_DELAY = 500; // 500ms debounce
-  const MIN_FETCH_INTERVAL = 30000; // 30 giây minimum interval giữa các lần fetch
-  const FORCE_FETCH_PAGES = ['/profile', '/admin/dashboard/profile']; // Các trang luôn force fetch
+  const DEBOUNCE_DELAY = 300; // 300ms debounce
+  const MIN_FETCH_INTERVAL = 300000; // 5 phút minimum interval giữa các lần fetch
+  const FORCE_FETCH_PAGES = []; // Loại bỏ force fetch để tránh gọi liên tục
 
   useEffect(() => {
     console.log(`🔄 usePageProfileFetch triggered for: ${pageName} (${pathname})`);
@@ -61,7 +61,7 @@ export const usePageProfileFetch = (pageName = 'Unknown Page') => {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [pathname, user, profile, pageName, fetchProfile]);
+  }, [pathname, user, profile, pageName]); // Loại bỏ fetchProfile khỏi deps để tránh infinite loop
 
   return { profile, user };
 }; 

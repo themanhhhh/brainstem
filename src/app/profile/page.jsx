@@ -21,7 +21,7 @@ const menu = [
 ];
 
 const Profile = () => {
-  // Sử dụng hook mới để fetch profile
+  // Sử dụng hook để fetch profile
   const { profile: contextProfile } = usePageProfileFetch('Profile Page');
   
   const [profile, setProfile] = useState(null);
@@ -29,31 +29,17 @@ const Profile = () => {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
 
-  // Sync profile từ context
+  // Chỉ sync profile từ context, không có fallback fetch
   useEffect(() => {
     if (contextProfile) {
       setProfile(contextProfile);
       setLoading(false);
       setError(null);
+    } else {
+      // Nếu chưa có contextProfile, đợi hook fetch
+      setLoading(true);
     }
   }, [contextProfile]);
-
-  // Fallback fetch nếu context profile chưa có
-  useEffect(() => {
-    if (!contextProfile && !profile) {
-      const fetchProfile = async () => {
-        try {
-          const data = await authService.getProfile();
-          setProfile(data);
-        } catch (err) {
-          setError('Không thể tải thông tin người dùng.');
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchProfile();
-    }
-  }, [contextProfile, profile]);
 
   const refreshProfile = async () => {
     setLoading(true);

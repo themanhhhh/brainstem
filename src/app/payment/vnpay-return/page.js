@@ -1,8 +1,8 @@
 "use client"
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { clearOrderId } from '../../api/order/orderService';
+import { clearOrderId, getOrderId, updateOrderState } from '../../api/order/orderService';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import styles from '../../styles/payment-result.module.css';
@@ -16,54 +16,96 @@ const VNPayReturnPage = () => {
   const { profile } = useAuth();
   const [paymentResult, setPaymentResult] = useState(null);
   const [loading, setLoading] = useState(true);
+  const hasProcessedPayment = useRef(false); // Ref để track việc đã xử lý payment
 
   useEffect(() => {
-    // Lấy các tham số từ URL theo format mới
-    const code = searchParams.get('code');
-    const message = searchParams.get('message');
-
-    console.log('Payment callback params:', {
-      code,
-      message
-    });
-
-    // Xử lý kết quả thanh toán
-    let paymentResult;
-    if (code === '00') {
-      // Thanh toán thành công
-      paymentResult = {
-        success: true,
-        message: 'Thanh toán thành công',
-        responseCode: code
-      };
-    } else {
-      // Thanh toán thất bại
-      paymentResult = {
-        success: false,
-        message: getErrorMessage(code),
-        errorCode: code,
-        responseCode: code
-      };
+    // Nếu đã xử lý payment rồi thì không làm gì thêm
+    if (hasProcessedPayment.current) {
+      return;
     }
 
-    setPaymentResult(paymentResult);
+    const processPaymentResult = async () => {
+      // Đánh dấu là đã bắt đầu xử lý
+      hasProcessedPayment.current = true;
 
-    // Xử lý kết quả thanh toán trực tiếp (không cần parent window)
-    console.log('Processing payment result:', paymentResult);
-    
-    // Clear cart và order ID nếu thanh toán thành công
-    if (paymentResult.success) {
-      clearCart();
-      clearOrderId();
+      // Lấy các tham số từ URL theo format mới
+      const code = searchParams.get('code');
+      const message = searchParams.get('message');
+
+      console.log('Payment callback params:', {
+        code,
+        message
+      });
+
+      // Xử lý kết quả thanh toán
+      let paymentResult;
+      if (code === '00') {
+        // Thanh toán thành công
+        paymentResult = {
+          success: true,
+          message: 'Thanh toán thành công',
+          responseCode: code
+        };
+      } else {
+        // Thanh toán thất bại
+        paymentResult = {
+          success: false,
+          message: getErrorMessage(code),
+          errorCode: code,
+          responseCode: code
+        };
+      }
+
+      setPaymentResult(paymentResult);
+
+      // Xử lý kết quả thanh toán trực tiếp (không cần parent window)
+      console.log('Processing payment result:', paymentResult);
       
-      // Tự động chuyển về trang chủ sau 3 giây
-      setTimeout(() => {
-        router.push('/');
-      }, 3000);
-    }
+      // Lấy orderId để cập nhật trạng thái
+      const orderId = getOrderId();
+      if (orderId) {
+        try {
+          // Gọi API updateOrderState
+          const orderState = paymentResult.success ? "DONE" : "CANCEL";
+          console.log(`Updating order ${orderId} state to:`, orderState);
+          
+          await updateOrderState(orderId, { orderState });
+          console.log('Order state updated successfully');
+          
+          // Clear cart và order ID nếu thanh toán thành công
+          if (paymentResult.success) {
+            clearCart();
+            clearOrderId();
+            
+            // Tự động chuyển về trang chủ sau 3 giây
+            setTimeout(() => {
+              router.push('/');
+            }, 3000);
+          } else {
+            // Nếu thanh toán thất bại, vẫn clear orderId để tránh xung đột
+            clearOrderId();
+          }
+        } catch (error) {
+          console.error('Error updating order state:', error);
+          // Vẫn clear orderId ngay cả khi update thất bại
+          clearOrderId();
+        }
+      } else {
+        console.warn('No orderId found for updating order state');
+        // Clear cart nếu thanh toán thành công (dù không có orderId)
+        if (paymentResult.success) {
+          clearCart();
+          setTimeout(() => {
+            router.push('/');
+          }, 3000);
+        }
+      }
 
-    setLoading(false);
-  }, [searchParams, clearCart, router]);
+      setLoading(false);
+    };
+
+    processPaymentResult();
+  }, []); // Empty dependency array - chỉ chạy một lần khi mount
 
   const getErrorMessage = (code) => {
     const errorMessages = {

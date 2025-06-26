@@ -21,6 +21,8 @@ import { BiCategoryAlt } from "react-icons/bi";
 import { MdTableRestaurant } from "react-icons/md";
 import { LuSquareActivity } from "react-icons/lu";
 import { Style } from "@mui/icons-material";
+import { FaTablet } from "react-icons/fa6";
+
 
 const menuItems = [
   {
@@ -64,7 +66,7 @@ const menuItems = [
       {
         title: "Order",
         path: "/admin/dashboard/order",
-        icon: <RiListOrdered />,
+        icon: <FaTablet />,
       },
       {
         title: "Order Table",

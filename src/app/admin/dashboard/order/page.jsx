@@ -77,24 +77,71 @@ const OrderPage = () => {
         }
     };
 
-    if (loading) return <div className={styles.loading}>Loading...</div>;
+    // Format currency to Vietnamese format
+    const formatCurrency = (amount) => {
+        const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+        }).format(numericAmount || 0);
+    };
+
+    // Get status class name
+    const getStatusClass = (status) => {
+        switch (status) {
+            case 'COMPLETED':
+                return styles.statusCompleted;
+            case 'PAID':
+                return styles.statusPaid;
+            case 'HOLD':
+                return styles.statusHold;
+            case 'PENDING':
+                return styles.statusPending;
+            case 'CANCELLED':
+                return styles.statusCancelled;
+            case 'FAILED':
+                return styles.statusFailed;
+            default:
+                return styles.statusDefault;
+        }
+    };
+
+    // Get taking method display text
+    const getTakingMethodText = (method) => {
+        const methodMap = {
+            'DELIVERY': 'Giao hàng tiêu chuẩn',
+            'EXPRESS_DELIVERY': 'Giao hàng nhanh',
+            'PICKUP': 'Tự đến lấy',
+            'PICKUP_SCHEDULED': 'Tự đến lấy theo lịch hẹn',
+            'DINE_IN': 'Dùng tại chỗ',
+            'DINE_IN_RESERVED': 'Dùng tại chỗ có đặt bàn',
+            'SHIP': 'Giao hàng'
+        };
+        return methodMap[method] || method || 'N/A';
+    };
+
+    if (loading) return <div className={styles.loading}>Đang tải...</div>;
     if (error) return <div className={styles.error}>{error}</div>;
 
     return (
         <div className={styles.container}>
             <div className={styles.top}>
-                <h1>Orders Management</h1>
+                <h1>Quản lý đơn hàng</h1>
                 <FilterableSearch
-                    placeholder="Search by table or customer..."
+                    placeholder="Tìm kiếm theo tên đơn hàng hoặc số điện thoại..."
                     onChange={handleSearch}
                     onSearch={handleSearch}
                     value={searchTerm}
                     statusFilter={selectedStatus}
                     onStatusChange={handleStatusChange}
                     statusOptions={[
-                        { value: "", label: "All Statuses" },
-                        { value: "PENDING", label: "Pending" },
-                        { value: "COMPLETED", label: "Completed" },
+                        { value: "", label: "Tất cả trạng thái" },
+                        { value: "HOLD", label: "Tạm giữ" },
+                        { value: "PENDING", label: "Chờ xử lý" },
+                        { value: "PAID", label: "Đã thanh toán" },
+                        { value: "COMPLETED", label: "Hoàn thành" },
+                        { value: "CANCELLED", label: "Đã hủy" },
+                        { value: "FAILED", label: "Thất bại" },
                     ]}
                 />
             </div>
@@ -103,40 +150,63 @@ const OrderPage = () => {
                 <thead>
                 <tr>
                     <td>ID</td>
-                    <td>Table</td>
-                    <td>Customer</td>
-                    <td>Status</td>
-                    <td>Action</td>
+                    <td>Tên đơn hàng</td>
+                    <td>Khách hàng</td>
+                    <td>Số điện thoại</td>
+                    <td>Loại đơn</td>
+                    <td>Trạng thái</td>
+                    <td>Phương thức lấy hàng</td>
+                    <td>Tổng tiền</td>
+                    <td>Số món</td>
+                    <td>Thao tác</td>
                 </tr>
                 </thead>
                 <tbody>
                 {orders.length === 0 ? (
                     <tr>
-                        <td colSpan="5" className={styles.noData}>
+                        <td colSpan="10" className={styles.noData}>
                             Hiển thị 0 / 0 bản ghi
                         </td>
                     </tr>
                 ) : (
                     orders.map((order) => (
                         <tr key={order.id}>
-                            <td>{order.id}</td>
-                            <td>{order.tableId}</td>
-                            <td>{order.customerName || "N/A"}</td>
+                            <td>#{order.id}</td>
+                            <td className={styles.orderName}>
+                                {order.name}
+                                {order.description && (
+                                    <div className={styles.orderDescription}>
+                                        {order.description}
+                                    </div>
+                                )}
+                            </td>
+                            <td>User ID: {order.userId}</td>
+                            <td>{order.phoneNumber || "Chưa có"}</td>
                             <td>
-                  <span
-                      className={`${styles.status} ${
-                          order.status === "COMPLETED" ? styles.active : styles.inactive
-                      }`}
-                  >
-                    {order.status}
+                                <span className={styles.orderType}>
+                                    {order.orderType || "N/A"}
+                                </span>
+                            </td>
+                            <td>
+                  <span className={`${styles.status} ${getStatusClass(order.orderState)}`}>
+                    {order.orderState}
                   </span>
+                            </td>
+                            <td>{getTakingMethodText(order.takingMethod)}</td>
+                            <td className={styles.price}>
+                                {formatCurrency(order.totalPriceAfterDiscount)}
+                            </td>
+                            <td>
+                                <span className={styles.foodCount}>
+                                    {order.foodInfos?.length || 0} món
+                                </span>
                             </td>
                             <td>
                                 <button
                                     className={styles.viewButton}
                                     onClick={() => handleView(order.id)}
                                 >
-                                    View
+                                    Chi tiết
                                 </button>
                             </td>
                         </tr>
@@ -152,30 +222,107 @@ const OrderPage = () => {
             {showDetailModal && selectedOrder && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modal}>
-                        <h2>Order Details</h2>
-                        <div>
-                            <p>
-                                <strong>ID:</strong> {selectedOrder.id}
-                            </p>
-                            <p>
-                                <strong>Table:</strong> {selectedOrder.tableId}
-                            </p>
-                            <p>
-                                <strong>Customer:</strong> {selectedOrder.customerName || "N/A"}
-                            </p>
-                            <p>
-                                <strong>Status:</strong> {selectedOrder.status}
-                            </p>
-                            <p>
-                                <strong>Total:</strong> {selectedOrder.totalPriceAfterDiscount}
-                            </p>
+                        <div className={styles.modalHeader}>
+                            <h2>Chi tiết đơn hàng #{selectedOrder.id}</h2>
+                            <button
+                                className={styles.closeButton}
+                                onClick={() => setShowDetailModal(false)}
+                            >
+                                ×
+                            </button>
                         </div>
+                        
+                        <div className={styles.modalContent}>
+                            <div className={styles.orderInfo}>
+                                <h3>Thông tin đơn hàng</h3>
+                                <div className={styles.infoGrid}>
+                                    <div className={styles.infoItem}>
+                                        <strong>Tên đơn hàng:</strong>
+                                        <span>{selectedOrder.name}</span>
+                                    </div>
+                                    <div className={styles.infoItem}>
+                                        <strong>Mô tả:</strong>
+                                        <span>{selectedOrder.description || "Không có"}</span>
+                                    </div>
+                                    <div className={styles.infoItem}>
+                                        <strong>Khách hàng:</strong>
+                                        <span>User ID: {selectedOrder.userId}</span>
+                                    </div>
+                                    <div className={styles.infoItem}>
+                                        <strong>Số điện thoại:</strong>
+                                        <span>{selectedOrder.phoneNumber || "Chưa có"}</span>
+                                    </div>
+                                    <div className={styles.infoItem}>
+                                        <strong>Loại đơn hàng:</strong>
+                                        <span>{selectedOrder.orderType || "N/A"}</span>
+                                    </div>
+                                    <div className={styles.infoItem}>
+                                        <strong>Trạng thái:</strong>
+                                        <span className={`${styles.status} ${getStatusClass(selectedOrder.orderState)}`}>
+                                            {selectedOrder.orderState}
+                                        </span>
+                                    </div>
+                                    <div className={styles.infoItem}>
+                                        <strong>Phương thức lấy hàng:</strong>
+                                        <span>{getTakingMethodText(selectedOrder.takingMethod)}</span>
+                                    </div>
+                                    <div className={styles.infoItem}>
+                                        <strong>Phương thức thanh toán:</strong>
+                                        <span>{selectedOrder.paymentMethod || "Chưa chọn"}</span>
+                                    </div>
+                                    <div className={styles.infoItem}>
+                                        <strong>Địa chỉ ID:</strong>
+                                        <span>{selectedOrder.addressId || "Chưa có"}</span>
+                                    </div>
+                                    <div className={styles.infoItem}>
+                                        <strong>Mã giảm giá:</strong>
+                                        <span>{selectedOrder.discountId || "Không có"}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className={styles.priceInfo}>
+                                <h3>Thông tin giá</h3>
+                                <div className={styles.priceGrid}>
+                                    <div className={styles.priceItem}>
+                                        <strong>Tổng tiền gốc:</strong>
+                                        <span>{formatCurrency(selectedOrder.totalPrice)}</span>
+                                    </div>
+                                    <div className={styles.priceItem}>
+                                        <strong>Tổng tiền sau giảm giá:</strong>
+                                        <span className={styles.finalPrice}>
+                                            {formatCurrency(selectedOrder.totalPriceAfterDiscount)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {selectedOrder.foodInfos && selectedOrder.foodInfos.length > 0 && (
+                                <div className={styles.foodInfo}>
+                                    <h3>Danh sách món ăn ({selectedOrder.foodInfos.length} món)</h3>
+                                    <div className={styles.foodList}>
+                                        {selectedOrder.foodInfos.map((food, index) => (
+                                            <div key={`${food.foodId}-${index}`} className={styles.foodItem}>
+                                                <div className={styles.foodDetails}>
+                                                    <span className={styles.foodName}>{food.foodName}</span>
+                                                    <span className={styles.foodId}>ID: {food.foodId}</span>
+                                                </div>
+                                                <div className={styles.foodQuantity}>
+                                                    <span>Số lượng: {food.quantity}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         <div className={styles.modalButtons}>
                             <button
                                 className={styles.cancelButton}
                                 onClick={() => setShowDetailModal(false)}
                             >
-                                Close
+                                Đóng
                             </button>
                         </div>
                     </div>

@@ -142,7 +142,8 @@ const AddressManager = () => {
           isDefault
         });
       }
-      if (response && response.id) {
+      
+      if (response && response.success) {
         await loadAddresses();
         resetForm();
         alert(editingAddress ? 'Address updated successfully!' : 'Address saved successfully!');
@@ -198,11 +199,11 @@ const AddressManager = () => {
   const handleSetDefault = async (addressId) => {
     try {
       const response = await addressService.updateAddressDefault(addressId);
-      if (response === true) {
+      if (response && response.success) {
         await loadAddresses();
         alert('Default address updated successfully!');
       } else {
-        throw new Error('Failed to set default address');
+        throw new Error(response.message || 'Failed to set default address');
       }
     } catch (error) {
       console.error('Error setting default address:', error);

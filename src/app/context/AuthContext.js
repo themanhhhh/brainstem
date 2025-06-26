@@ -1,6 +1,6 @@
 // src/app/context/AuthContext.js
 'use client';
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { authResponses, userResponses } from '../data/apiResponses';
 import { authService } from '../api/auth/authService';
@@ -44,8 +44,8 @@ export function AuthProvider({ children }) {
   const [lastProfileFetch, setLastProfileFetch] = useState(0); // Timestamp của lần fetch cuối
   const router = useRouter();
 
-  // Fetch profile function
-  const fetchProfile = async (forceRefetch = false) => {
+  // Fetch profile function - memo để tránh recreation
+  const fetchProfile = useCallback(async (forceRefetch = false) => {
     console.log('🔍 fetchProfile called with forceRefetch:', forceRefetch);
     try {
       // Chỉ fetch profile khi có token
@@ -56,9 +56,9 @@ export function AuthProvider({ children }) {
         return null;
       }
       
-      // Kiểm tra cooldown (30 giây) để tránh fetch quá thường xuyên
+      // Kiểm tra cooldown (5 phút) để tránh fetch quá thường xuyên
       const now = Date.now();
-      const FETCH_COOLDOWN = 30 * 1000; // 30 giây
+      const FETCH_COOLDOWN = 5 * 60 * 1000; // 5 phút
       
       if (!forceRefetch && profileFetched && (now - lastProfileFetch < FETCH_COOLDOWN)) {
         console.log('⏰ Profile fetch on cooldown, returning cached data');
@@ -249,7 +249,7 @@ export function AuthProvider({ children }) {
       
       return null;
     }
-  };
+  }, [profileFetched, lastProfileFetch, profile, isRedirecting]); // Dependencies cho useCallback
 
   useEffect(() => {
     // Reset redirect flag khi component mount

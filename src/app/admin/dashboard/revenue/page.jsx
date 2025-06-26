@@ -9,6 +9,7 @@ const RevenuePage = () => {
   const [statistics, setStatistics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [exporting, setExporting] = useState(false);
   const [dateRange, setDateRange] = useState({
     startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 ngày trước
     endDate: new Date().toISOString().split('T')[0] // Hôm nay
@@ -37,6 +38,21 @@ const RevenuePage = () => {
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleExport = async () => {
+    try {
+      setExporting(true);
+      const result = await statisticService.downloadRevenueExport(dateRange.startDate, dateRange.endDate);
+      
+      // Thông báo thành công
+      alert(`Xuất báo cáo thành công: ${result.filename}`);
+    } catch (err) {
+      console.error('Error exporting data:', err);
+      alert('Lỗi khi xuất báo cáo: ' + err.message);
+    } finally {
+      setExporting(false);
+    }
   };
 
   if (loading) {
@@ -111,6 +127,22 @@ const RevenuePage = () => {
               className={styles.dateInput}
             />
           </div>
+          <button 
+            onClick={handleExport} 
+            disabled={exporting} 
+            className={styles.exportButton}
+          >
+            {exporting ? (
+              <>
+                <span className={styles.loadingSpinner}></span>
+                Đang xuất...
+              </>
+            ) : (
+              <>
+                📊 Xuất báo cáo
+              </>
+            )}
+          </button>
         </div>
       </div>
 

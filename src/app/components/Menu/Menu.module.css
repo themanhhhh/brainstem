@@ -1,104 +1,159 @@
-
-.Menu{
-    background-color: #1a1a1a;
+.Menu {
     width: 100%;
-    padding-block: 6rem;
-    border: 1px;
-    position: relative;
-    padding-bottom: 13rem;
+    margin: 0 auto;
+    padding: 60px 0;
+    background-color: #1a1a1a;
 }
 
-.Menu_title{
-    width: 80%;
-    margin: 0 auto;
-    padding: 0 0 6rem 0;
+/* Header Section */
+.Menu_header {
     text-align: center;
+    padding: 40px 20px;
+    background: transparent;
 }
 
-.Menu_title h2{
-    font-size: 2.5rem;
-    margin-bottom: 3rem;
-}
-.Menu_tabs{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.Menu_tabs_btn{
-    width: 700px;
-    background-color: #333333;
-    padding: .5rem 0.5rem;
-    border-radius: 4rem;
-    display: flex;
-    justify-content: space-around;
-    gap: 0.5rem;
-    align-items: center;
-    font-size: 1.3rem;
-    border: 1px solid var(--icons-color);
+.Menu_subtitle {
+    color: var(--icons-color);
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    display: block;
 }
 
-.Menu_tabs_btn button{
-    width: 120px;
-    background-color: var(--icons-color);
-    color: var(--main-bg-color);
-    padding: 1rem;
-    border: none;
-    border-radius: 4rem;
-    cursor: pointer;
-    transition: all .3s ease-in;
+.Menu_title {
+    font-size: 48px;
+    font-weight: bold;
+    color: var(--primary-color);
+    line-height: 1.2;
+    margin-bottom: 40px;
 }
 
-.Menu_tabs_btn button:hover{
-    background-color: azure;
-    color: black;
+.Menu_title_highlight {
+    color: var(--icons-color);
 }
 
-.Menu_box{
-    width: 80%;
+/* Menu Items Section */
+.Menu_items_section {
+    max-width: 1400px;
     margin: 0 auto;
+    padding: 0 20px;
+}
+
+.Menu_items_grid {
     display: grid;
-    grid-template-columns: repeat(2,1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 2rem;
-}
-.Menu_member{
-    width: 80%;
-    margin: 0 auto;
-}
-.Menu_member_box{
-    margin: 0 auto;
-    padding: 7rem 0 0 0 ;
-    align-items: center;
+    margin: 40px 0;
 }
 
-.Menu_member_box a:first-child{
-    background-color: transparent;
+.Menu_empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--font--color);
+    font-style: italic;
+    font-size: 18px;
+}
+
+/* Route Section */
+.Menu_Route {
+    text-align: center;
+    padding: 40px 20px;
+    margin-top: 60px;
+    background: #1a1a1a;
+    border-radius: 15px;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.Menu_Route p {
+    font-size: 18px;
+    color: var(--font--color);
+    margin: 0;
+}
+
+.Menu_Route a {
     color: var(--icons-color);
-    transition: all .3s ease-in;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
 }
 
-.Menu_member_box a :hover{
-    background-color: var(--icons-color);
-    color: var(--main-bg-color);
+.Menu_Route a:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
 }
 
-.Menu_member_box a{
-    background-color: var(--icons-color);
-    margin-inline: 1.5rem;
-    padding: 1rem  2rem;
-    color: var(--main-bg-color);
-    border-radius: 2rem;
-    border: 1px solid var(--icons-color);
+/* Loading and Error States */
+.loading, .error {
+    text-align: center;
+    padding: 60px 20px;
+    font-size: 18px;
+}
+
+.loading {
+    color: var(--font--color);
+}
+
+.error {
+    color: #ff4444;
+}
+
+/* Responsive Styles */
+@media (max-width: 1200px) {
+    .Menu_items_section {
+        max-width: 1200px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .Menu_items_grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        max-width: 600px;
+        margin: 40px auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .Menu_title {
+        font-size: 36px;
+    }
     
-    font-size: 1.3rem;
+    .Menu_items_grid {
+        gap: 1.5rem;
+        margin: 30px auto;
+    }
+    
+    .Menu_items_section {
+        padding: 0 15px;
+    }
 }
-.Menu_title_span{
-    color: var(--icons-color);
+
+@media (max-width: 480px) {
+    .Menu_title {
+        font-size: 28px;
+    }
+    
+    .Menu_subtitle {
+        font-size: 12px;
+    }
+    
+    .Menu_items_grid {
+        gap: 1rem;
+        margin: 20px auto;
+    }
+    
+    .Menu_Route {
+        margin-left: 10px;
+        margin-right: 10px;
+        padding: 30px 15px;
+    }
+    
+    .Menu_Route p {
+        font-size: 16px;
+    }
 }
-.Menu_title_span_hightlight{
-    color: var(--icons-color);
-}
-.Menu_Route{
-    display: flex;
-    justify-content: center;
-}
+

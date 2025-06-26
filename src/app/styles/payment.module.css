@@ -845,10 +845,6 @@
   font-size: 1.1rem;
 }
 
-.orderInfoFallback {
-  /* Existing form styles remain the same */
-}
-
 .emptyOrder {
   text-align: center;
   padding: 2rem;
@@ -1191,6 +1187,7 @@
 .radioInput:checked + .radioLabel .radioContent {
   border-color: #2563eb;
   background: #f0f9ff;
+  color: black;
 }
 
 .radioIcon {
@@ -1268,5 +1265,304 @@
   .inputGroup .textArea {
     min-height: 80px;
     padding: 0.75rem;
+  }
+}
+
+/* New Address Styles */
+.noAddressContainer {
+  text-align: center;
+  padding: 2rem;
+  border: 2px dashed #e2e8f0;
+  border-radius: 12px;
+  background: #f8f9fa;
+}
+
+.noAddressMessage {
+  margin-bottom: 1.5rem;
+}
+
+.noAddressIcon {
+  font-size: 3rem;
+  color: #cbd5e0;
+  margin-bottom: 1rem;
+}
+
+.noAddressMessage h4 {
+  color: #4a5568;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.noAddressMessage p {
+  color: #718096;
+  font-size: 0.95rem;
+}
+
+.addressFormHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.formIcon {
+  color: #2563eb;
+  font-size: 1.2rem;
+}
+
+.cancelAddressBtn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.cancelAddressBtn:hover {
+  background: #dc2626;
+}
+
+.addressActions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.confirmAddressBtn {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.confirmAddressBtn:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.addressHint {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+}
+
+.addressHint p {
+  margin: 0;
+  color: #0369a1;
+  font-size: 0.9rem;
+}
+
+/* Address Form Styles - New Components */
+.labelSelector {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.labelSelector .radioLabel {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin: 0;
+}
+
+.labelSelector .radioLabel input[type="radio"] {
+  display: none;
+}
+
+.radioCustom {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: black;
+}
+
+.labelSelector .radioLabel input[type="radio"]:checked + .radioCustom {
+  border-color: #2563eb;
+  background: #f0f9ff;
+  color: #2563eb;
+}
+
+.radioCustom:hover {
+  border-color: #cbd5e1;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.inputRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.checkboxGroup {
+  margin: 1rem 0;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: black;
+}
+
+.checkboxLabel input[type="checkbox"] {
+  display: none;
+}
+
+.checkboxCustom {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #e2e8f0;
+  border-radius: 4px;
+  background: white;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.checkboxLabel input[type="checkbox"]:checked + .checkboxCustom {
+  border-color: #2563eb;
+  background: #2563eb;
+}
+
+.checkboxLabel input[type="checkbox"]:checked + .checkboxCustom::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.formActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  justify-content: flex-end;
+}
+
+.cancelButton {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #e2e8f0;
+  background: white;
+  color: #666;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.cancelButton:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.saveButton {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: #2563eb;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.saveButton:hover {
+  background: #1d4ed8;
+}
+
+.saveButton:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.spinning {
+  animation: spinAddress 1s linear infinite;
+}
+
+@keyframes spinAddress {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.orderNameDisplay {
+  font-weight: 600;
+  color: #333;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  display: block;
+}
+
+/* Responsive for new address form */
+@media (max-width: 768px) {
+  .labelSelector {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .inputRow {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .formActions {
+    flex-direction: column;
+  }
+  
+  .radioCustom {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
   }
 } 

@@ -546,3 +546,58 @@
 .rechartsContainer .recharts-legend-item-text {
   color: var(--font--color) !important;
 }
+
+/* Export Button Styles */
+.exportButton {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--icons-color), rgba(166, 161, 130, 0.8));
+  color: var(--main-bg-color);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  min-width: 140px;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.exportButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(166, 161, 130, 0.4);
+  background: linear-gradient(135deg, rgba(166, 161, 130, 0.9), var(--icons-color));
+}
+
+.exportButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.loadingSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+/* Responsive adjustments for export button */
+@media (max-width: 768px) {
+  .dateFilter {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .exportButton {
+    align-self: stretch;
+    min-width: auto;
+  }
+}

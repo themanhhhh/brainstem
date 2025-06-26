@@ -21,7 +21,7 @@ const Daily = () => {
             <div className={Style.Daily_box_right}>
                 <Image
                 className={Style.Daily_box_right_image}
-                src={images.dailyoffer}
+                src={images.daily}
                 alt="daily offer"
                 />
             </div>
@@ -35,7 +35,7 @@ const Daily = () => {
                 <p><BsCheckCircleFill className={Style.Daily_box_left_icon}/>  {t('daily.vegetarianOptions')}</p>
                 <p><BsCheckCircleFill className={Style.Daily_box_left_icon}/>  {t('daily.exquisitePairings')}</p>
                 <div className={Style.Daily_box_left_btn}>
-                    <Button btnName={t('daily.bookTable')} onClick={()=>router.push("/upload-nft")}/>
+                    <Button btnName={t('daily.bookTable')} onClick={()=>router.push("/menu")}/>
                     <Button btnName={t('daily.exploreMenu')} onClick={()=>{}}/>
                 </div>
             </div>

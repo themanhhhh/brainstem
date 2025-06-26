@@ -64,7 +64,7 @@ const Adv = () => {
                     </div>
                 </div>
                 <div className={Style.Adv_box_left_btn}>
-                    <Button btnName={t('adv.bookTable')} onClick={()=>router.push("/upload-nft")}/>               
+                    <Button btnName={t('adv.bookTable')} onClick={()=>router.push("/menu")}/>               
                 </div>
             </div>
         </div>

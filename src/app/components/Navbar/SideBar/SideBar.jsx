@@ -176,7 +176,7 @@ const SideBar = ({setOpenSideMenu,currentAccount,connectWallet}) => {
            
               <Button 
                 btnName="Create"
-                handleClick={()=>router.push("/upload-nft")}
+                handleClick={()=>router.push("/menu")}
               />
           )
         }

@@ -8,12 +8,13 @@ import { createOrder, getOrderId, clearOrderId, getOrderById, createPayment, che
 import { addressService } from '../api/address/addressService';
 import AddressAutocomplete from '../components/AddressAutocomplete/AddressAutocomplete';
 import styles from '../styles/payment.module.css';
-import { FaLock, FaCreditCard, FaUser, FaEnvelope, FaPhone, FaTag, FaPercent, FaTimes, FaMapMarkerAlt, FaClipboardList, FaHome, FaBriefcase, FaHeart, FaPlus } from 'react-icons/fa';
+import { FaLock, FaCreditCard, FaUser, FaEnvelope, FaPhone, FaTag, FaPercent, FaTimes, FaMapMarkerAlt, FaClipboardList, FaHome, FaBriefcase, FaHeart, FaPlus, FaSpinner, FaSave } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import Footer from '../components/Footer/Footer';
 import Navbar from '../components/Navbar/Navbar';
 import { useTranslation } from '../hooks/useTranslation';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-hot-toast';
 
 const PaymentPage = () => {
   const router = useRouter();
@@ -34,12 +35,31 @@ const PaymentPage = () => {
   const [showAddressListModal, setShowAddressListModal] = useState(false);
   const [orderData, setOrderData] = useState(null);
   const [loadingOrder, setLoadingOrder] = useState(false);
+  const [saving, setSaving] = useState(false);
+  
+  // Address form data giống AddressManager
+  const [addressFormData, setAddressFormData] = useState({
+    label: 'HOME',
+    customLabel: '',
+    street: '',
+    apt: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: '',
+    latitude: null,
+    longitude: null,
+    formatted_address: '',
+    place_id: null,
+    isDefault: false
+  });
 
   const [formData, setFormData] = useState({
-    // Order information
-    name: '',
+    // Order information (name sẽ lấy từ orderData, không cần trong form)
     description: '',
-    orderType: 'DELIVERY', // DELIVERY, PICKUP, DINE_IN
+    orderType: 'SHIP', // SHIP, TAKE_AWAY, DINE_IN
+    orderState: 'PAYMENT', // HOLD, PROCESSING, COMPLETED, CANCELLED
+    takingMethod: 'SHIP', // Phương thức nhận hàng riêng biệt
     notes: '', // Thêm trường ghi chú
     
     // Customer information
@@ -62,6 +82,9 @@ const PaymentPage = () => {
 
   useEffect(() => {
     fetchSavedAddresses();
+    
+    // Debug: Log formData to check if description and takingMethod are initialized
+    console.log('Initial formData:', formData);
     
     // Log current orderId if exists
     const currentOrderId = getOrderId();
@@ -144,9 +167,20 @@ const PaymentPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    console.log('Form input changed:', name, '=', value); // Debug log
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
+      // Đồng bộ takingMethod với orderType khi orderType thay đổi
+      ...(name === 'orderType' && { takingMethod: value })
+    }));
+  };
+
+  const handleAddressFormChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setAddressFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
@@ -159,6 +193,20 @@ const PaymentPage = () => {
       zipCode: addressData.address_components.postal_code || '',
       latitude: addressData.latitude,
       longitude: addressData.longitude
+    }));
+    
+    // Cập nhật addressFormData giống AddressManager
+    setAddressFormData(prev => ({
+      ...prev,
+      street: `${addressData.address_components.street_number || ''} ${addressData.address_components.route || ''}`.trim(),
+      city: addressData.address_components.locality || '',
+      state: addressData.address_components.administrative_area_level_1 || '',
+      zipCode: addressData.address_components.postal_code || '',
+      country: addressData.address_components.country || '',
+      latitude: addressData.latitude,
+      longitude: addressData.longitude,
+      formatted_address: addressData.formatted_address,
+      place_id: addressData.place_id
     }));
   };
 
@@ -213,27 +261,129 @@ const PaymentPage = () => {
     setShowAddressForm(false);
   };
 
-  const saveNewAddress = async (addressData) => {
+  const saveNewAddress = async (addressData = null) => {
     try {
-      const newAddress = {
-        label: 'HOME',
-        street: addressData.address,
-        city: addressData.city,
-        zipCode: addressData.zipCode,
-        latitude: addressData.latitude,
-        longitude: addressData.longitude,
-        formatted_address: addressData.address,
-        isDefault: savedAddresses.length === 0 // Make first address default
+      setSaving(true);
+      
+      // Sử dụng addressFormData nếu có, nếu không thì dùng addressData
+      const dataToSave = addressData || addressFormData;
+      
+      // Validation giống AddressManager
+      if (!dataToSave.street && !dataToSave.formatted_address) {
+        alert('Vui lòng chọn hoặc nhập địa chỉ');
+        return;
+      }
+
+      // Format địa chỉ giống AddressManager
+      const formatAddressDetail = () => {
+        if (addressData) {
+          // Nếu từ autocomplete (legacy format)
+          const addressParts = [
+            'HOME',
+            addressData.formatted_address || addressData.address || '',
+            addressData.latitude && addressData.longitude ? `Coords: ${addressData.latitude},${addressData.longitude}` : '',
+            addressData.place_id ? `PlaceID: ${addressData.place_id}` : ''
+          ].filter(Boolean);
+          return addressParts.join(' | ');
+        } else {
+          // Nếu từ form data (giống AddressManager)
+          const addressParts = [
+            addressFormData.street,
+            addressFormData.city,
+            addressFormData.state,
+            addressFormData.zipCode,
+            addressFormData.country
+          ].filter(Boolean);
+          return addressParts.join(', ');
+        }
       };
+
+      // Lấy IP address của client
+      const getClientIP = async () => {
+        try {
+          // Thử nhiều service để lấy IP
+          const ipServices = [
+            'https://api.ipify.org?format=json',
+            'https://ipapi.co/json/',
+            'https://httpbin.org/ip'
+          ];
+          
+          for (const service of ipServices) {
+            try {
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 3000);
+              
+              const response = await fetch(service, { 
+                signal: controller.signal 
+              });
+              clearTimeout(timeoutId);
+              
+              const data = await response.json();
+              
+              // Xử lý format khác nhau của các service
+              const ip = data.ip || data.origin || data.query;
+              if (ip) {
+                console.log('Client IP obtained:', ip);
+                return ip;
+              }
+            } catch (serviceError) {
+              console.warn(`Failed to get IP from ${service}:`, serviceError);
+              continue;
+            }
+          }
+          
+          // Fallback IP nếu tất cả service đều fail
+          console.warn('All IP services failed, using fallback IP');
+          return '127.0.0.1';
+        } catch (error) {
+          console.error('Error getting IP:', error);
+          return '127.0.0.1';
+        }
+      };
+
+      const clientIP = await getClientIP();
+      
+      const newAddress = {
+        addressDetail: formatAddressDetail(),
+        addressIp: clientIP,
+        isDefault: addressFormData.isDefault || savedAddresses.length === 0 // Làm mặc định nếu là địa chỉ đầu tiên
+      };
+
+      console.log('Creating address with data:', newAddress);
 
       const response = await addressService.createAddress(newAddress);
       if (response) {
+        console.log('Address created successfully:', response);
         // Refresh address list
         await fetchSavedAddresses();
+        return response;
       }
     } catch (error) {
       console.error('Error saving address:', error);
+      throw error;
+    } finally {
+      setSaving(false);
     }
+  };
+
+  const resetAddressForm = () => {
+    setAddressFormData({
+      label: 'HOME',
+      customLabel: '',
+      street: '',
+      apt: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      country: '',
+      latitude: null,
+      longitude: null,
+      formatted_address: '',
+      place_id: null,
+      isDefault: false
+    });
+    setSelectedAddress(null);
+    setShowAddressForm(false);
   };
 
   const handleDiscountSelect = (discount) => {
@@ -290,27 +440,75 @@ const PaymentPage = () => {
       }
 
       console.log('Updating order info before payment for order ID:', currentOrderId);
+      console.log('Current formData:', formData);
+      console.log('Current orderData:', orderData);
+      console.log('Selected discount:', selectedDiscount);
+      console.log('Default address:', defaultAddress);
+      console.log('Final total:', getFinalTotal());
       
       // Cập nhật thông tin đơn hàng trước khi thanh toán
       const orderUpdateData = {
-        name: formData.name || 'Đơn hàng mới',
-        description: formData.description || 'Đơn hàng từ website',
-        orderType: formData.orderType,
-        notes: formData.notes || '', // Thêm ghi chú
-        // Thêm thông tin khách hàng và địa chỉ nếu cần
-        customerInfo: {
-          fullName: formData.fullName,
-          email: formData.email,
-          phone: formData.phone,
-          address: formData.address,
-          city: formData.city,
-          zipCode: formData.zipCode
-        }
+        description: formData.description || `Đơn hàng #${currentOrderId} - ${new Date().toLocaleDateString('vi-VN')}`,
+        totalPrice: getFinalTotal(), // Tổng tiền sau khi áp dụng discount
+        paymentMethod: "VNPAY",
+        discountId: selectedDiscount?.id || null,
+        addressId: defaultAddress?.id || null, // ID của địa chỉ mặc định
+        orderType: "ONLINE", // Fixed value theo API
+        orderState: "HOLD", // Fixed value theo API
+        phoneNumber: formData.phone,
+        takingMethod: formData.takingMethod || (formData.orderType === 'SHIP' ? 'SHIP' : formData.orderType === 'TAKE_AWAY' ? 'TAKE_AWAY' : 'DINE_IN')
       };
 
+      // Validation trước khi gửi
+      if (!orderUpdateData.phoneNumber) {
+        alert('Vui lòng nhập số điện thoại!');
+        return;
+      }
+
+      // Xử lý địa chỉ cho SHIP
+      let finalAddressId = orderUpdateData.addressId;
+      
+      if (formData.orderType === 'SHIP') {
+        if (!orderUpdateData.addressId && selectedAddress) {
+          // Nếu chưa có addressId nhưng đã chọn địa chỉ từ autocomplete, tạo địa chỉ mới
+          console.log('Creating new address from selected address...');
+          try {
+            const createdAddress = await saveNewAddress(selectedAddress);
+            if (createdAddress && createdAddress.id) {
+              finalAddressId = createdAddress.id;
+              console.log('New address created with ID:', finalAddressId);
+              toast.success('Đã tạo địa chỉ giao hàng mới!');
+            }
+          } catch (addressError) {
+            console.error('Error creating new address:', addressError);
+            toast.error('Không thể tạo địa chỉ mới. Vui lòng thử lại!');
+            return;
+          }
+        } else if (!orderUpdateData.addressId && !selectedAddress) {
+          // Nếu không có địa chỉ nào được chọn hoặc tạo
+          alert('Vui lòng chọn hoặc nhập địa chỉ giao hàng!');
+          return;
+        }
+        
+        // Cập nhật addressId trong orderUpdateData
+        if (finalAddressId) {
+          orderUpdateData.addressId = finalAddressId;
+        }
+      }
+
+      console.log('Order update data to be sent:', orderUpdateData);
+
       // Cập nhật thông tin đơn hàng
-      await updateOrderInfo(currentOrderId, orderUpdateData);
-      console.log('Order info updated successfully');
+      try {
+        const updateResponse = await updateOrderInfo(currentOrderId, orderUpdateData);
+        console.log('Order info updated successfully:', updateResponse);
+        toast.success('Cập nhật thông tin đơn hàng thành công!');
+      } catch (updateError) {
+        console.error('Error updating order info:', updateError);
+        toast.error('Không thể cập nhật thông tin đơn hàng, nhưng sẽ tiếp tục thanh toán');
+        // Tiếp tục với payment dù update order info thất bại
+        console.log('Continuing with payment despite order update failure...');
+      }
       
       // Gọi API tạo thanh toán VNPay
       const paymentResponse = await createPayment(currentOrderId);
@@ -390,9 +588,9 @@ const PaymentPage = () => {
 
             <form onSubmit={handleSubmit}>
               {/* Địa chỉ lên đầu form */}
-              {formData.orderType === 'DELIVERY' && (
+              {formData.orderType === 'SHIP' && (
                 <div className={styles.formSection}>
-                  <h2><FaMapMarkerAlt className={styles.sectionIcon} /> Delivery Address</h2>
+                  <h2><FaMapMarkerAlt className={styles.sectionIcon} /> SHIP Address</h2>
                   {/* Hiển thị địa chỉ mặc định */}
                   {loadingAddresses ? (
                     <div className={styles.loadingAddresses}>Loading saved addresses...</div>
@@ -416,14 +614,18 @@ const PaymentPage = () => {
                       </button>
                     </div>
                   ) : (
-                    <div className={styles.savedAddresses}>
-                      <p>No default address found. Please add a new address.</p>
+                    <div className={styles.noAddressContainer}>
+                      <div className={styles.noAddressMessage}>
+                        <FaMapMarkerAlt className={styles.noAddressIcon} />
+                        <h4>Chưa có địa chỉ giao hàng</h4>
+                        <p>Vui lòng thêm địa chỉ để tiếp tục đặt hàng</p>
+                      </div>
                       <button
                         type="button"
                         className={styles.addNewAddressBtn}
                         onClick={() => setShowAddressForm(true)}
                       >
-                        Add New Address
+                        <FaPlus /> Thêm địa chỉ mới
                       </button>
                     </div>
                   )}
@@ -463,61 +665,146 @@ const PaymentPage = () => {
                   )}
                   {(showAddressForm || savedAddresses.length === 0) && (
                     <div className={styles.addressForm}>
-                      {savedAddresses.length > 0 && <h3>Add new address:</h3>}
-                      <div className={styles.inputGroup}>
-                        <AddressAutocomplete
-                          placeholder="Search for your delivery address..."
-                          onAddressSelect={handleAddressSelect}
-                          value={formData.address}
-                          onChange={(e) => handleInputChange(e)}
-                          required={formData.orderType === 'DELIVERY' && !selectedSavedAddress}
-                        />
+                      <div className={styles.addressFormHeader}>
+                        <h3>
+                          <FaMapMarkerAlt className={styles.formIcon} />
+                          {savedAddresses.length > 0 ? 'Thêm địa chỉ mới' : 'Nhập địa chỉ giao hàng'}
+                        </h3>
+                        {savedAddresses.length > 0 && (
+                          <button
+                            type="button"
+                            className={styles.cancelAddressBtn}
+                            onClick={resetAddressForm}
+                          >
+                            <FaTimes /> Hủy
+                          </button>
+                        )}
                       </div>
                       
-                      {/* Show selected address details */}
+                      {/* Address Search */}
+                      <div className={styles.inputGroup}>
+                        <label className={styles.fieldLabel}>Tìm kiếm địa chỉ:</label>
+                        <AddressAutocomplete
+                          placeholder="Nhập địa chỉ giao hàng của bạn..."
+                          onAddressSelect={handleAddressSelect}
+                          value={addressFormData.formatted_address}
+                          onChange={(e) => setAddressFormData(prev => ({ ...prev, formatted_address: e.target.value }))}
+                          required={formData.orderType === 'SHIP' && !selectedSavedAddress}
+                        />
+                      </div>
+
+                      {/* Address Label */}
+                      <div className={styles.inputGroup}>
+                        <label className={styles.fieldLabel}>Nhãn địa chỉ:</label>
+                        <div className={styles.labelSelector}>
+                          <label className={styles.radioLabel}>
+                            <input
+                              type="radio"
+                              name="label"
+                              value="HOME"
+                              checked={addressFormData.label === 'HOME'}
+                              onChange={handleAddressFormChange}
+                            />
+                            <span className={styles.radioCustom}>
+                              <FaHome /> Nhà
+                            </span>
+                          </label>
+                          <label className={styles.radioLabel}>
+                            <input
+                              type="radio"
+                              name="label"
+                              value="WORK"
+                              checked={addressFormData.label === 'WORK'}
+                              onChange={handleAddressFormChange}
+                            />
+                            <span className={styles.radioCustom}>
+                              <FaBriefcase /> Công ty
+                            </span>
+                          </label>
+                          <label className={styles.radioLabel}>
+                            <input
+                              type="radio"
+                              name="label"
+                              value="OTHER"
+                              checked={addressFormData.label === 'OTHER'}
+                              onChange={handleAddressFormChange}
+                            />
+                            <span className={styles.radioCustom}>
+                              <FaHeart /> Khác
+                            </span>
+                          </label>
+                        </div>
+                        {addressFormData.label === 'OTHER' && (
+                          <input
+                            type="text"
+                            name="customLabel"
+                            placeholder="Nhập nhãn tùy chỉnh"
+                            value={addressFormData.customLabel}
+                            onChange={handleAddressFormChange}
+                            className={styles.input}
+                            required
+                          />
+                        )}
+                      </div>
+
+                     
+
+                      {/* Default Address Checkbox */}
+                      <div className={styles.checkboxGroup}>
+                        <label className={styles.checkboxLabel}>
+                          <input
+                            type="checkbox"
+                            name="isDefault"
+                            checked={addressFormData.isDefault}
+                            onChange={handleAddressFormChange}
+                          />
+                          <span className={styles.checkboxCustom}></span>
+                          Đặt làm địa chỉ mặc định
+                        </label>
+                      </div>
+                      
+                      {/* Selected Address Info */}
                       {selectedAddress && (
                         <div className={styles.selectedAddressInfo}>
-                          <h4>Selected Address:</h4>
-                          <p><strong>Address:</strong> {selectedAddress.formatted_address}</p>
-                          <p><strong>Coordinates:</strong> {selectedAddress.latitude.toFixed(6)}, {selectedAddress.longitude.toFixed(6)}</p>
+                          <h4>✅ Địa chỉ đã chọn từ tìm kiếm:</h4>
+                          <p><strong>Địa chỉ:</strong> {selectedAddress.formatted_address}</p>
+                          <p><strong>Tọa độ:</strong> {selectedAddress.latitude.toFixed(6)}, {selectedAddress.longitude.toFixed(6)}</p>
                         </div>
                       )}
+
+                      {/* Form Actions */}
+                      <div className={styles.formActions}>
+                        <button 
+                          type="button"
+                          className={styles.cancelButton}
+                          onClick={resetAddressForm}
+                        >
+                          <FaTimes /> Hủy
+                        </button>
+                        <button 
+                          type="button"
+                          className={styles.saveButton}
+                          onClick={async () => {
+                            try {
+                              await saveNewAddress();
+                              resetAddressForm();
+                              toast.success('Đã lưu địa chỉ thành công!');
+                            } catch (error) {
+                              toast.error('Không thể lưu địa chỉ. Vui lòng thử lại!');
+                            }
+                          }}
+                          disabled={saving || (!selectedAddress && !addressFormData.street)}
+                        >
+                          {saving ? <FaSpinner className={styles.spinning} /> : <FaSave />}
+                          {saving ? 'Đang lưu...' : 'Lưu địa chỉ'}
+                        </button>
+                      </div>
                       
-                      {/* Fallback manual inputs if needed */}
-                      <details className={styles.manualAddressToggle}>
-                        <summary>Enter address manually</summary>
-                        <div className={styles.manualAddressInputs}>
-                          <div className={styles.inputGroup}>
-                            <input
-                              type="text"
-                              name="address"
-                              placeholder="Street Address"
-                              value={formData.address}
-                              onChange={handleInputChange}
-                            />
-                          </div>
-                          <div className={styles.addressDetails}>
-                            <div className={styles.inputGroup}>
-                              <input
-                                type="text"
-                                name="city"
-                                placeholder="City"
-                                value={formData.city}
-                                onChange={handleInputChange}
-                              />
-                            </div>
-                            <div className={styles.inputGroup}>
-                              <input
-                                type="text"
-                                name="zipCode"
-                                placeholder="ZIP Code"
-                                value={formData.zipCode}
-                                onChange={handleInputChange}
-                              />
-                            </div>
-                          </div>
+                      {!selectedAddress && !addressFormData.street && (
+                        <div className={styles.addressHint}>
+                          <p>💡 Gợi ý: Sử dụng tìm kiếm địa chỉ hoặc nhập thủ công các trường bên trên</p>
                         </div>
-                      </details>
+                      )}
                     </div>
                   )}
                 </div>
@@ -525,51 +812,33 @@ const PaymentPage = () => {
 
               {/* Order Information */}
               <div className={styles.formSection}>
-                <h2><FaClipboardList className={styles.sectionIcon} /> {t('payment.orderInfo')}</h2>
+                <h2><FaClipboardList className={styles.sectionIcon} /> Thông tin đơn hàng</h2>
                 {loadingOrder ? (
                   <div className={styles.loadingOrder}>Đang tải thông tin đơn hàng...</div>
-                ) : orderData ? (
-                  <div className={styles.orderInfo}>
-                    <div className={styles.orderInfoItem}>
-                      <label>Tên đơn hàng:</label>
-                      <span>{orderData.name || 'Chưa có tên'}</span>
-                    </div>
-                  </div>
                 ) : (
-                  <div className={styles.orderInfoFallback}>
-                    <div className={styles.inputGroup}>
-                      <input
-                        type="text"
-                        name="name"
-                        placeholder={t('payment.orderName')}
-                        value={formData.name}
-                        onChange={handleInputChange}
-                      />
+                  <div className={styles.orderInfoForm} style={{ display: 'block', visibility: 'visible' }}>
+                    {/* Hiển thị tên đơn hàng từ orderData hoặc tạo tên mặc định */}
+                    <div className={styles.orderInfoItem}>
+                      <label className={styles.fieldLabel}>Tên đơn hàng:</label>
+                      <span className={styles.orderNameDisplay}>
+                        {orderData?.name || `Đơn hàng #${getOrderId() || 'NEW'} - ${new Date().toLocaleDateString('vi-VN')}`}
+                      </span>
                     </div>
-                    <div className={styles.inputGroup}>
-                      <textarea
-                        name="description"
-                        placeholder={t('payment.orderDescription')}
-                        value={formData.description}
-                        onChange={handleInputChange}
-                        rows={3}
-                        className={styles.textArea}
-                      />
-                    </div>
+                    
                     <div className={styles.inputGroup}>
                       <label className={styles.fieldLabel}>Phương thức nhận hàng:</label>
                       <div className={styles.takingMethodOptions}>
                         <div className={styles.radioOption}>
                           <input
                             type="radio"
-                            id="delivery"
+                            id="SHIP"
                             name="orderType"
-                            value="DELIVERY"
-                            checked={formData.orderType === 'DELIVERY'}
+                            value="SHIP"
+                            checked={formData.orderType === 'SHIP'}
                             onChange={handleInputChange}
                             className={styles.radioInput}
                           />
-                          <label htmlFor="delivery" className={styles.radioLabel}>
+                          <label htmlFor="SHIP" className={styles.radioLabel}>
                             <div className={styles.radioContent}>
                               <FaHome className={styles.radioIcon} />
                               <div className={styles.radioText}>
@@ -583,14 +852,14 @@ const PaymentPage = () => {
                         <div className={styles.radioOption}>
                           <input
                             type="radio"
-                            id="pickup"
+                            id="takeaway"
                             name="orderType"
-                            value="PICKUP"
-                            checked={formData.orderType === 'PICKUP'}
+                            value="TAKE_AWAY"
+                            checked={formData.orderType === 'TAKE_AWAY'}
                             onChange={handleInputChange}
                             className={styles.radioInput}
                           />
-                          <label htmlFor="pickup" className={styles.radioLabel}>
+                          <label htmlFor="takeaway" className={styles.radioLabel}>
                             <div className={styles.radioContent}>
                               <FaBriefcase className={styles.radioIcon} />
                               <div className={styles.radioText}>
@@ -623,6 +892,7 @@ const PaymentPage = () => {
                         </div>
                       </div>
                     </div>
+                    
                     
                     <div className={styles.inputGroup}>
                       <label className={styles.fieldLabel}>Ghi chú đặc biệt:</label>

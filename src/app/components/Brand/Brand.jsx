@@ -47,7 +47,7 @@ const Brand = () => {
                 <p><BsCheckCircleFill className={Style.Brand_box_left_icon}/>  {t('brand.vegetarianOptions')}</p>
                 <p><BsCheckCircleFill className={Style.Brand_box_left_icon}/>  {t('brand.exquisitePairings')}</p>
                 <div className={Style.Brand_box_left_btn}>
-                    <Button btnName={t('brand.orderNow')} onClick={()=>router.push("/upload-nft")}/>
+                    <Button btnName={t('brand.orderNow')} onClick={()=>router.push("/menu")}/>
                     <Button btnName={t('brand.readMore')} onClick={()=>{}}/>
                 </div>
             </div>

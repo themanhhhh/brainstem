@@ -48,10 +48,30 @@ const addressService = {
           isDefault: isDefault || false
         })
       });
-      return response.json();
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        return {
+          success: true,
+          message: data.message || 'Address created successfully',
+          id: data.id,
+          data: data
+        };
+      } else {
+        return {
+          success: false,
+          message: data.message || 'Failed to create address',
+          data: data
+        };
+      }
     } catch (error) {
       console.error('Error creating address:', error);
-      throw error;
+      return {
+        success: false,
+        message: error.message || 'Network error occurred',
+        error: error
+      };
     }
   },
 
@@ -103,7 +123,7 @@ const addressService = {
 
       const addressDetail = formatAddressDetail(addressData);
 
-      const response = await fetch(`${API_URL}/addresses/${addressId}`, {
+      const response = await fetch(`${API_URL}/customer/address/${addressId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -114,10 +134,30 @@ const addressService = {
           isDefault: addressData.isDefault || false
         })
       });
-      return response.json();
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        return {
+          success: true,
+          message: data.message || 'Address updated successfully',
+          id: data.id,
+          data: data
+        };
+      } else {
+        return {
+          success: false,
+          message: data.message || 'Failed to update address',
+          data: data
+        };
+      }
     } catch (error) {
       console.error('Error updating address:', error);
-      throw error;
+      return {
+        success: false,
+        message: error.message || 'Network error occurred',
+        error: error
+      };
     }
   },
 
@@ -127,16 +167,36 @@ const addressService = {
       const token = getToken();
       if (!token) throw new Error('No authentication token found');
 
-      const response = await fetch(`${API_URL}/addresses/${addressId}`, {
+      const response = await fetch(`${API_URL}/customer/address/${addressId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      return response.json();
+
+      const data = await response.json();
+      
+      // Kiểm tra HTTP status code để xác định thành công
+      if (response.ok) {
+        return {
+          success: true,
+          message: data.message || 'Address deleted successfully',
+          data: data
+        };
+      } else {
+        return {
+          success: false,
+          message: data.message || 'Failed to delete address',
+          data: data
+        };
+      }
     } catch (error) {
       console.error('Error deleting address:', error);
-      throw error;
+      return {
+        success: false,
+        message: error.message || 'Network error occurred',
+        error: error
+      };
     }
   },
 
@@ -146,7 +206,7 @@ const addressService = {
       const token = getToken();
       if (!token) throw new Error('No authentication token found');
 
-      const response = await fetch(`${API_URL}/addresses/${addressId}/default`, {
+      const response = await fetch(`${API_URL}/customer/address/${addressId}/default`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -236,6 +296,7 @@ const addressService = {
     try {
       const token = getToken();
       if (!token) throw new Error('No authentication token found');
+      
       const response = await fetch(`${API_URL}/customer/address/default/${addressId}`, {
         method: 'PUT',
         headers: {
@@ -244,11 +305,29 @@ const addressService = {
         },
         body: JSON.stringify({ isDefault: true })
       });
-      return response.json();
-    }
-    catch (error) {
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        return {
+          success: true,
+          message: data.message || 'Default address updated successfully',
+          data: data
+        };
+      } else {
+        return {
+          success: false,
+          message: data.message || 'Failed to update default address',
+          data: data
+        };
+      }
+    } catch (error) {
       console.error('Error updating address default:', error);
-      throw error;
+      return {
+        success: false,
+        message: error.message || 'Network error occurred',
+        error: error
+      };
     }
   }
 };
