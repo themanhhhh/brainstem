@@ -33,7 +33,7 @@ const AddFoodPage = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await categoryService.getCategories(0, itemsPerPage);
+      const response = await categoryService.getActiveCategories();
       const categoryData = Array.isArray(response) ? response : response.data || [];
       setCategories(categoryData);
     } catch (err) {
