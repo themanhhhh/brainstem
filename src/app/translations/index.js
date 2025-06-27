@@ -223,7 +223,7 @@ export const translations = {
       exquisitePairings: "Exquisite Pairings & Unique Flavors",
       bookTable: "Book Table",
       exploreMenu: "Explore Menu",
-      deliciousBurger: "Delicious Burger",
+      deliciousBurger: "Spring Rolls",
       tomatoSauces: "Tomato Sauces",
       vegetables: "Vegetables",
       lettuce: "Lettuce",
@@ -522,11 +522,11 @@ export const translations = {
       exquisitePairings: "Kết hợp độc đáo & hương vị tuyệt vời",
       bookTable: "Đặt bàn",
       exploreMenu: "Khám phá thực đơn",
-      deliciousBurger: "Burger ngon tuyệt",
-      tomatoSauces: "Sốt cà chua",
-      vegetables: "Rau củ",
-      lettuce: "Xà lách",
-      cheeseSlice: "Phô mai lát"
+      deliciousBurger: "Chả đa nem",
+      tomatoSauces: "Nhân tôm thịt",
+      vegetables: "Vỏ rán giòn rụm",
+      lettuce: "Nước chấm chua ngọt",
+      cheeseSlice: "Rau xanh ăn kèm"
     },
     
     slider: {

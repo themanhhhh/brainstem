@@ -91,6 +91,8 @@ const PaymentPage = () => {
     if (currentOrderId) {
       console.log('Current order ID from cookie:', currentOrderId);
       fetchOrderData(currentOrderId);
+    } else {
+      console.warn('No order ID found in cookies');
     }
   }, []);
 
@@ -154,12 +156,16 @@ const PaymentPage = () => {
   const fetchOrderData = async (orderId) => {
     try {
       setLoadingOrder(true);
+      console.log('Fetching order data for ID:', orderId);
       const response = await getOrderById(orderId);
-      console.log('Order data fetched:', response);
+      console.log('Order data response:', response);
+      console.log('Order total price:', response?.totalPrice);
+      console.log('Order food infos:', response?.foodInfos);
       setOrderData(response);
     } catch (error) {
       console.error('Error fetching order data:', error);
-      // Nếu không lấy được order data, có thể chuyển về cart hoặc hiển thị lỗi
+      console.warn('Will fallback to cart data for total calculation');
+      // Nếu không lấy được order data, fallback về cart data
     } finally {
       setLoadingOrder(false);
     }
@@ -414,11 +420,19 @@ const PaymentPage = () => {
   };
 
   const getOrderTotal = () => {
+    // Debug logs
+    console.log('getOrderTotal called');
+    console.log('orderData:', orderData);
+    console.log('orderData.totalPrice:', orderData?.totalPrice);
+    console.log('cartTotal:', getCartTotal());
+    
     // Nếu có orderData, sử dụng totalPrice từ orderData
     if (orderData && orderData.totalPrice) {
+      console.log('Using order total:', orderData.totalPrice);
       return orderData.totalPrice;
     }
     // Fallback về cartTotal nếu không có orderData
+    console.log('Using cart total:', getCartTotal());
     return getCartTotal();
   };
 
@@ -951,7 +965,7 @@ const PaymentPage = () => {
               
 
               <button type="submit" className={styles.payButton} disabled={submitting}>
-                {submitting ? 'Đang xử lý...' : `Thanh toán ${getFinalTotal().toLocaleString()} VNĐ`}
+                {submitting ? 'Đang xử lý...' : `Thanh toán `}
               </button>
             </form>
           </div>
@@ -1031,10 +1045,11 @@ const PaymentPage = () => {
                 <span>Shipping</span>
                 <span>Free</span>
               </div>
-              <div className={styles.totalRow}>
+              <div className={styles.totalRow} style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>
                 <span>Total</span>
                 <span>{getFinalTotal().toLocaleString()} VNĐ</span>
               </div>
+              
             </div>
           </div>
         </div>

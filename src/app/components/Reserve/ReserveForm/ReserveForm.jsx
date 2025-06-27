@@ -322,9 +322,10 @@ const Form = () => {
                   className={Style.select}
                   required
                 >
-                  <option value="BREAKFAST">{t('reserve.form.breakfast')}</option>
+                  <option value="MORNING">{t('reserve.form.breakfast')}</option>
                   <option value="LUNCH">{t('reserve.form.lunch')}</option>
-                  <option value="DINNER">{t('reserve.form.dinner')}</option>
+                  <option value="EVENING">{t('reserve.form.dinner')}</option>
+                  <option value="AFTERNOON">{t('reserve.form.afternoon')}</option>
                 </select>
               </div>
             </div>

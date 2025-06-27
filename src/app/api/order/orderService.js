@@ -23,6 +23,35 @@ export const clearOrderId = () => {
     document.cookie = 'orderId=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 };
 
+// Helper functions for cart items cookie management
+export const getCartItemsFromCookie = () => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; cartItems=`);
+    if (parts.length === 2) {
+        try {
+            const cartData = decodeURIComponent(parts.pop().split(';').shift());
+            return JSON.parse(cartData);
+        } catch (error) {
+            console.error('Error parsing cart items from cookie:', error);
+            return [];
+        }
+    }
+    return [];
+};
+
+export const setCartItemsToCookie = (cartItems) => {
+    try {
+        const cartData = encodeURIComponent(JSON.stringify(cartItems));
+        document.cookie = `cartItems=${cartData}; path=/; max-age=${60 * 60 * 24}`; // Lưu 24 giờ
+    } catch (error) {
+        console.error('Error setting cart items to cookie:', error);
+    }
+};
+
+export const clearCartItemsFromCookie = () => {
+    document.cookie = 'cartItems=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+};
+
 // Get all orders
 export const getOrders = async (page = 0, size = 10, status = '') => {
     const token = getToken();
@@ -54,6 +83,26 @@ export const getOrderById = async (id) => {
     if (!token) throw new Error('No authentication token found');
     try {
         const response = await fetch(`${API_URL}/customer/order/${id}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        if (!response.ok) {
+            throw new Error('Failed to fetch order');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching order:', error);
+        throw error;
+    }
+};
+
+export const getOrderByCustomerId = async (customerId) => {
+    const token = getToken();
+    if (!token) throw new Error('No authentication token found');
+    try {
+        const response = await fetch(`${API_URL}/customer/order/order-byUserId/${customerId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
@@ -112,6 +161,28 @@ export const updateOrderInfo = async (id, orderData) => {
         return data;
     } catch (error) {
         console.error('Error updating order:', error);
+        throw error;
+    }
+};
+
+export const updateFoodOrder = async (id, foodInfo) => {
+    const token = getToken();
+    if (!token) throw new Error('No authentication token found');
+    try {
+        const response = await fetch(`${API_URL}/customer/order/order-updateFood/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(foodInfo),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to update food order');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error updating food order:', error);
         throw error;
     }
 };

@@ -10,8 +10,8 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import Footer from '../components/Footer/Footer';
 import Navbar from '../components/Navbar/Navbar';
-import { createOrder, setOrderId } from '../api/order/orderService';
-import { toast } from 'react-hot-toast';
+import { createOrder, setOrderId, getOrderId, setCartItemsToCookie, updateFoodOrder } from '../api/order/orderService';
+import toast from 'react-hot-toast';
 
 const CartPage = () => {
   const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
@@ -45,9 +45,11 @@ const CartPage = () => {
     if (validCodes[discountCode]) {
       setDiscountApplied(true);
       setDiscountError('');
+      toast.success('Discount code applied successfully!');
     } else {
       setDiscountError('Invalid discount code');
       setDiscountApplied(false);
+      toast.error('Invalid discount code');
     }
   };
 
@@ -63,51 +65,88 @@ const CartPage = () => {
 
   const finalTotal = getCartTotal() - calculateDiscount();
 
-  // Xử lý checkout - tạo order mới
+  // Xử lý checkout - kiểm tra order trong cookies và gọi updateFoodOrder nếu cần
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
-      toast.error('Giỏ hàng trống!');
+      toast.error('Your cart is empty!');
       return;
     }
 
     // Kiểm tra xem người dùng đã đăng nhập chưa
     if (!user) {
-      toast.error('Vui lòng đăng nhập để tiếp tục!');
+      toast.error('Please login to continue!');
       router.push('/login');
       return;
     }
 
     setIsCheckingOut(true);
     try {
+      // Kiểm tra xem đã có orderId trong cookies chưa
+      const existingOrderId = getOrderId();
+      
+      if (existingOrderId) {
+        // Nếu đã có order trong cookies, gọi updateFoodOrder với cart hiện tại
+        console.log('Using existing order ID from cookies:', existingOrderId);
+        
+        const foodInfo = {
+          foodInfo: cartItems.map(item => ({
+            foodId: item.id,
+            quantity: item.quantity
+          }))
+        };
+        
+        console.log('Updating existing order with current cart:', foodInfo);
+        
+        try {
+          await updateFoodOrder(existingOrderId, foodInfo);
+          console.log('Food order updated successfully');
+          
+          // Cập nhật cart items trong cookie
+          setCartItemsToCookie(cartItems);
+          
+          toast.success('Order updated with current cart!');
+          
+          // Chuyển đến payment
+          router.push('/payment');
+        } catch (updateError) {
+          console.error('Error updating food order:', updateError);
+          toast.error('Failed to update order. Please try again!');
+        }
+        
+        return;
+      }
+
       // Chuyển đổi cartItems thành foodInfo format
       const foodInfo = cartItems.map(item => ({
         foodId: item.id,
         quantity: item.quantity
       }));
 
-      console.log('Creating order with foodInfo:', foodInfo);
+      console.log('Creating new order with foodInfo:', foodInfo);
 
-      // Gọi API tạo order
+      // Gọi API tạo order mới
       const response = await createOrder(foodInfo);
       
-      // Lấy orderId từ response (có thể là response.id hoặc chỉ là response nếu response là số)
+      // Lấy orderId từ response
       const orderId = typeof response === 'number' ? response : response.id || response.data?.id;
       
-      console.log('Order created with ID:', orderId);
+      console.log('New order created with ID:', orderId);
       
       if (!orderId) {
-        throw new Error('Không thể lấy ID đơn hàng từ response');
+        throw new Error('Unable to get order ID from response');
       }
       
-      // Lưu orderId vào cookie
+      // Lưu orderId và cart items vào cookie
       setOrderId(orderId);
+      setCartItemsToCookie(cartItems);
       
-      toast.success('Đặt hàng thành công!');
-      clearCart(); // Xóa giỏ hàng sau khi đặt hàng thành công
+      toast.success('Order created successfully!');
+      
+      // Chuyển hướng đến payment
       router.push('/payment'); 
     } catch (error) {
       console.error('Checkout error:', error);
-      toast.error(error.message || 'Có lỗi xảy ra khi tạo đơn hàng. Vui lòng thử lại!');
+      toast.error(error.message || 'Error creating order. Please try again!');
     } finally {
       setIsCheckingOut(false);
     }

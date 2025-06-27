@@ -268,20 +268,20 @@ const AddressManager = () => {
     try {
       toast.loading('Deleting address...', { id: 'delete-address' });
       
-      const response = await addressService.deleteAddress(addressId);
-      if (response.success) {
-        // Reload addresses from server
-        await loadAddresses();
+        const response = await addressService.deleteAddress(addressId);
+        if (response.success) {
+          // Reload addresses from server
+          await loadAddresses();
         toast.success('Address deleted successfully!', {
           id: 'delete-address',
           duration: 3000,
           position: "top-center"
         });
-      } else {
-        throw new Error(response.message || 'Failed to delete address');
-      }
-    } catch (error) {
-      console.error('Error deleting address:', error);
+        } else {
+          throw new Error(response.message || 'Failed to delete address');
+        }
+      } catch (error) {
+        console.error('Error deleting address:', error);
       toast.error('Failed to delete address. Please try again.', {
         id: 'delete-address',
         duration: 4000,

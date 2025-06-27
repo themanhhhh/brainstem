@@ -2,12 +2,13 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { clearOrderId, getOrderId, updateOrderState } from '../../api/order/orderService';
+import { clearOrderId, getOrderId, clearCartItemsFromCookie } from '../../api/order/orderService';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import styles from '../../styles/payment-result.module.css';
 import { FaCheckCircle, FaTimesCircle, FaSpinner } from 'react-icons/fa';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
 
 const VNPayReturnPage = () => {
   const router = useRouter();
@@ -43,7 +44,7 @@ const VNPayReturnPage = () => {
         // Thanh toán thành công
         paymentResult = {
           success: true,
-          message: 'Thanh toán thành công',
+          message: 'Payment successful',
           responseCode: code
         };
       } else {
@@ -58,47 +59,35 @@ const VNPayReturnPage = () => {
 
       setPaymentResult(paymentResult);
 
-      // Xử lý kết quả thanh toán trực tiếp (không cần parent window)
+      // Xử lý kết quả thanh toán
       console.log('Processing payment result:', paymentResult);
       
-      // Lấy orderId để cập nhật trạng thái
+      // Lấy orderId để xử lý
       const orderId = getOrderId();
-      if (orderId) {
-        try {
-          // Gọi API updateOrderState
-          const orderState = paymentResult.success ? "DONE" : "CANCEL";
-          console.log(`Updating order ${orderId} state to:`, orderState);
-          
-          await updateOrderState(orderId, { orderState });
-          console.log('Order state updated successfully');
-          
-          // Clear cart và order ID nếu thanh toán thành công
-          if (paymentResult.success) {
-            clearCart();
-            clearOrderId();
-            
-            // Tự động chuyển về trang chủ sau 3 giây
-            setTimeout(() => {
-              router.push('/');
-            }, 3000);
-          } else {
-            // Nếu thanh toán thất bại, vẫn clear orderId để tránh xung đột
-            clearOrderId();
-          }
-        } catch (error) {
-          console.error('Error updating order state:', error);
-          // Vẫn clear orderId ngay cả khi update thất bại
-          clearOrderId();
-        }
+      console.log('Order ID from cookies:', orderId);
+      
+      if (paymentResult.success) {
+        // Thanh toán thành công - chỉ cần clear cookies và cart
+        console.log('Payment successful - cleaning up cookies and cart');
+        
+        // Clear cart, cookies và order ID sau khi thành công
+        clearCart();
+        clearCartItemsFromCookie();
+        clearOrderId();
+        
+        toast.success('Payment successful! Order completed.');
+        
+        // Tự động chuyển về trang chủ sau 3 giây
+        setTimeout(() => {
+          router.push('/');
+        }, 3000);
       } else {
-        console.warn('No orderId found for updating order state');
-        // Clear cart nếu thanh toán thành công (dù không có orderId)
-        if (paymentResult.success) {
-          clearCart();
-          setTimeout(() => {
-            router.push('/');
-          }, 3000);
-        }
+        // Thanh toán thất bại - xóa cookies để tránh xung đột
+        console.log('Payment failed, clearing cookies');
+        clearOrderId();
+        clearCartItemsFromCookie();
+        
+        toast.error('Payment failed. Please try again.');
       }
 
       setLoading(false);
@@ -109,21 +98,21 @@ const VNPayReturnPage = () => {
 
   const getErrorMessage = (code) => {
     const errorMessages = {
-      '00': 'Giao dịch thành công',
-      '07': 'Trừ tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo, giao dịch bất thường).',
-      '09': 'Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng chưa đăng ký dịch vụ InternetBanking tại ngân hàng.',
-      '10': 'Giao dịch không thành công do: Khách hàng xác thực thông tin thẻ/tài khoản không đúng quá 3 lần',
-      '11': 'Giao dịch không thành công do: Đã hết hạn chờ thanh toán. Xin quý khách vui lòng thực hiện lại giao dịch.',
-      '12': 'Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng bị khóa.',
-      '13': 'Giao dịch không thành công do Quý khách nhập sai mật khẩu xác thực giao dịch (OTP). Xin quý khách vui lòng thực hiện lại giao dịch.',
-      '24': 'Giao dịch không thành công do: Khách hàng hủy giao dịch',
-      '51': 'Giao dịch không thành công do: Tài khoản của quý khách không đủ số dư để thực hiện giao dịch.',
-      '65': 'Giao dịch không thành công do: Tài khoản của Quý khách đã vượt quá hạn mức giao dịch trong ngày.',
-      '75': 'Ngân hàng thanh toán đang bảo trì.',
-      '79': 'Giao dịch không thành công do: KH nhập sai mật khẩu thanh toán quá số lần quy định. Xin quý khách vui lòng thực hiện lại giao dịch',
-      '99': 'Các lỗi khác (lỗi hệ thống). Vui lòng liên hệ hỗ trợ để được giải quyết.'
+      '00': 'Transaction successful',
+      '07': 'Money deducted successfully. Transaction suspected (related to fraud, unusual transaction).',
+      '09': 'Transaction unsuccessful: Customer card/account has not registered for InternetBanking service at the bank.',
+      '10': 'Transaction unsuccessful: Customer authenticated card/account information incorrectly more than 3 times',
+      '11': 'Transaction unsuccessful: Payment timeout expired. Please try the transaction again.',
+      '12': 'Transaction unsuccessful: Customer card/account is locked.',
+      '13': 'Transaction unsuccessful: You entered the wrong transaction authentication password (OTP). Please try the transaction again.',
+      '24': 'Transaction unsuccessful: Customer canceled the transaction',
+      '51': 'Transaction unsuccessful: Your account does not have sufficient balance to make the transaction.',
+      '65': 'Transaction unsuccessful: Your account has exceeded the daily transaction limit.',
+      '75': 'Payment bank is under maintenance.',
+      '79': 'Transaction unsuccessful: Customer entered payment password incorrectly more than the allowed number of times. Please try the transaction again',
+      '99': 'Other errors (system error). Please contact support for assistance.'
     };
-    return errorMessages[code] || 'Giao dịch không thành công. Vui lòng thử lại sau.';
+    return errorMessages[code] || 'Transaction unsuccessful. Please try again later.';
   };
 
   if (loading) {
@@ -131,7 +120,7 @@ const VNPayReturnPage = () => {
       <div className={styles.container}>
         <div className={styles.loadingBox}>
           <FaSpinner className={styles.spinner} />
-          <h2>Đang xử lý kết quả thanh toán...</h2>
+          <h2>Processing payment result...</h2>
         </div>
       </div>
     );
@@ -143,32 +132,32 @@ const VNPayReturnPage = () => {
         {paymentResult.success ? (
           <>
             <FaCheckCircle className={styles.successIcon} />
-            <h1 className={styles.successTitle}>Thanh toán thành công!</h1>
+            <h1 className={styles.successTitle}>Payment Successful!</h1>
             <p className={styles.successMessage}>
               {paymentResult.message}
             </p>
             {profile && profile.fullName && (
               <div className={styles.userInfo}>
                 <p className={styles.userName}>
-                  Khách hàng: <strong>{profile.fullName}</strong>
+                  Customer: <strong>{profile.fullName}</strong>
                 </p>
               </div>
             )}
             <p className={styles.redirectMessage}>
-              Tự động chuyển về trang chủ sau 3 giây...
+              Redirecting to homepage in 3 seconds...
             </p>
           </>
         ) : (
           <>
             <FaTimesCircle className={styles.errorIcon} />
-            <h1 className={styles.errorTitle}>Thanh toán thất bại!</h1>
+            <h1 className={styles.errorTitle}>Payment Failed!</h1>
             <p className={styles.errorMessage}>
               {paymentResult.message}
             </p>
             {profile && profile.fullName && (
               <div className={styles.userInfo}>
                 <p className={styles.userName}>
-                  Khách hàng: <strong>{profile.fullName}</strong>
+                  Customer: <strong>{profile.fullName}</strong>
                 </p>
               </div>
             )}
@@ -177,11 +166,11 @@ const VNPayReturnPage = () => {
         
         <div className={styles.actions}>
           <Link href="/" className={styles.homeButton}>
-            Về trang chủ
+            Go to Homepage
           </Link>
           {!paymentResult.success && (
             <Link href="/cart" className={styles.retryButton}>
-              Thử lại
+              Try Again
             </Link>
           )}
         </div>

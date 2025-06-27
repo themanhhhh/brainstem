@@ -164,7 +164,7 @@ const Register = () => {
       
       // Redirect to login page after successful registration
       setTimeout(() => {
-        router.push('/login');
+      router.push('/login');
       }, 2000);
       
     } catch (err) {
