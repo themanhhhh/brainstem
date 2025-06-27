@@ -508,4 +508,67 @@
   .addressCard {
     padding: 1rem;
   }
+}
+
+/* Toast Confirmation Styles */
+.toastConfirm {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 5px;
+}
+
+.toastMessage {
+  text-align: left;
+}
+
+.toastMessage strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #374151;
+  font-size: 16px;
+}
+
+.toastMessage p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.toastActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.toastCancel {
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.toastCancel:hover {
+  background: #e5e7eb;
+}
+
+.toastConfirmBtn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.toastConfirmBtn:hover {
+  background: #dc2626;
 } 

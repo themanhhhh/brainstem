@@ -89,7 +89,7 @@ import team8 from "./team-8.jpg";
 
 import user from "./user.png";
 import sliderimg from "./sliderimg.jpg";
-import daily from "./dl.png";
+import daily from "./daily.png";
 
 export default {
   daily,

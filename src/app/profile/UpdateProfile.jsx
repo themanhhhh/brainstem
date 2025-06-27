@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styles from './profile.module.css';
 import { authService } from '@/app/api/auth/authService';
 import { useCart } from '../context/CartContext';
+import toast from 'react-hot-toast';
 
 const UpdateProfile = ({ profile, onProfileUpdated }) => {
   const [formData, setFormData] = useState({
@@ -14,8 +15,6 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
   const [imagePreview, setImagePreview] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState('');
-  const [error, setError] = useState('');
 
   const { uploadToPinata } = useCart();
 
@@ -44,13 +43,19 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        setError('Vui lòng chọn file ảnh hợp lệ');
+        toast.error('Please select a valid image file', {
+          duration: 3000,
+          position: "top-center"
+        });
         return;
       }
       
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        setError('Kích thước ảnh không được vượt quá 5MB');
+        toast.error('Image size must not exceed 5MB', {
+          duration: 3000,
+          position: "top-center"
+        });
         return;
       }
 
@@ -65,7 +70,11 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
         }
       };
       reader.readAsDataURL(file);
-      setError('');
+      
+      toast.success('Image selected successfully!', {
+        duration: 2000,
+        position: "top-right"
+      });
     }
   };
 
@@ -74,11 +83,24 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
 
     setUploadingImage(true);
     try {
+      toast.loading('Uploading image...', { id: 'upload-image' });
+      
       const imageUrl = await uploadToPinata(selectedImage);
       setFormData(prev => ({ ...prev, imgUrl: imageUrl }));
+      
+      toast.success('Image uploaded successfully!', {
+        id: 'upload-image',
+        duration: 2000,
+        position: "top-right"
+      });
+      
       return imageUrl;
     } catch (error) {
-      setError('Không thể upload ảnh. Vui lòng thử lại.');
+      toast.error('Failed to upload image. Please try again.', {
+        id: 'upload-image',
+        duration: 4000,
+        position: "top-center"
+      });
       throw error;
     } finally {
       setUploadingImage(false);
@@ -87,11 +109,11 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMsg('');
-    setError('');
     setLoading(true);
     
     try {
+      toast.loading('Updating profile...', { id: 'update-profile' });
+      
       let imageUrl = formData.imgUrl;
       
       // Upload image if new image is selected
@@ -102,14 +124,24 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
       const { fullName, phoneNumber, email } = formData;
       await authService.updateProfile(fullName, phoneNumber, email, imageUrl);
       
-      setMsg('Thông tin đã được cập nhật thành công!');
+      toast.success('Profile updated successfully!', {
+        id: 'update-profile',
+        duration: 3000,
+        position: "top-center"
+      });
+      
       setSelectedImage(null);
       
       if (onProfileUpdated) {
-        onProfileUpdated(); // Để fetch lại profile mới từ server
+        onProfileUpdated(); // To fetch updated profile from server
       }
     } catch (err) {
-      setError(err.message || 'Không thể cập nhật thông tin. Vui lòng thử lại sau.');
+      console.error('Error updating profile:', err);
+      toast.error(err.message || 'Failed to update profile. Please try again later.', {
+        id: 'update-profile',
+        duration: 4000,
+        position: "top-center"
+      });
     }
     setLoading(false);
   };
@@ -123,8 +155,12 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
     });
     setSelectedImage(null);
     setImagePreview(profile.imgUrl || '');
-    setError('');
-    setMsg('');
+    toast.dismiss(); // Dismiss any active toasts
+    
+    toast.success('Form reset successfully', {
+      duration: 2000,
+      position: "top-right"
+    });
   };
 
   return (
@@ -194,8 +230,7 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
             placeholder="Enter your phone number"
           />
         </div>
-        {error && <div className={styles.formMsg} style={{color:'#e11d48'}}>{error}</div>}
-        {msg && <div className={styles.formMsg}>{msg}</div>}
+        
         <div className={styles.formActions}>
           <button type="button" className={styles.cancelBtn} onClick={resetForm}>
             Cancel

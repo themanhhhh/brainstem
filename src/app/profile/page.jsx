@@ -11,7 +11,7 @@ import AddressManager from './AddressManager';
 import Navbar from '@/app/components/Navbar/Navbar';
 import Footer from '@/app/components/Footer/Footer';
 import { usePageProfileFetch } from '@/app/hooks/usePageProfileFetch';
-
+import toast from 'react-hot-toast';
 
 const menu = [
   { label: 'My Info', desc: 'View your detailed profile information', icon: <MdInfoOutline className={styles.menuIcon} /> },
@@ -21,22 +21,20 @@ const menu = [
 ];
 
 const Profile = () => {
-  // Sử dụng hook để fetch profile
+  // Use hook to fetch profile
   const { profile: contextProfile } = usePageProfileFetch('Profile Page');
   
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
 
-  // Chỉ sync profile từ context, không có fallback fetch
+  // Only sync profile from context, no fallback fetch
   useEffect(() => {
     if (contextProfile) {
       setProfile(contextProfile);
       setLoading(false);
-      setError(null);
     } else {
-      // Nếu chưa có contextProfile, đợi hook fetch
+      // If no contextProfile yet, wait for hook to fetch
       setLoading(true);
     }
   }, [contextProfile]);
@@ -46,27 +44,39 @@ const Profile = () => {
     try {
       const data = await authService.getProfile();
       setProfile(data);
-      setError(null);
+      toast.success('Profile refreshed successfully!', {
+        duration: 2000,
+        position: "top-right"
+      });
     } catch (err) {
-      setError('Không thể tải thông tin người dùng.');
+      console.error('Error refreshing profile:', err);
+      toast.error('Failed to load user information. Please try again.', {
+        duration: 4000,
+        position: "top-center"
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading || !profile) return <div className={styles.loading}>Đang tải...</div>;
-  if (error) return <div className={styles.container}><h1>Profile</h1><p>{error}</p></div>;
+  if (loading || !profile) {
+    return (
+      <div className={styles.loading}>
+        Loading...
+      </div>
+    );
+  }
 
-  // Xử lý avatar: nếu imgUrl là 'admin' thì dùng icon mặc định
+  // Handle avatar: if imgUrl is 'admin' then use default icon
   const avatar = profile.imgUrl && profile.imgUrl !== 'admin'
     ? profile.imgUrl
     : null;
 
-  // Định dạng ngày
+  // Format date
   const formatDate = (ts) => {
     if (!ts) return '';
     const d = new Date(ts);
-    return d.toLocaleDateString('vi-VN', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
   };
 
   return (

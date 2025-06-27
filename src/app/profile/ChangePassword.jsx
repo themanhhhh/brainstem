@@ -1,34 +1,71 @@
 import React, { useState } from 'react';
 import styles from './profile.module.css';
 import { authService } from '@/app/api/auth/authService';
+import toast from 'react-hot-toast';
 
 const ChangePassword = () => {
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
   const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState('');
-  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMsg('');
-    setError('');
+    
+    // Validation
     if (next !== confirm) {
-      setError('Mật khẩu mới và xác nhận không khớp!');
+      toast.error('New password and confirmation do not match!', {
+        duration: 3000,
+        position: "top-center"
+      });
       return;
     }
+
+    if (next.length < 8) {
+      toast.error('New password must be at least 8 characters long!', {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+
     setLoading(true);
     try {
+      toast.loading('Changing password...', { id: 'change-password' });
+      
       await authService.changePassword(current, next, confirm);
-      setMsg('Đổi mật khẩu thành công!');
+      
+      toast.success('Password changed successfully!', {
+        id: 'change-password',
+        duration: 3000,
+        position: "top-center"
+      });
+      
+      // Clear form
       setCurrent('');
       setNext('');
       setConfirm('');
     } catch (err) {
-      setError(err.message || 'Đổi mật khẩu thất bại!');
+      console.error('Error changing password:', err);
+      toast.error(err.message || 'Failed to change password. Please try again.', {
+        id: 'change-password',
+        duration: 4000,
+        position: "top-center"
+      });
     }
     setLoading(false);
+  };
+
+  const resetForm = () => {
+    setCurrent('');
+    setNext('');
+    setConfirm('');
+    toast.dismiss(); // Dismiss any active toasts
+    
+    toast.success('Form cleared', {
+      duration: 1500,
+      position: "top-right"
+    });
   };
 
   return (
@@ -74,11 +111,13 @@ const ChangePassword = () => {
             Minimum 8 characters. Must include numbers, letters and special characters.
           </span>
         </div>
-        {error && <div className={styles.formMsg} style={{color:'#e11d48'}}>{error}</div>}
-        {msg && <div className={styles.formMsg}>{msg}</div>}
+        
         <div className={styles.formActions}>
+          <button type="button" className={styles.cancelBtn} onClick={resetForm}>
+            Clear
+          </button>
           <button type="submit" className={styles.saveBtn} disabled={loading}>
-            {loading ? 'Saving...' : 'Save'}
+            {loading ? 'Changing...' : 'Change Password'}
           </button>
         </div>
       </form>

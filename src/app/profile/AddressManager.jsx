@@ -4,6 +4,7 @@ import AddressAutocomplete from '../components/AddressAutocomplete/AddressAutoco
 import { addressService } from '../api/address/addressService';
 import styles from './AddressManager.module.css';
 import { FaMapMarkerAlt, FaPlus, FaEdit, FaTrash, FaSave, FaTimes, FaHome, FaBriefcase, FaHeart, FaSpinner } from 'react-icons/fa';
+import toast from 'react-hot-toast';
 
 const AddressManager = () => {
   const [addresses, setAddresses] = useState([]);
@@ -41,12 +42,26 @@ const AddressManager = () => {
       const response = await addressService.getUserAddresses();
       if (response && Array.isArray(response.data)) {
         setAddresses(response.data);
+        toast.success(`Loaded ${response.data.length} addresses`, {
+          duration: 2000,
+          position: "top-right"
+        });
       } else {
         console.error('Failed to load addresses:', response.message);
         // Fallback to localStorage if API fails
         const savedAddresses = localStorage.getItem('userAddresses');
         if (savedAddresses) {
           setAddresses(JSON.parse(savedAddresses));
+          toast.success('Loaded addresses from local cache', {
+            duration: 3000,
+            position: "top-center",
+            icon: 'ℹ️'
+          });
+        } else {
+          toast.error('Failed to load addresses', {
+            duration: 3000,
+            position: "top-center"
+          });
         }
       }
     } catch (error) {
@@ -55,6 +70,16 @@ const AddressManager = () => {
       const savedAddresses = localStorage.getItem('userAddresses');
       if (savedAddresses) {
         setAddresses(JSON.parse(savedAddresses));
+        toast.success('Loaded addresses from local cache', {
+          duration: 3000,
+          position: "top-center",
+          icon: 'ℹ️'
+        });
+      } else {
+        toast.error('Failed to load addresses. Please try again later.', {
+          duration: 4000,
+          position: "top-center"
+        });
       }
     } finally {
       setLoading(false);
@@ -75,6 +100,11 @@ const AddressManager = () => {
       formatted_address: addressData.formatted_address,
       place_id: addressData.place_id
     }));
+    
+    toast.success('Address selected successfully!', {
+      duration: 2000,
+      position: "top-right"
+    });
   };
 
   const handleInputChange = (e) => {
@@ -104,17 +134,23 @@ const AddressManager = () => {
     setSelectedAddress(null);
     setEditingAddress(null);
     setShowAddForm(false);
+    toast.dismiss(); // Dismiss any active toasts when closing form
   };
 
   const handleSaveAddress = async () => {
     if (!formData.street && !formData.formatted_address) {
-      alert('Please select or enter an address');
+      toast.error('Please select or enter an address', {
+        duration: 3000,
+        position: "top-center"
+      });
       return;
     }
 
     try {
       setSaving(true);
-      // Ghép addressDetail từ các trường (bỏ apt)
+      toast.loading('Saving address...', { id: 'save-address' });
+      
+      // Combine addressDetail from fields (excluding apt)
       const addressDetail = [
         formData.street,
         formData.city,
@@ -122,14 +158,16 @@ const AddressManager = () => {
         formData.zipCode,
         formData.country
       ].filter(Boolean).join(', ');
-      // Lấy IP client
+      
+      // Get client IP
       const ipRes = await fetch('https://api.ipify.org?format=json');
       const ipData = await ipRes.json();
       const addressIp = ipData.ip;
       const isDefault = formData.isDefault;
+      
       let response;
       if (editingAddress) {
-        // Update: giữ nguyên logic cũ (nếu API update cần addressIp thì sửa tương tự)
+        // Update: keep existing logic (if API update needs addressIp then modify similarly)
         response = await addressService.updateAddress(editingAddress.id, {
           addressDetail,
           isDefault
@@ -146,13 +184,24 @@ const AddressManager = () => {
       if (response && response.success) {
         await loadAddresses();
         resetForm();
-        alert(editingAddress ? 'Address updated successfully!' : 'Address saved successfully!');
+        toast.success(
+          editingAddress ? 'Address updated successfully!' : 'Address saved successfully!',
+          {
+            id: 'save-address',
+            duration: 3000,
+            position: "top-center"
+          }
+        );
       } else {
         throw new Error(response.message || 'Failed to save address');
       }
     } catch (error) {
       console.error('Error saving address:', error);
-      alert('Failed to save address. Please try again.');
+      toast.error('Failed to save address. Please try again.', {
+        id: 'save-address',
+        duration: 4000,
+        position: "top-center"
+      });
     } finally {
       setSaving(false);
     }
@@ -176,38 +225,93 @@ const AddressManager = () => {
       isDefault: address.isDefault || false
     });
     setShowAddForm(true);
+    
+    toast.success(`Editing address: ${address.label}`, {
+      duration: 2000,
+      position: "top-right"
+    });
   };
 
   const handleDeleteAddress = async (addressId) => {
-    if (confirm('Are you sure you want to delete this address?')) {
-      try {
-        const response = await addressService.deleteAddress(addressId);
-        if (response.success) {
-          // Reload addresses from server
-          await loadAddresses();
-          alert('Address deleted successfully!');
-        } else {
-          throw new Error(response.message || 'Failed to delete address');
-        }
-      } catch (error) {
-        console.error('Error deleting address:', error);
-        alert('Failed to delete address. Please try again.');
+    // Use toast with custom confirm dialog
+    toast((t) => (
+      <div className={styles.toastConfirm}>
+        <div className={styles.toastMessage}>
+          <strong>Delete Address</strong>
+          <p>Are you sure you want to delete this address?</p>
+        </div>
+        <div className={styles.toastActions}>
+          <button
+            className={styles.toastCancel}
+            onClick={() => toast.dismiss(t.id)}
+          >
+            Cancel
+          </button>
+          <button
+            className={styles.toastConfirmBtn}
+            onClick={() => {
+              toast.dismiss(t.id);
+              confirmDeleteAddress(addressId);
+            }}
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    ), {
+      duration: 10000,
+      position: "top-center"
+    });
+  };
+
+  const confirmDeleteAddress = async (addressId) => {
+    try {
+      toast.loading('Deleting address...', { id: 'delete-address' });
+      
+      const response = await addressService.deleteAddress(addressId);
+      if (response.success) {
+        // Reload addresses from server
+        await loadAddresses();
+        toast.success('Address deleted successfully!', {
+          id: 'delete-address',
+          duration: 3000,
+          position: "top-center"
+        });
+      } else {
+        throw new Error(response.message || 'Failed to delete address');
       }
+    } catch (error) {
+      console.error('Error deleting address:', error);
+      toast.error('Failed to delete address. Please try again.', {
+        id: 'delete-address',
+        duration: 4000,
+        position: "top-center"
+      });
     }
   };
 
   const handleSetDefault = async (addressId) => {
     try {
+      toast.loading('Setting default address...', { id: 'set-default' });
+      
       const response = await addressService.updateAddressDefault(addressId);
       if (response && response.success) {
         await loadAddresses();
-        alert('Default address updated successfully!');
+        toast.success('Default address updated successfully!', {
+          id: 'set-default',
+          duration: 3000,
+          position: "top-center"
+        });
       } else {
         throw new Error(response.message || 'Failed to set default address');
       }
     } catch (error) {
       console.error('Error setting default address:', error);
-      alert('Failed to set default address. Please try again.');
+      toast.error('Failed to set default address. Please try again.', {
+        id: 'set-default',
+        duration: 4000,
+        position: "top-center"
+      });
     }
   };
 
