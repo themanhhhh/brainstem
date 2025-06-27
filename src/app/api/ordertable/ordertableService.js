@@ -54,6 +54,20 @@ const ordertableService = {
     });
     return response.json();
   },
+  getOrderTableByUser: async (userId, page = 0, size = 10) => {
+    const token = getToken();
+    if (!token) throw new Error('No authentication token found');
+
+    const response = await fetch(`${API_URL}/order-table?userId=${userId}&page=${page}&size=${size}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      method: 'GET',
+    });
+    return response.json();
+  },
+
 
   getActiveTable: async (page = 0, size = 100) => {
     const token = getToken();
