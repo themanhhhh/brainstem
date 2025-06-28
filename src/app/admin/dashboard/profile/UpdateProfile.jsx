@@ -4,6 +4,15 @@ import { authService } from '@/app/api/auth/authService';
 import { useCart } from '../../../context/CartContext';
 import toast from "react-hot-toast";
 
+// Utility function để extract error message
+const getErrorMessage = (error, defaultMessage) => {
+  if (error?.response?.data?.message) return error.response.data.message;
+  if (error?.message) return error.message;
+  if (error?.code >= 400 || error?.status >= 400) return error.message || `Lỗi ${error.code || error.status}`;
+  if (typeof error === 'string') return error;
+  return defaultMessage;
+};
+
 const UpdateProfile = ({ profile, onProfileUpdated }) => {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -97,7 +106,8 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
       return imageUrl;
     } catch (error) {
       console.error("Error uploading image:", error);
-      toast.error('Không thể upload ảnh. Vui lòng thử lại!', {
+      const errorMessage = getErrorMessage(error, 'Không thể upload ảnh. Vui lòng thử lại!');
+      toast.error(errorMessage, {
         id: "upload-image",
         duration: 4000,
         position: "top-center"
@@ -151,7 +161,18 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
       }
 
       const { fullName, phoneNumber, email } = formData;
-      await authService.updateProfile(fullName, phoneNumber, email, imageUrl);
+      const response = await authService.updateProfile(fullName, phoneNumber, email, imageUrl);
+      
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể cập nhật thông tin");
+        toast.error(errorMessage, {
+          id: "update-profile",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
       
       toast.success('Thông tin đã được cập nhật thành công!', {
         id: "update-profile",
@@ -166,7 +187,8 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
       }
     } catch (err) {
       console.error("Error updating profile:", err);
-      toast.error(err.message || 'Không thể cập nhật thông tin. Vui lòng thử lại!', {
+      const errorMessage = getErrorMessage(err, 'Không thể cập nhật thông tin. Vui lòng thử lại!');
+      toast.error(errorMessage, {
         id: "update-profile",
         duration: 4000,
         position: "top-center"

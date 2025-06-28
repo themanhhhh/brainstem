@@ -8,6 +8,35 @@ import { useLanguageService } from "../../../hooks/useLanguageService";
 import toast from "react-hot-toast";
 
 const OrderPage = () => {
+    // Utility function to extract error message from API response
+    const getErrorMessage = (error, defaultMessage) => {
+        // Check if error has response data with message
+        if (error?.response?.data?.message) {
+            return error.response.data.message;
+        }
+        
+        // Check if error object has message property directly (API response)
+        if (error?.message) {
+            return error.message;
+        }
+        
+        // Check if error is response object with code/status
+        if (error?.code >= 400 || error?.status >= 400) {
+            return error.message || `Lỗi ${error.code || error.status}`;
+        }
+        
+        // Check if error is string
+        if (typeof error === 'string') {
+            return error;
+        }
+        
+        // Debug log for unhandled error formats
+        console.log("Unhandled error format:", error);
+        
+        // Fallback to default message
+        return defaultMessage;
+    };
+
     const { orderService } = useLanguageService();
     const [orders, setOrders] = useState([]);
     const [metadata, setMetadata] = useState(null);
@@ -67,7 +96,8 @@ const OrderPage = () => {
             console.error("Error fetching orders:", err);
             setOrders([]);
             setMetadata(null);
-            toast.error("Không thể tải danh sách đơn hàng. Vui lòng thử lại!", {
+            const errorMessage = getErrorMessage(err, "Không thể tải danh sách đơn hàng. Vui lòng thử lại!");
+            toast.error(errorMessage, {
                 duration: 4000,
                 position: "top-center"
             });
@@ -89,7 +119,8 @@ const OrderPage = () => {
             setShowDetailModal(true);
         } catch (err) {
             console.error("Error fetching order detail:", err);
-            toast.error("Không thể tải chi tiết đơn hàng. Vui lòng thử lại!", {
+            const errorMessage = getErrorMessage(err, "Không thể tải chi tiết đơn hàng. Vui lòng thử lại!");
+            toast.error(errorMessage, {
                 duration: 4000,
                 position: "top-center"
             });

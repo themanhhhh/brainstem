@@ -10,6 +10,15 @@ import { useCart } from "../../../context/CartContext";
 import LogoutButton from "../../../components/LogoutButton/LogoutButton";
 import toast from "react-hot-toast";
 
+// Utility function để extract error message
+const getErrorMessage = (error, defaultMessage) => {
+  if (error?.response?.data?.message) return error.response.data.message;
+  if (error?.message) return error.message;
+  if (error?.code >= 400 || error?.status >= 400) return error.message || `Lỗi ${error.code || error.status}`;
+  if (typeof error === 'string') return error;
+  return defaultMessage;
+};
+
 const Page = () => {
   const { foodService, categoryService, language } = useLanguageService();
   const [searchTerm, setSearchTerm] = useState("");
@@ -123,6 +132,17 @@ const Page = () => {
       
       console.log("API Response (Foods):", response);
       
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể tải danh sách món ăn");
+        toast.error(errorMessage, {
+          duration: 4000,
+          position: "top-center"
+        });
+        setFoods([]);
+        return;
+      }
+      
       // Kiểm tra và xử lý dữ liệu từ API
       if (response.data && Array.isArray(response.data)) {
         setFoods(response.data);
@@ -160,8 +180,9 @@ const Page = () => {
       }
       
       console.error("Error fetching foods:", err);
+      const errorMessage = getErrorMessage(err, "Không thể tải danh sách món ăn. Vui lòng thử lại!");
       setFoods([]);
-      toast.error("Không thể tải danh sách món ăn. Vui lòng thử lại!", {
+      toast.error(errorMessage, {
         duration: 4000,
         position: "top-center"
       });
@@ -185,6 +206,17 @@ const Page = () => {
       const response = await categoryService.getActiveCategories();
       console.log("Active Categories:", response);
       
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể tải danh mục active");
+        toast.error(errorMessage, {
+          duration: 3000,
+          position: "top-center"
+        });
+        setActiveCategories([]);
+        return;
+      }
+      
       // Check if response is an array or has data property
       if (Array.isArray(response)) {
         setActiveCategories(response);
@@ -200,8 +232,9 @@ const Page = () => {
       }
     } catch (err) {
       console.error("Error fetching active categories:", err);
+      const errorMessage = getErrorMessage(err, "Lỗi khi tải danh mục");
       setActiveCategories([]);
-      toast.error("Lỗi khi tải danh mục", {
+      toast.error(errorMessage, {
         duration: 3000,
         position: "top-center"
       });
@@ -246,6 +279,16 @@ const Page = () => {
       // Get detailed food info if needed
       const foodDetail = await foodService.getFoodById(food.id);
       
+      // Kiểm tra lỗi từ response getFoodById
+      if (foodDetail && (foodDetail.code >= 400 || foodDetail.error || foodDetail.status >= 400)) {
+        const errorMessage = getErrorMessage(foodDetail, "Không thể tải chi tiết món ăn");
+        toast.error(errorMessage, {
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
+      
       // Set the selected food
       setSelectedFood(foodDetail || food);
       
@@ -270,7 +313,8 @@ const Page = () => {
       });
     } catch (err) {
       console.error("Error preparing food edit form:", err);
-      toast.error("Không thể mở form chỉnh sửa. Vui lòng thử lại!", {
+      const errorMessage = getErrorMessage(err, "Không thể mở form chỉnh sửa. Vui lòng thử lại!");
+      toast.error(errorMessage, {
         duration: 4000,
         position: "top-center"
       });
@@ -323,7 +367,7 @@ const Page = () => {
         imgUrl = await uploadToPinata(editForm.image);
       }
       
-      await foodService.updateFood(
+      const response = await foodService.updateFood(
         selectedFood.id,
         editForm.name,
         editForm.description,
@@ -335,6 +379,17 @@ const Page = () => {
         language
       );
       
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể cập nhật món ăn");
+        toast.error(errorMessage, {
+          id: "edit-food",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
+      
       toast.success(`Đã cập nhật món "${editForm.name}" thành công!`, {
         id: "edit-food",
         duration: 3000,
@@ -345,7 +400,8 @@ const Page = () => {
       fetchFoods(currentPage, itemsPerPage, nameFilter, categoryFilter, statusFilter);
     } catch (err) {
       console.error("Error updating food:", err);
-      toast.error("Không thể cập nhật món ăn. Vui lòng thử lại!", {
+      const errorMessage = getErrorMessage(err, "Không thể cập nhật món ăn. Vui lòng thử lại!");
+      toast.error(errorMessage, {
         id: "edit-food",
         duration: 4000,
         position: "top-center"
@@ -362,7 +418,18 @@ const Page = () => {
     try {
       toast.loading("Đang xóa món ăn...", { id: "delete-food" });
       
-      await foodService.deleteFood(selectedFood.id);
+      const response = await foodService.deleteFood(selectedFood.id);
+      
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể xóa món ăn");
+        toast.error(errorMessage, {
+          id: "delete-food",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
       
       toast.success(`Đã xóa món "${selectedFood.name}" thành công!`, {
         id: "delete-food",
@@ -374,7 +441,8 @@ const Page = () => {
       fetchFoods(currentPage, itemsPerPage, nameFilter, categoryFilter, statusFilter);
     } catch (err) {
       console.error("Error deleting food:", err);
-      toast.error("Không thể xóa món ăn. Vui lòng thử lại!", {
+      const errorMessage = getErrorMessage(err, "Không thể xóa món ăn. Vui lòng thử lại!");
+      toast.error(errorMessage, {
         id: "delete-food",
         duration: 4000,
         position: "top-center"
@@ -385,11 +453,23 @@ const Page = () => {
   const handleView = async (food) => {
     try {
       const foodDetail = await foodService.getFoodById(food.id);
+      
+      // Kiểm tra lỗi từ response
+      if (foodDetail && (foodDetail.code >= 400 || foodDetail.error || foodDetail.status >= 400)) {
+        const errorMessage = getErrorMessage(foodDetail, "Không thể tải chi tiết món ăn");
+        toast.error(errorMessage, {
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
+      
       setSelectedFood(foodDetail);
       setShowViewModal(true);
     } catch (err) {
       console.error("Error fetching food details:", err);
-      toast.error("Không thể tải chi tiết món ăn. Vui lòng thử lại!", {
+      const errorMessage = getErrorMessage(err, "Không thể tải chi tiết món ăn. Vui lòng thử lại!");
+      toast.error(errorMessage, {
         duration: 4000,
         position: "top-center"
       });

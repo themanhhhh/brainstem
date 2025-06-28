@@ -10,6 +10,15 @@ import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import LogoutButton from "../../../components/LogoutButton/LogoutButton";
 import toast from "react-hot-toast";
 
+// Utility function để extract error message
+const getErrorMessage = (error, defaultMessage) => {
+  if (error?.response?.data?.message) return error.response.data.message;
+  if (error?.message) return error.message;
+  if (error?.code >= 400 || error?.status >= 400) return error.message || `Lỗi ${error.code || error.status}`;
+  if (typeof error === 'string') return error;
+  return defaultMessage;
+};
+
 const Page = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [users, setUsers] = useState([]);
@@ -67,6 +76,17 @@ const Page = () => {
       setLoading(true);
       const response = await userService.getUser(page, size);
       
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể tải danh sách người dùng");
+        toast.error(errorMessage, {
+          duration: 4000,
+          position: "top-center"
+        });
+        setUsers([]);
+        return;
+      }
+      
       // Kiểm tra và xử lý dữ liệu từ API
       if (response.data && Array.isArray(response.data)) {
         setUsers(response.data);
@@ -93,8 +113,9 @@ const Page = () => {
       }
     } catch (err) {
       console.error("Error fetching users:", err);
+      const errorMessage = getErrorMessage(err, "Không thể tải danh sách người dùng. Vui lòng thử lại!");
       setUsers([]);
-      toast.error("Không thể tải danh sách người dùng. Vui lòng thử lại!", {
+      toast.error(errorMessage, {
         duration: 4000,
         position: "top-center"
       });
@@ -176,7 +197,7 @@ const Page = () => {
     try {
       toast.loading("Đang cập nhật người dùng...", { id: "edit-user" });
       
-      await userService.updateUser(
+      const response = await userService.updateUser(
         selectedUser.id,
         editForm.fullName,
         editForm.username,
@@ -186,6 +207,17 @@ const Page = () => {
         editForm.role,
         editForm.state  
       );
+      
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể cập nhật người dùng");
+        toast.error(errorMessage, {
+          id: "edit-user",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
       
       toast.success(`Đã cập nhật người dùng "${editForm.fullName}" thành công!`, {
         id: "edit-user",
@@ -197,7 +229,8 @@ const Page = () => {
       fetchUsers(currentPage, itemsPerPage);
     } catch (err) {
       console.error("Error updating user:", err);
-      toast.error("Không thể cập nhật người dùng. Vui lòng thử lại!", {
+      const errorMessage = getErrorMessage(err, "Không thể cập nhật người dùng. Vui lòng thử lại!");
+      toast.error(errorMessage, {
         id: "edit-user",
         duration: 4000,
         position: "top-center"
@@ -214,7 +247,18 @@ const Page = () => {
     try {
       toast.loading("Đang xóa người dùng...", { id: "delete-user" });
       
-      await userService.deleteUser(selectedUser.id);
+      const response = await userService.deleteUser(selectedUser.id);
+      
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể xóa người dùng");
+        toast.error(errorMessage, {
+          id: "delete-user",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
       
       toast.success(`Đã xóa người dùng "${selectedUser.fullName}" thành công!`, {
         id: "delete-user",
@@ -226,7 +270,8 @@ const Page = () => {
       fetchUsers(currentPage, itemsPerPage);
     } catch (err) {
       console.error("Error deleting user:", err);
-      toast.error("Không thể xóa người dùng. Vui lòng thử lại!", {
+      const errorMessage = getErrorMessage(err, "Không thể xóa người dùng. Vui lòng thử lại!");
+      toast.error(errorMessage, {
         id: "delete-user",
         duration: 4000,
         position: "top-center"
@@ -237,11 +282,23 @@ const Page = () => {
   const handleView = async (user) => {
     try {
       const userDetail = await userService.getUserById(user.id);
+      
+      // Kiểm tra lỗi từ response
+      if (userDetail && (userDetail.code >= 400 || userDetail.error || userDetail.status >= 400)) {
+        const errorMessage = getErrorMessage(userDetail, "Không thể tải chi tiết người dùng");
+        toast.error(errorMessage, {
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
+      
       setSelectedUser(userDetail);
       setShowViewModal(true);
     } catch (err) {
       console.error("Error fetching user details:", err);
-      toast.error("Không thể tải chi tiết người dùng. Vui lòng thử lại!", {
+      const errorMessage = getErrorMessage(err, "Không thể tải chi tiết người dùng. Vui lòng thử lại!");
+      toast.error(errorMessage, {
         duration: 4000,
         position: "top-center"
       });
@@ -400,7 +457,7 @@ const Page = () => {
                     {editForm.role !== 'STAFF' && <option value="STAFF">STAFF</option>}
                     {editForm.role !== 'CUSTOMER' && <option value="CUSTOMER">CUSTOMER</option>}
                     {editForm.role !== 'MANAGER' && <option value="MANAGER">MANAGER</option>}
-                    {editForm.role !== 'SHIPPER' && <option value="SHIPPER">SHIPPER</option>}
+                   
                   </select>
                 </div>
                 <div className={Style.formGroup}>

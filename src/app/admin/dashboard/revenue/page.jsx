@@ -4,6 +4,16 @@ import React, { useState, useEffect } from 'react';
 import { statisticService } from '../../../api/statistic/statisticService';
 import styles from './revenue.module.css';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import toast from "react-hot-toast";
+
+// Utility function để extract error message
+const getErrorMessage = (error, defaultMessage) => {
+  if (error?.response?.data?.message) return error.response.data.message;
+  if (error?.message) return error.message;
+  if (error?.code >= 400 || error?.status >= 400) return error.message || `Lỗi ${error.code || error.status}`;
+  if (typeof error === 'string') return error;
+  return defaultMessage;
+};
 
 const RevenuePage = () => {
   const [statistics, setStatistics] = useState(null);
@@ -23,11 +33,32 @@ const RevenuePage = () => {
     try {
       setLoading(true);
       const response = await statisticService.getRevenue(dateRange.startDate, dateRange.endDate);
+      
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể tải dữ liệu thống kê");
+        setError(errorMessage);
+        toast.error(errorMessage, {
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
+      
       setStatistics(response);
       setError(null);
+      toast.success("Đã tải dữ liệu thống kê thành công!", {
+        duration: 2000,
+        position: "top-right"
+      });
     } catch (err) {
-      setError(err.message);
+      const errorMessage = getErrorMessage(err, 'Lỗi khi tải dữ liệu thống kê');
+      setError(errorMessage);
       console.error('Error fetching statistics:', err);
+      toast.error(errorMessage, {
+        duration: 4000,
+        position: "top-center"
+      });
     } finally {
       setLoading(false);
     }
@@ -43,13 +74,35 @@ const RevenuePage = () => {
   const handleExport = async () => {
     try {
       setExporting(true);
+      toast.loading("Đang xuất báo cáo...", { id: "export-report" });
+      
       const result = await statisticService.downloadRevenueExport(dateRange.startDate, dateRange.endDate);
       
+      // Kiểm tra lỗi từ response
+      if (result && (result.code >= 400 || result.error || result.status >= 400)) {
+        const errorMessage = getErrorMessage(result, "Không thể xuất báo cáo");
+        toast.error(errorMessage, {
+          id: "export-report",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
+      
       // Thông báo thành công
-      alert(`Xuất báo cáo thành công: ${result.filename}`);
+      toast.success(`Xuất báo cáo thành công: ${result.filename}`, {
+        id: "export-report",
+        duration: 3000,
+        position: "top-center"
+      });
     } catch (err) {
       console.error('Error exporting data:', err);
-      alert('Lỗi khi xuất báo cáo: ' + err.message);
+      const errorMessage = getErrorMessage(err, 'Lỗi khi xuất báo cáo');
+      toast.error(errorMessage, {
+        id: "export-report",
+        duration: 4000,
+        position: "top-center"
+      });
     } finally {
       setExporting(false);
     }

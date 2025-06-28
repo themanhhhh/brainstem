@@ -7,6 +7,35 @@ import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 const Page = () => {
+  // Utility function to extract error message from API response
+  const getErrorMessage = (error, defaultMessage) => {
+    // Check if error has response data with message
+    if (error?.response?.data?.message) {
+      return error.response.data.message;
+    }
+    
+    // Check if error object has message property directly (API response)
+    if (error?.message) {
+      return error.message;
+    }
+    
+    // Check if error is response object with code/status
+    if (error?.code >= 400 || error?.status >= 400) {
+      return error.message || `Lỗi ${error.code || error.status}`;
+    }
+    
+    // Check if error is string
+    if (typeof error === 'string') {
+      return error;
+    }
+    
+    // Debug log for unhandled error formats
+    console.log("Unhandled error format:", error);
+    
+    // Fallback to default message
+    return defaultMessage;
+  };
+
   const [configs, setConfigs] = useState([]);
   const [metadata, setMetadata] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -133,7 +162,8 @@ const Page = () => {
     } catch (err) {
       console.error("Error fetching configs:", err);
       setConfigs([]);
-      toast.error("Không thể tải danh sách configuration. Vui lòng thử lại!", {
+      const errorMessage = getErrorMessage(err, "Không thể tải danh sách configuration. Vui lòng thử lại!");
+      toast.error(errorMessage, {
         duration: 4000,
         position: "top-center"
       });
@@ -208,7 +238,21 @@ const Page = () => {
     try {
       toast.loading("Đang tạo configuration...", { id: "add-config" });
       
-      await configService.createConfig(formData);
+      const response = await configService.createConfig(formData);
+      
+      // Debug log to see what response we get
+      console.log("Create config response:", response);
+      
+      // Check if response indicates an error
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể tạo configuration. Vui lòng thử lại!");
+        toast.error(errorMessage, {
+          id: "add-config",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
       
       toast.success(`Đã tạo configuration "${formData.keyConfig}" thành công!`, {
         id: "add-config",
@@ -224,7 +268,8 @@ const Page = () => {
       });
     } catch (err) {
       console.error("Error creating config:", err);
-      toast.error("Không thể tạo configuration. Vui lòng thử lại!", {
+      const errorMessage = getErrorMessage(err, "Không thể tạo configuration. Vui lòng thử lại!");
+      toast.error(errorMessage, {
         id: "add-config",
         duration: 4000,
         position: "top-center"
@@ -248,7 +293,21 @@ const Page = () => {
       toast.loading("Đang cập nhật configuration...", { id: "edit-config" });
       
       // Chỉ gửi valueConfig theo API spec
-      await configService.updateConfig(selectedConfig.id, formData.valueConfig);
+      const response = await configService.updateConfig(selectedConfig.id, formData.valueConfig);
+      
+      // Debug log to see what response we get
+      console.log("Update config response:", response);
+      
+      // Check if response indicates an error
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể cập nhật configuration. Vui lòng thử lại!");
+        toast.error(errorMessage, {
+          id: "edit-config",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
       
       toast.success(`Đã cập nhật "${selectedConfig.keyConfig}" thành công!`, {
         id: "edit-config",
@@ -260,7 +319,8 @@ const Page = () => {
       fetchConfigs(currentPage, itemsPerPage, keyFilter);
     } catch (err) {
       console.error("Error updating config:", err);
-      toast.error("Không thể cập nhật configuration. Vui lòng thử lại!", {
+      const errorMessage = getErrorMessage(err, "Không thể cập nhật configuration. Vui lòng thử lại!");
+      toast.error(errorMessage, {
         id: "edit-config",
         duration: 4000,
         position: "top-center"
@@ -272,7 +332,21 @@ const Page = () => {
     try {
       toast.loading("Đang xóa configuration...", { id: "delete-config" });
       
-      await configService.deleteConfig(selectedConfig.id);
+      const response = await configService.deleteConfig(selectedConfig.id);
+      
+      // Debug log to see what response we get
+      console.log("Delete config response:", response);
+      
+      // Check if response indicates an error
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể xóa configuration. Vui lòng thử lại!");
+        toast.error(errorMessage, {
+          id: "delete-config",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
       
       toast.success(`Đã xóa "${selectedConfig.keyConfig}" thành công!`, {
         id: "delete-config",
@@ -284,7 +358,8 @@ const Page = () => {
       fetchConfigs(currentPage, itemsPerPage, keyFilter);
     } catch (err) {
       console.error("Error deleting config:", err);
-      toast.error("Không thể xóa configuration. Vui lòng thử lại!", {
+      const errorMessage = getErrorMessage(err, "Không thể xóa configuration. Vui lòng thử lại!");
+      toast.error(errorMessage, {
         id: "delete-config",
         duration: 4000,
         position: "top-center"

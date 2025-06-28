@@ -4,12 +4,41 @@ import Style from "./discount.module.css";
 import { discountService } from "../../../api/discount/discountService";
 import { Pagination, Search } from "../../ui/dashboard/dashboardindex";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 const Page = () => {
+  // Utility function to extract error message from API response
+  const getErrorMessage = (error, defaultMessage) => {
+    // Check if error has response data with message
+    if (error?.response?.data?.message) {
+      return error.response.data.message;
+    }
+    
+    // Check if error object has message property directly (API response)
+    if (error?.message) {
+      return error.message;
+    }
+    
+    // Check if error is response object with code/status
+    if (error?.code >= 400 || error?.status >= 400) {
+      return error.message || `Lỗi ${error.code || error.status}`;
+    }
+    
+    // Check if error is string
+    if (typeof error === 'string') {
+      return error;
+    }
+    
+    // Debug log for unhandled error formats
+    console.log("Unhandled error format:", error);
+    
+    // Fallback to default message
+    return defaultMessage;
+  };
+
   const [discounts, setDiscounts] = useState([]);
   const [metadata, setMetadata] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -81,16 +110,30 @@ const Page = () => {
         } else {
           console.warn("No metadata found in Discounts API response");
         }
+        
+        // Hiển thị thông báo load thành công
+        if (page === 0) {
+          toast.success(`Đã tải ${response.data.length} mã giảm giá`, {
+            duration: 2000,
+            position: "top-right"
+          });
+        }
       } else {
         console.error("Unexpected API response format:", response);
         setDiscounts([]);
+        toast.error("Dữ liệu trả về không đúng định dạng", {
+          duration: 3000,
+          position: "top-center"
+        });
       }
-      
-      setError(null);
     } catch (err) {
-      setError("Failed to fetch discounts");
       console.error("Error fetching discounts:", err);
       setDiscounts([]);
+      const errorMessage = getErrorMessage(err, "Không thể tải danh sách mã giảm giá. Vui lòng thử lại!");
+      toast.error(errorMessage, {
+        duration: 4000,
+        position: "top-center"
+      });
     } finally {
       setLoading(false);
     }
@@ -171,7 +214,11 @@ const Page = () => {
       setShowViewModal(true);
     } catch (err) {
       console.error("Error fetching discount details:", err);
-      setError("Failed to fetch discount details");
+      const errorMessage = getErrorMessage(err, "Không thể tải chi tiết mã giảm giá. Vui lòng thử lại!");
+      toast.error(errorMessage, {
+        duration: 4000,
+        position: "top-center"
+      });
     }
   };
 
@@ -215,7 +262,33 @@ const Page = () => {
 
   const handleAddSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
+    if (!formData.name.trim()) {
+      toast.error("Tên mã giảm giá không được để trống!", {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    if (!formData.description.trim()) {
+      toast.error("Mô tả không được để trống!", {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    if (formData.value <= 0) {
+      toast.error("Giá trị giảm giá phải lớn hơn 0!", {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    
     try {
+      toast.loading("Đang tạo mã giảm giá...", { id: "add-discount" });
+      
       // Convert dates to timestamps
       const payload = {
         ...formData,
@@ -223,18 +296,70 @@ const Page = () => {
         expireAt: new Date(formData.expireAt).getTime()
       };
       
-      await discountService.addDiscount(payload);
+      const response = await discountService.addDiscount(payload);
+      
+      // Debug log to see what response we get
+      console.log("Add discount response:", response);
+      
+      // Check if response indicates an error
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể tạo mã giảm giá. Vui lòng thử lại!");
+        toast.error(errorMessage, {
+          id: "add-discount",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
+      
+      toast.success(`Đã tạo mã giảm giá "${formData.name}" thành công!`, {
+        id: "add-discount",
+        duration: 3000,
+        position: "top-center"
+      });
+      
       setShowAddModal(false);
       fetchDiscounts(currentPage, itemsPerPage);
     } catch (err) {
       console.error("Error adding discount:", err);
-      setError("Failed to add discount");
+      const errorMessage = getErrorMessage(err, "Không thể tạo mã giảm giá. Vui lòng thử lại!");
+      toast.error(errorMessage, {
+        id: "add-discount",
+        duration: 4000,
+        position: "top-center"
+      });
     }
   };
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
+    if (!formData.name.trim()) {
+      toast.error("Tên mã giảm giá không được để trống!", {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    if (!formData.description.trim()) {
+      toast.error("Mô tả không được để trống!", {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    if (formData.value <= 0) {
+      toast.error("Giá trị giảm giá phải lớn hơn 0!", {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    
     try {
+      toast.loading("Đang cập nhật mã giảm giá...", { id: "edit-discount" });
+      
       // Convert dates to timestamps
       const payload = {
         ...formData,
@@ -242,23 +367,77 @@ const Page = () => {
         expireAt: new Date(formData.expireAt).getTime()
       };
       
-      await discountService.updateDiscount(selectedDiscount.id, payload);
+      const response = await discountService.updateDiscount(selectedDiscount.id, payload);
+      
+      // Debug log to see what response we get
+      console.log("Update discount response:", response);
+      
+      // Check if response indicates an error
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể cập nhật mã giảm giá. Vui lòng thử lại!");
+        toast.error(errorMessage, {
+          id: "edit-discount",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
+      
+      toast.success(`Đã cập nhật mã giảm giá "${formData.name}" thành công!`, {
+        id: "edit-discount",
+        duration: 3000,
+        position: "top-center"
+      });
+      
       setShowEditModal(false);
       fetchDiscounts(currentPage, itemsPerPage);
     } catch (err) {
       console.error("Error updating discount:", err);
-      setError("Failed to update discount");
+      const errorMessage = getErrorMessage(err, "Không thể cập nhật mã giảm giá. Vui lòng thử lại!");
+      toast.error(errorMessage, {
+        id: "edit-discount",
+        duration: 4000,
+        position: "top-center"
+      });
     }
   };
 
   const handleDeleteConfirm = async () => {
     try {
-      await discountService.deleteDiscount(selectedDiscount.id);
+      toast.loading("Đang xóa mã giảm giá...", { id: "delete-discount" });
+      
+      const response = await discountService.deleteDiscount(selectedDiscount.id);
+      
+      // Debug log to see what response we get
+      console.log("Delete discount response:", response);
+      
+      // Check if response indicates an error
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể xóa mã giảm giá. Vui lòng thử lại!");
+        toast.error(errorMessage, {
+          id: "delete-discount",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
+      
+      toast.success(`Đã xóa mã giảm giá "${selectedDiscount.name}" thành công!`, {
+        id: "delete-discount",
+        duration: 3000,
+        position: "top-center"
+      });
+      
       setShowDeleteModal(false);
       fetchDiscounts(currentPage, itemsPerPage);
     } catch (err) {
       console.error("Error deleting discount:", err);
-      setError("Failed to delete discount");
+      const errorMessage = getErrorMessage(err, "Không thể xóa mã giảm giá. Vui lòng thử lại!");
+      toast.error(errorMessage, {
+        id: "delete-discount",
+        duration: 4000,
+        position: "top-center"
+      });
     }
   };
 
@@ -267,7 +446,6 @@ const Page = () => {
   };
 
   if (loading) return <div className={Style.loading}>Loading...</div>;
-  if (error) return <div className={Style.error}>{error}</div>;
 
   return (
     <div className={Style.container}>

@@ -4,6 +4,15 @@ import ordertableService from "../../../api/ordertable/ordertableService";
 import styles from "./order_table.module.css";
 import toast from "react-hot-toast";
 
+// Utility function để extract error message
+const getErrorMessage = (error, defaultMessage) => {
+  if (error?.response?.data?.message) return error.response.data.message;
+  if (error?.message) return error.message;
+  if (error?.code >= 400 || error?.status >= 400) return error.message || `Lỗi ${error.code || error.status}`;
+  if (typeof error === 'string') return error;
+  return defaultMessage;
+};
+
 const Page = () => {
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -31,6 +40,17 @@ const Page = () => {
       const response = await ordertableService.getActiveTable(0, 100);
       console.log('API Response:', response);
       
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể tải danh sách bàn");
+        toast.error(errorMessage, {
+          duration: 4000,
+          position: "top-center"
+        });
+        setTables([]);
+        return;
+      }
+      
       // API returns array directly, not in response.data
       if (response && Array.isArray(response)) {
         setTables(response);
@@ -57,8 +77,9 @@ const Page = () => {
       }
     } catch (err) {
       console.error("Error fetching tables:", err);
+      const errorMessage = getErrorMessage(err, "Không thể tải danh sách bàn. Vui lòng thử lại!");
       setTables([]);
-      toast.error("Không thể tải danh sách bàn. Vui lòng thử lại!", {
+      toast.error(errorMessage, {
         duration: 4000,
         position: "top-center"
       });
@@ -220,6 +241,17 @@ const Page = () => {
         orderTableState
       );
 
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể tạo đơn đặt bàn");
+        toast.error(errorMessage, {
+          id: "create-order",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
+
       if (response) {
         const statusMessage = orderTableState === 'SUCCESS' 
           ? `Đã tạo đơn đặt bàn cho ${formData.fullName} thành công!`
@@ -246,7 +278,8 @@ const Page = () => {
       }
     } catch (err) {
       console.error("Error creating order:", err);
-      toast.error(err.message || 'Không thể tạo đơn đặt bàn. Vui lòng thử lại!', {
+      const errorMessage = getErrorMessage(err, 'Không thể tạo đơn đặt bàn. Vui lòng thử lại!');
+      toast.error(errorMessage, {
         id: "create-order",
         duration: 4000,
         position: "top-center"

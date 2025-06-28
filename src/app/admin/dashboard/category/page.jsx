@@ -13,6 +13,35 @@ import toast from "react-hot-toast";
 
 const Page = () => {
   const { categoryService, language } = useLanguageService();
+  
+  // Utility function to extract error message from API response
+  const getErrorMessage = (error, defaultMessage) => {
+    // Check if error has response data with message
+    if (error?.response?.data?.message) {
+      return error.response.data.message;
+    }
+    
+    // Check if error object has message property directly (API response)
+    if (error?.message) {
+      return error.message;
+    }
+    
+    // Check if error is response object with code/status
+    if (error?.code >= 400 || error?.status >= 400) {
+      return error.message || `Lỗi ${error.code || error.status}`;
+    }
+    
+    // Check if error is string
+    if (typeof error === 'string') {
+      return error;
+    }
+    
+    // Debug log for unhandled error formats
+    console.log("Unhandled error format:", error);
+    
+    // Fallback to default message
+    return defaultMessage;
+  };
   const [categories, setCategories] = useState([]);
   const [activeCategories, setActiveCategories] = useState([]);
   const [metadata, setMetadata] = useState(null);
@@ -130,7 +159,8 @@ const Page = () => {
     } catch (err) {
       console.error("Error fetching categories:", err);
       setCategories([]);
-      toast.error("Không thể tải danh sách danh mục. Vui lòng thử lại!", {
+      const errorMessage = getErrorMessage(err, "Không thể tải danh sách danh mục. Vui lòng thử lại!");
+      toast.error(errorMessage, {
         duration: 4000,
         position: "top-center"
       });
@@ -160,7 +190,8 @@ const Page = () => {
     } catch (err) {
       console.error("Error fetching active categories:", err);
       setActiveCategories([]);
-      toast.error("Lỗi khi tải danh mục active", {
+      const errorMessage = getErrorMessage(err, "Lỗi khi tải danh mục active");
+      toast.error(errorMessage, {
         duration: 3000,
         position: "top-center"
       });
@@ -208,7 +239,8 @@ const Page = () => {
       });
     } catch (err) {
       console.error("Error preparing edit form:", err);
-      toast.error("Không thể mở form chỉnh sửa. Vui lòng thử lại!", {
+      const errorMessage = getErrorMessage(err, "Không thể mở form chỉnh sửa. Vui lòng thử lại!");
+      toast.error(errorMessage, {
         duration: 4000,
         position: "top-center"
       });
@@ -229,7 +261,8 @@ const Page = () => {
       setShowViewModal(true);
     } catch (err) {
       console.error("Error fetching category details:", err);
-      toast.error("Không thể tải chi tiết danh mục. Vui lòng thử lại!", {
+      const errorMessage = getErrorMessage(err, "Không thể tải chi tiết danh mục. Vui lòng thử lại!");
+      toast.error(errorMessage, {
         duration: 4000,
         position: "top-center"
       });
@@ -282,7 +315,21 @@ const Page = () => {
         categoryData.imgUrl = formData.imgUrl;
       }
       
-      await categoryService.updateCategory(selectedCategory.id, categoryData, language);
+      const response = await categoryService.updateCategory(selectedCategory.id, categoryData, language);
+      
+      // Debug log to see what response we get
+      console.log("Update category response:", response);
+      
+      // Check if response indicates an error
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể cập nhật danh mục. Vui lòng thử lại!");
+        toast.error(errorMessage, {
+          id: "edit-category",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
       
       toast.success(`Đã cập nhật danh mục "${formData.name}" thành công!`, {
         id: "edit-category",
@@ -294,7 +341,8 @@ const Page = () => {
       fetchCategories(currentPage, itemsPerPage);
     } catch (err) {
       console.error("Error updating category:", err);
-      toast.error("Không thể cập nhật danh mục. Vui lòng thử lại!", {
+      const errorMessage = getErrorMessage(err, "Không thể cập nhật danh mục. Vui lòng thử lại!");
+      toast.error(errorMessage, {
         id: "edit-category",
         duration: 4000,
         position: "top-center"
@@ -306,7 +354,22 @@ const Page = () => {
     try {
       toast.loading("Đang xóa danh mục...", { id: "delete-category" });
       
-      await categoryService.deleteCategory(selectedCategory.id);
+      const response = await categoryService.deleteCategory(selectedCategory.id);
+      
+      // Debug log to see what response we get
+      console.log("Delete category response:", response);
+      
+      // Check if response indicates an error (even if it doesn't throw)
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        // Handle API error response
+        const errorMessage = getErrorMessage(response, "Không thể xóa danh mục. Vui lòng thử lại!");
+        toast.error(errorMessage, {
+          id: "delete-category",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
       
       toast.success(`Đã xóa danh mục "${selectedCategory.name}" thành công!`, {
         id: "delete-category",
@@ -318,7 +381,8 @@ const Page = () => {
       fetchCategories(currentPage, itemsPerPage);
     } catch (err) {
       console.error("Error deleting category:", err);
-      toast.error("Không thể xóa danh mục. Vui lòng thử lại!", {
+      const errorMessage = getErrorMessage(err, "Không thể xóa danh mục. Vui lòng thử lại!");
+      toast.error(errorMessage, {
         id: "delete-category",
         duration: 4000,
         position: "top-center"

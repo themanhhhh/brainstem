@@ -7,6 +7,15 @@ import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import LogoutButton from "@/app/components/LogoutButton/LogoutButton";
 import toast from "react-hot-toast";
 
+// Utility function để extract error message
+const getErrorMessage = (error, defaultMessage) => {
+  if (error?.response?.data?.message) return error.response.data.message;
+  if (error?.message) return error.message;
+  if (error?.code >= 400 || error?.status >= 400) return error.message || `Lỗi ${error.code || error.status}`;
+  if (typeof error === 'string') return error;
+  return defaultMessage;
+};
+
 const Page = () => {
   const [tables, setTables] = useState([]);
   const [metadata, setMetadata] = useState(null);
@@ -67,6 +76,17 @@ const Page = () => {
       
       console.log("API Response (Tables):", response); // Debug thông tin API trả về
       
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể tải danh sách bàn");
+        toast.error(errorMessage, {
+          duration: 4000,
+          position: "top-center"
+        });
+        setTables([]);
+        return;
+      }
+      
       if (response.data && Array.isArray(response.data)) {
         setTables(response.data);
         
@@ -94,8 +114,9 @@ const Page = () => {
       }
     } catch (err) {
       console.error("Error fetching tables:", err);
+      const errorMessage = getErrorMessage(err, "Không thể tải danh sách bàn. Vui lòng thử lại!");
       setTables([]);
-      toast.error("Không thể tải danh sách bàn. Vui lòng thử lại!", {
+      toast.error(errorMessage, {
         duration: 4000,
         position: "top-center"
       });
@@ -166,7 +187,18 @@ const Page = () => {
     try {
       toast.loading("Đang thêm bàn mới...", { id: "add-table" });
       
-      await ordertableService.createOrderTable(formData.name, formData.state, formData.numberOfChair);
+      const response = await ordertableService.createOrderTable(formData.name, formData.state, formData.numberOfChair);
+      
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể thêm bàn");
+        toast.error(errorMessage, {
+          id: "add-table",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
       
       toast.success(`Đã thêm bàn "${formData.name}" thành công!`, {
         id: "add-table",
@@ -178,7 +210,8 @@ const Page = () => {
       fetchTables(currentPage, itemsPerPage);
     } catch (err) {
       console.error("Error adding table:", err);
-      toast.error("Không thể thêm bàn. Vui lòng thử lại!", {
+      const errorMessage = getErrorMessage(err, "Không thể thêm bàn. Vui lòng thử lại!");
+      toast.error(errorMessage, {
         id: "add-table",
         duration: 4000,
         position: "top-center"
@@ -209,12 +242,23 @@ const Page = () => {
     try {
       toast.loading("Đang cập nhật bàn...", { id: "edit-table" });
       
-      await ordertableService.updateOrderTable(
+      const response = await ordertableService.updateOrderTable(
         selectedTable.id,
         formData.name,
         formData.state,
         formData.numberOfChair
       );
+      
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể cập nhật bàn");
+        toast.error(errorMessage, {
+          id: "edit-table",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
       
       toast.success(`Đã cập nhật bàn "${formData.name}" thành công!`, {
         id: "edit-table",
@@ -226,7 +270,8 @@ const Page = () => {
       fetchTables(currentPage, itemsPerPage);
     } catch (err) {
       console.error("Error updating table:", err);
-      toast.error("Không thể cập nhật bàn. Vui lòng thử lại!", {
+      const errorMessage = getErrorMessage(err, "Không thể cập nhật bàn. Vui lòng thử lại!");
+      toast.error(errorMessage, {
         id: "edit-table",
         duration: 4000,
         position: "top-center"
@@ -238,7 +283,18 @@ const Page = () => {
     try {
       toast.loading("Đang xóa bàn...", { id: "delete-table" });
       
-      await ordertableService.deleteOrderTable(selectedTable.id);
+      const response = await ordertableService.deleteOrderTable(selectedTable.id);
+      
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể xóa bàn");
+        toast.error(errorMessage, {
+          id: "delete-table",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
       
       toast.success(`Đã xóa bàn "${selectedTable.name}" thành công!`, {
         id: "delete-table",
@@ -250,7 +306,8 @@ const Page = () => {
       fetchTables(currentPage, itemsPerPage);
     } catch (err) {
       console.error("Error deleting table:", err);
-      toast.error("Không thể xóa bàn. Vui lòng thử lại!", {
+      const errorMessage = getErrorMessage(err, "Không thể xóa bàn. Vui lòng thử lại!");
+      toast.error(errorMessage, {
         id: "delete-table",
         duration: 4000,
         position: "top-center"

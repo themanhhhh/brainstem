@@ -9,6 +9,15 @@ import UpdateProfile from './UpdateProfile';
 import UserInfoCard from './UserInfoCard';
 import toast from "react-hot-toast";
 
+// Utility function để extract error message
+const getErrorMessage = (error, defaultMessage) => {
+  if (error?.response?.data?.message) return error.response.data.message;
+  if (error?.message) return error.message;
+  if (error?.code >= 400 || error?.status >= 400) return error.message || `Lỗi ${error.code || error.status}`;
+  if (typeof error === 'string') return error;
+  return defaultMessage;
+};
+
 const menu = [
   { label: 'My Info', desc: 'View your detailed profile information', icon: <MdInfoOutline className={styles.menuIcon} /> },
   { label: 'Account', desc: 'Manage your public profile and private information', icon: <MdPersonOutline className={styles.menuIcon} /> },
@@ -24,6 +33,17 @@ const Profile = () => {
     const fetchProfile = async () => {
       try {
         const data = await authService.getProfile();
+        
+        // Kiểm tra lỗi từ response
+        if (data && (data.code >= 400 || data.error || data.status >= 400)) {
+          const errorMessage = getErrorMessage(data, "Không thể tải thông tin người dùng");
+          toast.error(errorMessage, {
+            duration: 4000,
+            position: "top-center"
+          });
+          return;
+        }
+        
         setProfile(data);
         toast.success("Đã tải thông tin người dùng thành công!", {
           duration: 2000,
@@ -31,7 +51,8 @@ const Profile = () => {
         });
       } catch (err) {
         console.error("Error fetching profile:", err);
-        toast.error('Không thể tải thông tin người dùng. Vui lòng thử lại!', {
+        const errorMessage = getErrorMessage(err, 'Không thể tải thông tin người dùng. Vui lòng thử lại!');
+        toast.error(errorMessage, {
           duration: 4000,
           position: "top-center"
         });
@@ -46,6 +67,17 @@ const Profile = () => {
     setLoading(true);
     try {
       const data = await authService.getProfile();
+      
+      // Kiểm tra lỗi từ response
+      if (data && (data.code >= 400 || data.error || data.status >= 400)) {
+        const errorMessage = getErrorMessage(data, "Không thể làm mới thông tin người dùng");
+        toast.error(errorMessage, {
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
+      
       setProfile(data);
       toast.success("Đã cập nhật thông tin người dùng!", {
         duration: 2000,
@@ -53,7 +85,8 @@ const Profile = () => {
       });
     } catch (err) {
       console.error("Error refreshing profile:", err);
-      toast.error('Không thể làm mới thông tin người dùng. Vui lòng thử lại!', {
+      const errorMessage = getErrorMessage(err, 'Không thể làm mới thông tin người dùng. Vui lòng thử lại!');
+      toast.error(errorMessage, {
         duration: 4000,
         position: "top-center"
       });

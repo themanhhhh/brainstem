@@ -3,6 +3,15 @@ import styles from './profile.module.css';
 import { authService } from '@/app/api/auth/authService';
 import toast from "react-hot-toast";
 
+// Utility function để extract error message
+const getErrorMessage = (error, defaultMessage) => {
+  if (error?.response?.data?.message) return error.response.data.message;
+  if (error?.message) return error.message;
+  if (error?.code >= 400 || error?.status >= 400) return error.message || `Lỗi ${error.code || error.status}`;
+  if (typeof error === 'string') return error;
+  return defaultMessage;
+};
+
 const ChangePassword = () => {
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
@@ -41,7 +50,18 @@ const ChangePassword = () => {
     try {
       toast.loading("Đang đổi mật khẩu...", { id: "change-password" });
       
-      await authService.changePassword(current, next, confirm);
+      const response = await authService.changePassword(current, next, confirm);
+      
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Đổi mật khẩu thất bại");
+        toast.error(errorMessage, {
+          id: "change-password",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
       
       toast.success('Đổi mật khẩu thành công!', {
         id: "change-password",
@@ -55,7 +75,8 @@ const ChangePassword = () => {
       setConfirm('');
     } catch (err) {
       console.error("Error changing password:", err);
-      toast.error(err.message || 'Đổi mật khẩu thất bại. Vui lòng thử lại!', {
+      const errorMessage = getErrorMessage(err, 'Đổi mật khẩu thất bại. Vui lòng thử lại!');
+      toast.error(errorMessage, {
         id: "change-password",
         duration: 4000,
         position: "top-center"

@@ -7,6 +7,35 @@ import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 const Page = () => {
+  // Utility function to extract error message from API response
+  const getErrorMessage = (error, defaultMessage) => {
+    // Check if error has response data with message
+    if (error?.response?.data?.message) {
+      return error.response.data.message;
+    }
+    
+    // Check if error object has message property directly (API response)
+    if (error?.message) {
+      return error.message;
+    }
+    
+    // Check if error is response object with code/status
+    if (error?.code >= 400 || error?.status >= 400) {
+      return error.message || `Lỗi ${error.code || error.status}`;
+    }
+    
+    // Check if error is string
+    if (typeof error === 'string') {
+      return error;
+    }
+    
+    // Debug log for unhandled error formats
+    console.log("Unhandled error format:", error);
+    
+    // Fallback to default message
+    return defaultMessage;
+  };
+
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [metadata, setMetadata] = useState(null);
@@ -64,7 +93,8 @@ const Page = () => {
     } catch (err) {
       console.error("Error fetching logs:", err);
       setLogs([]);
-      toast.error("Không thể tải danh sách log. Vui lòng thử lại!", {
+      const errorMessage = getErrorMessage(err, "Không thể tải danh sách log. Vui lòng thử lại!");
+      toast.error(errorMessage, {
         duration: 4000,
         position: "top-center"
       });
