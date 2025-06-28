@@ -100,7 +100,8 @@ export const translations = {
         confirm: "Confirm",
         breakfast: "Breakfast",
         lunch: "Lunch",
-        dinner: "Dinner"
+        dinner: "Dinner",
+        afternoon: "Afternoon",
       }
     },
     
@@ -399,7 +400,8 @@ export const translations = {
         confirm: "Xác nhận",
         breakfast: "Bữa sáng",
         lunch: "Bữa trưa",
-        dinner: "Bữa tối"
+        dinner: "Bữa tối",
+        afternoon: "Bữa chiều"
       }
     },
     

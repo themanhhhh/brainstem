@@ -83,7 +83,6 @@ const VNPayReturnPage = () => {
         try {
           const orderState = code === '00' ? 'DONE' : 'CANCEL';
         
-          
           await updateOrderState(orderId, { orderState });
         } catch (error) {
           toast.error('Failed to update order status, but payment was processed');
