@@ -64,10 +64,6 @@ const Page = () => {
 
   return (
     <div className={Style.log}>
-      <div className={Style.header}>
-        <h1>Activity Logs</h1>
-        <LogoutButton />
-      </div>
       <div className={Style.container}>
         <div className={Style.top}>
           <h1>Activity Logs</h1>

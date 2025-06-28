@@ -16,6 +16,9 @@ const ProfilePopup = ({ profile: propProfile }) => {
     logout();
   };
 
+  // Check if user is ADMIN to hide orders menu
+  const isAdmin = profile?.role === 'ADMIN';
+
   return (
     <div className={styles.popup}>
       <div className={styles.avatarWrap}>
@@ -37,10 +40,13 @@ const ProfilePopup = ({ profile: propProfile }) => {
           <FaUserAlt />
           <Link href="/profile">My Profile</Link>
         </div>
-        <div className={styles.menuItem}>
-          <TbInvoice />
-          <Link href="/orders">My Orders</Link>
-        </div>
+        {/* Hide My Orders menu item for ADMIN */}
+        {!isAdmin && (
+          <div className={styles.menuItem}>
+            <TbInvoice />
+            <Link href="/orders">My Orders</Link>
+          </div>
+        )}
         <div className={styles.menuItem} onClick={handleLogout} style={{ cursor: 'pointer' }}>
           <TbDownload />
           <span>Logout</span>

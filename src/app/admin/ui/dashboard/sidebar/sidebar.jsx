@@ -71,25 +71,15 @@ const menuItems = [
     ],
   },
   {
-    title: "Analytics",
-    list: [
-      {
-        title: "Revenue",
-        path: "/admin/dashboard/revenue",
-        icon: <MdWork />,
-      }
-    ],
-  },
-  {
     title: "User",
     list: [
       {
-        title: "Settings",
+        title: "Config",
         path: "/admin/dashboard/config",
         icon: <MdOutlineSettings />,
       },
       {
-        title: "Log",
+        title: "Log Activity",
         path: "/admin/dashboard/log",
         icon: <LuSquareActivity/>
       }

@@ -17,6 +17,9 @@ const Profile = () => {
     logout();
   };
 
+  // Check if user is ADMIN to hide orders menu
+  const isAdmin = profile?.role === 'ADMIN';
+
   return (
     <div className={Style.profile}>
       <div className={Style.profile_account}>
@@ -57,12 +60,15 @@ const Profile = () => {
               <Link href={{pathname: '/profile'}}>My Profile</Link>
             </p>
           </div>
-          <div className={Style.profile_menu_one_item}>
-            <TbInvoice/>
-            <p>
-              <Link href={{pathname: '/orders'}}>My Orders</Link>
-            </p>
-          </div>
+          {/* Hide My Orders menu item for ADMIN */}
+          {!isAdmin && (
+            <div className={Style.profile_menu_one_item}>
+              <TbInvoice/>
+              <p>
+                <Link href={{pathname: '/orders'}}>My Orders</Link>
+              </p>
+            </div>
+          )}
           
         </div>
 
