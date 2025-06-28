@@ -4,6 +4,7 @@ import AddressAutocomplete from '../components/AddressAutocomplete/AddressAutoco
 import { addressService } from '../api/address/addressService';
 import styles from './AddressManager.module.css';
 import { FaMapMarkerAlt, FaPlus, FaEdit, FaTrash, FaSave, FaTimes, FaHome, FaBriefcase, FaHeart, FaSpinner } from 'react-icons/fa';
+import { Loader } from '../components/componentsindex';
 import toast from 'react-hot-toast';
 
 const AddressManager = () => {

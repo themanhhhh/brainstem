@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
     IoRestaurantOutline, 
@@ -10,10 +10,23 @@ import {
     IoPeopleOutline
 } from 'react-icons/io5';
 import Style from './service.module.css';
-import { Footer, Navbar, Reserve, ChefTeam } from '../components/componentsindex';
+import { Footer, Navbar, Reserve, ChefTeam, Loader } from '../components/componentsindex';
 import Banner from './Banner/Banner';
 
 const Service = () => {
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // Simulate loading time for page initialization
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 1000); // 1 second loading
+
+        return () => clearTimeout(timer);
+    }, []);
+
+    if (loading) return <Loader />;
+
     return (
         <div>
             <Banner/>

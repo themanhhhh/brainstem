@@ -2,12 +2,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import ordertableService from "../../../api/ordertable/ordertableService";
 import styles from "./order_table.module.css";
+import toast from "react-hot-toast";
 
 const Page = () => {
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(false);
   const [tablesLoading, setTablesLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [successFadeOut, setSuccessFadeOut] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -35,18 +35,33 @@ const Page = () => {
       if (response && Array.isArray(response)) {
         setTables(response);
         console.log('Tables loaded:', response.length);
+        toast.success(`Đã tải ${response.length} bàn khả dụng`, {
+          duration: 2000,
+          position: "top-right"
+        });
       } else if (response && response.data && Array.isArray(response.data)) {
         // Fallback in case API structure changes
         setTables(response.data);
         console.log('Tables loaded from data field:', response.data.length);
+        toast.success(`Đã tải ${response.data.length} bàn khả dụng`, {
+          duration: 2000,
+          position: "top-right"
+        });
       } else {
         console.log('Invalid response format:', response);
         setTables([]);
+        toast.error("Dữ liệu bàn trả về không đúng định dạng", {
+          duration: 3000,
+          position: "top-center"
+        });
       }
     } catch (err) {
       console.error("Error fetching tables:", err);
-      setError('Failed to load available tables');
       setTables([]);
+      toast.error("Không thể tải danh sách bàn. Vui lòng thử lại!", {
+        duration: 4000,
+        position: "top-center"
+      });
     } finally {
       setTablesLoading(false);
     }
@@ -100,7 +115,6 @@ const Page = () => {
       [name]: value
     }));
     // Clear messages when user types
-    if (error) setError(null);
     if (success) {
       setSuccess(null);
       setSuccessFadeOut(false);
@@ -118,27 +132,45 @@ const Page = () => {
 
   const validateForm = () => {
     if (!formData.email || !formData.email.includes('@')) {
-      setError('Please enter a valid email');
+      toast.error('Vui lòng nhập email hợp lệ', {
+        duration: 3000,
+        position: "top-center"
+      });
       return false;
     }
     if (!formData.fullName.trim()) {
-      setError('Please enter full name');
+      toast.error('Vui lòng nhập họ tên đầy đủ', {
+        duration: 3000,
+        position: "top-center"
+      });
       return false;
     }
     if (!formData.phoneNumber.trim()) {
-      setError('Please enter phone number');
+      toast.error('Vui lòng nhập số điện thoại', {
+        duration: 3000,
+        position: "top-center"
+      });
       return false;
     }
     if (!formData.tableId) {
-      setError('Please select a table');
+      toast.error('Vui lòng chọn bàn', {
+        duration: 3000,
+        position: "top-center"
+      });
       return false;
     }
     if (!formData.orderTime) {
-      setError('Please select order time');
+      toast.error('Vui lòng chọn thời gian đặt bàn', {
+        duration: 3000,
+        position: "top-center"
+      });
       return false;
     }
     if (formData.description.trim().length < 5) {
-      setError('Description must be at least 5 characters long');
+      toast.error('Mô tả phải có ít nhất 5 ký tự', {
+        duration: 3000,
+        position: "top-center"
+      });
       return false;
     }
     return true;
@@ -168,10 +200,11 @@ const Page = () => {
 
   const createOrder = async (orderTableState) => {
     setLoading(true);
-    setError(null);
     setSuccess(null);
 
     try {
+      toast.loading("Đang tạo đơn đặt bàn...", { id: "create-order" });
+      
       const formattedDateTime = formatDateTimeForAPI(formData.orderTime);
       console.log('Original orderTime:', formData.orderTime);
       console.log('Formatted orderTime:', formattedDateTime);
@@ -189,9 +222,14 @@ const Page = () => {
 
       if (response) {
         const statusMessage = orderTableState === 'SUCCESS' 
-          ? 'Order created successfully!' 
-          : 'Order cancelled successfully!';
-        setSuccessWithAutoHide(statusMessage);
+          ? `Đã tạo đơn đặt bàn cho ${formData.fullName} thành công!`
+          : `Đã hủy đơn đặt bàn cho ${formData.fullName}!`;
+        
+        toast.success(statusMessage, {
+          id: "create-order",
+          duration: 3000,
+          position: "top-center"
+        });
         
         // Reset form
         setFormData({
@@ -207,8 +245,12 @@ const Page = () => {
         fetchTables();
       }
     } catch (err) {
-      setError(err.message || 'Failed to create order');
       console.error("Error creating order:", err);
+      toast.error(err.message || 'Không thể tạo đơn đặt bàn. Vui lòng thử lại!', {
+        id: "create-order",
+        duration: 4000,
+        position: "top-center"
+      });
     } finally {
       setLoading(false);
     }
@@ -247,7 +289,6 @@ const Page = () => {
     <div className={styles.container}>
       <h1 className={styles.title}>Create New Order Table</h1>
       
-      {error && <div className={styles.error}>{error}</div>}
       {success && (
         <div className={`${styles.success} ${successFadeOut ? styles.fadeOut : ''}`}>
           {success}

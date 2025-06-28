@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import ordertableService from '@/app/api/ordertable/ordertableService';
 import { authService } from '@/app/api/auth/authService';
 import styles from './TableReservationHistory.module.css';
+import { Loader } from '@/app/components/componentsindex';
 import toast from 'react-hot-toast';
 
 const TableReservationHistory = () => {
@@ -216,17 +217,7 @@ const TableReservationHistory = () => {
   };
 
   if (loading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <h2>Table Reservation History</h2>
-        </div>
-        <div className={styles.loading}>
-          <div className={styles.spinner}></div>
-          <p>Loading your reservations...</p>
-        </div>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (error) {

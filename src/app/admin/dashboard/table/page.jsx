@@ -5,12 +5,12 @@ import { Pagination, Search } from "../../ui/dashboard/dashboardindex";
 import ordertableService from "../../../api/ordertable/ordertableService";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import LogoutButton from "@/app/components/LogoutButton/LogoutButton";
+import toast from "react-hot-toast";
 
 const Page = () => {
   const [tables, setTables] = useState([]);
   const [metadata, setMetadata] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -76,16 +76,29 @@ const Page = () => {
         } else {
           console.warn("No metadata found in Tables API response");
         }
+        
+        // Hiển thị thông báo load thành công
+        if (page === 0) {
+          toast.success(`Đã tải ${response.data.length} bàn`, {
+            duration: 2000,
+            position: "top-right"
+          });
+        }
       } else {
         console.error("Unexpected API response format:", response);
         setTables([]);
+        toast.error("Dữ liệu trả về không đúng định dạng", {
+          duration: 3000,
+          position: "top-center"
+        });
       }
-      
-      setError(null);
     } catch (err) {
-      setError("Failed to fetch tables");
       console.error("Error fetching tables:", err);
       setTables([]);
+      toast.error("Không thể tải danh sách bàn. Vui lòng thử lại!", {
+        duration: 4000,
+        position: "top-center"
+      });
     } finally {
       setLoading(false);
     }
@@ -132,41 +145,116 @@ const Page = () => {
 
   const handleAddSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
+    if (!formData.name.trim()) {
+      toast.error("Tên bàn không được để trống!", {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    
+    if (formData.numberOfChair < 1) {
+      toast.error("Số ghế phải lớn hơn 0!", {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    
     try {
+      toast.loading("Đang thêm bàn mới...", { id: "add-table" });
+      
       await ordertableService.createOrderTable(formData.name, formData.state, formData.numberOfChair);
+      
+      toast.success(`Đã thêm bàn "${formData.name}" thành công!`, {
+        id: "add-table",
+        duration: 3000,
+        position: "top-center"
+      });
+      
       setShowAddModal(false);
       fetchTables(currentPage, itemsPerPage);
     } catch (err) {
       console.error("Error adding table:", err);
-      setError("Failed to add table");
+      toast.error("Không thể thêm bàn. Vui lòng thử lại!", {
+        id: "add-table",
+        duration: 4000,
+        position: "top-center"
+      });
     }
   };
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
+    if (!formData.name.trim()) {
+      toast.error("Tên bàn không được để trống!", {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    
+    if (formData.numberOfChair < 1) {
+      toast.error("Số ghế phải lớn hơn 0!", {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    
     try {
+      toast.loading("Đang cập nhật bàn...", { id: "edit-table" });
+      
       await ordertableService.updateOrderTable(
         selectedTable.id,
         formData.name,
         formData.state,
         formData.numberOfChair
       );
+      
+      toast.success(`Đã cập nhật bàn "${formData.name}" thành công!`, {
+        id: "edit-table",
+        duration: 3000,
+        position: "top-center"
+      });
+      
       setShowEditModal(false);
       fetchTables(currentPage, itemsPerPage);
     } catch (err) {
       console.error("Error updating table:", err);
-      setError("Failed to update table");
+      toast.error("Không thể cập nhật bàn. Vui lòng thử lại!", {
+        id: "edit-table",
+        duration: 4000,
+        position: "top-center"
+      });
     }
   };
 
   const handleDeleteConfirm = async () => {
     try {
+      toast.loading("Đang xóa bàn...", { id: "delete-table" });
+      
       await ordertableService.deleteOrderTable(selectedTable.id);
+      
+      toast.success(`Đã xóa bàn "${selectedTable.name}" thành công!`, {
+        id: "delete-table",
+        duration: 3000,
+        position: "top-center"
+      });
+      
       setShowDeleteModal(false);
       fetchTables(currentPage, itemsPerPage);
     } catch (err) {
       console.error("Error deleting table:", err);
-      setError("Failed to delete table");
+      toast.error("Không thể xóa bàn. Vui lòng thử lại!", {
+        id: "delete-table",
+        duration: 4000,
+        position: "top-center"
+      });
     }
   };
 
@@ -184,7 +272,6 @@ const Page = () => {
   };
 
   if (loading) return <div className={Style.loading}>Loading...</div>;
-  if (error) return <div className={Style.error}>{error}</div>;
 
   return (
     <div className={Style.tablee}>

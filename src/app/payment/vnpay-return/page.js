@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { clearOrderId, getOrderId, clearCartItemsFromCookie } from '../../api/order/orderService';
+import { clearOrderId, getOrderId, clearCartItemsFromCookie, updateOrderState } from '../../api/order/orderService';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import styles from '../../styles/payment-result.module.css';
@@ -11,27 +11,39 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 
 const VNPayReturnPage = () => {
+  console.log('📦 VNPayReturnPage component mounted');
+  
   const router = useRouter();
   const searchParams = useSearchParams();
   const { clearCart } = useCart();
-  const { profile } = useAuth();
   const [paymentResult, setPaymentResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const hasProcessedPayment = useRef(false); // Ref để track việc đã xử lý payment
 
   useEffect(() => {
+   
+    
     // Nếu đã xử lý payment rồi thì không làm gì thêm
     if (hasProcessedPayment.current) {
+      console.log('⚠️ Payment already processed, skipping...');
       return;
     }
 
     const processPaymentResult = async () => {
+      console.log('🏃‍♂️ Starting processPaymentResult function');
       // Đánh dấu là đã bắt đầu xử lý
       hasProcessedPayment.current = true;
-
+      console.log('✅ Set hasProcessedPayment.current = true');
+      
       // Lấy các tham số từ URL theo format mới
       const code = searchParams.get('code');
       const message = searchParams.get('message');
+      
+      console.log('🔍 Raw URL params:', {
+        code: code,
+        message: message,
+        allParams: Object.fromEntries(searchParams.entries())
+      });
 
       console.log('Payment callback params:', {
         code,
@@ -64,7 +76,21 @@ const VNPayReturnPage = () => {
       
       // Lấy orderId để xử lý
       const orderId = getOrderId();
-      console.log('Order ID from cookies:', orderId);
+      
+      // Cập nhật trạng thái order qua API
+      if (orderId) {
+        console.log('✅ OrderId exists, proceeding with order state update');
+        try {
+          const orderState = code === '00' ? 'DONE' : 'CANCEL';
+        
+          
+          await updateOrderState(orderId, { orderState });
+        } catch (error) {
+          toast.error('Failed to update order status, but payment was processed');
+        }
+      } else {
+        console.warn('⚠️ No orderId found, skipping order state update');
+      }
       
       if (paymentResult.success) {
         // Thanh toán thành công - chỉ cần clear cookies và cart
@@ -136,13 +162,6 @@ const VNPayReturnPage = () => {
             <p className={styles.successMessage}>
               {paymentResult.message}
             </p>
-            {profile && profile.fullName && (
-              <div className={styles.userInfo}>
-                <p className={styles.userName}>
-                  Customer: <strong>{profile.fullName}</strong>
-                </p>
-              </div>
-            )}
             <p className={styles.redirectMessage}>
               Redirecting to homepage in 3 seconds...
             </p>
@@ -154,13 +173,6 @@ const VNPayReturnPage = () => {
             <p className={styles.errorMessage}>
               {paymentResult.message}
             </p>
-            {profile && profile.fullName && (
-              <div className={styles.userInfo}>
-                <p className={styles.userName}>
-                  Customer: <strong>{profile.fullName}</strong>
-                </p>
-              </div>
-            )}
           </>
         )}
         

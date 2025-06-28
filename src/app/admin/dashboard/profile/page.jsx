@@ -7,6 +7,7 @@ import ChangePassword from './ChangePassword';
 import LogoutButton from '@/app/components/LogoutButton/LogoutButton';
 import UpdateProfile from './UpdateProfile';
 import UserInfoCard from './UserInfoCard';
+import toast from "react-hot-toast";
 
 const menu = [
   { label: 'My Info', desc: 'View your detailed profile information', icon: <MdInfoOutline className={styles.menuIcon} /> },
@@ -17,7 +18,6 @@ const menu = [
 const Profile = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
@@ -25,8 +25,16 @@ const Profile = () => {
       try {
         const data = await authService.getProfile();
         setProfile(data);
+        toast.success("Đã tải thông tin người dùng thành công!", {
+          duration: 2000,
+          position: "top-right"
+        });
       } catch (err) {
-        setError('Không thể tải thông tin người dùng.');
+        console.error("Error fetching profile:", err);
+        toast.error('Không thể tải thông tin người dùng. Vui lòng thử lại!', {
+          duration: 4000,
+          position: "top-center"
+        });
       } finally {
         setLoading(false);
       }
@@ -39,16 +47,22 @@ const Profile = () => {
     try {
       const data = await authService.getProfile();
       setProfile(data);
-      setError(null);
+      toast.success("Đã cập nhật thông tin người dùng!", {
+        duration: 2000,
+        position: "top-right"
+      });
     } catch (err) {
-      setError('Không thể tải thông tin người dùng.');
+      console.error("Error refreshing profile:", err);
+      toast.error('Không thể làm mới thông tin người dùng. Vui lòng thử lại!', {
+        duration: 4000,
+        position: "top-center"
+      });
     } finally {
       setLoading(false);
     }
   };
 
   if (loading || !profile) return <div className={styles.loading}>Đang tải...</div>;
-  if (error) return <div className={styles.container}><h1>Profile</h1><p>{error}</p></div>;
 
   // Xử lý avatar: nếu imgUrl là 'admin' thì dùng icon mặc định
   const avatar = profile.imgUrl && profile.imgUrl !== 'admin'

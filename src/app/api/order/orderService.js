@@ -16,7 +16,7 @@ export const getOrderId = () => {
 };
 
 export const setOrderId = (orderId) => {
-    document.cookie = `orderId=${orderId}; path=/; max-age=${60 * 60 * 24}`; // Lưu 24 giờ
+    document.cookie = `orderId=${orderId}; path=/; max-age=${60 * 10}`; // Lưu 10 phút
 };
 
 export const clearOrderId = () => {
@@ -42,7 +42,7 @@ export const getCartItemsFromCookie = () => {
 export const setCartItemsToCookie = (cartItems) => {
     try {
         const cartData = encodeURIComponent(JSON.stringify(cartItems));
-        document.cookie = `cartItems=${cartData}; path=/; max-age=${60 * 60 * 24}`; // Lưu 24 giờ
+        document.cookie = `cartItems=${cartData}; path=/; max-age=${60 * 10 }`; // Lưu 10 phút
     } catch (error) {
         console.error('Error setting cart items to cookie:', error);
     }

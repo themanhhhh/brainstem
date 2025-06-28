@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Footer, HeroSection, Navbar, Reserve } from "../components/componentsindex";
+import { Footer, HeroSection, Navbar, Reserve, Loader } from "../components/componentsindex";
 import Style from "../styles/menu.module.css";
 import Banner from "./Banner/Banner";
 import MenuCategory from "./menuCategory/menuCategory";
@@ -84,7 +84,7 @@ const MenuPage = () => {
     fetchData();
   }, [language]); // Thêm language vào dependency để gọi lại API khi đổi ngôn ngữ
 
-  if (loading) return <div className={Style.loading}>Đang tải...</div>;
+  if (loading) return <Loader />;
   if (error) return <div className={Style.error}>{error}</div>;
 
   return (

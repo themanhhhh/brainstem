@@ -8,6 +8,7 @@ import { useLanguageService } from "../../../hooks/useLanguageService";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useCart } from "../../../context/CartContext";
 import LogoutButton from "../../../components/LogoutButton/LogoutButton";
+import toast from "react-hot-toast";
 
 const Page = () => {
   const { foodService, categoryService, language } = useLanguageService();
@@ -19,7 +20,6 @@ const Page = () => {
   const [categories, setCategories] = useState([]);
   const [activeCategories, setActiveCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedFood, setSelectedFood] = useState(null);
@@ -134,12 +134,24 @@ const Page = () => {
         } else {
           console.warn("No metadata found in Foods API response");
         }
+        
+        // Hiển thị thông báo load thành công nếu không có filter
+        if (!name && !categoryId && !state && page === 0) {
+          toast.success(`Đã tải ${response.data.length} món ăn`, {
+            duration: 2000,
+            position: "top-right"
+          });
+        }
       } else {
         console.error("Unexpected API response format:", response);
         setFoods([]);
+        toast.error("Dữ liệu trả về không đúng định dạng", {
+          duration: 3000,
+          position: "top-center"
+        });
       }
       
-      setError(null);
+
     } catch (err) {
       // Kiểm tra nếu lỗi là do hủy request
       if (err.name === 'AbortError') {
@@ -147,9 +159,12 @@ const Page = () => {
         return;
       }
       
-      setError("Failed to fetch foods");
       console.error("Error fetching foods:", err);
       setFoods([]);
+      toast.error("Không thể tải danh sách món ăn. Vui lòng thử lại!", {
+        duration: 4000,
+        position: "top-center"
+      });
     } finally {
       setLoading(false);
     }
@@ -178,10 +193,18 @@ const Page = () => {
       } else {
         console.warn("Unexpected active categories response format");
         setActiveCategories([]);
+        toast.error("Không thể tải danh mục active", {
+          duration: 3000,
+          position: "top-center"
+        });
       }
     } catch (err) {
       console.error("Error fetching active categories:", err);
       setActiveCategories([]);
+      toast.error("Lỗi khi tải danh mục", {
+        duration: 3000,
+        position: "top-center"
+      });
     }
   };
 
@@ -240,9 +263,17 @@ const Page = () => {
       
       // Show the edit modal
       setShowEditModal(true);
+      
+      toast.success(`Đang chỉnh sửa món: ${(foodDetail || food).name}`, {
+        duration: 2000,
+        position: "top-right"
+      });
     } catch (err) {
       console.error("Error preparing food edit form:", err);
-      setError("Failed to prepare edit form");
+      toast.error("Không thể mở form chỉnh sửa. Vui lòng thử lại!", {
+        duration: 4000,
+        position: "top-center"
+      });
     } finally {
       setLoading(false);
     }
@@ -258,7 +289,33 @@ const Page = () => {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
+    if (!editForm.name.trim()) {
+      toast.error("Tên món ăn không được để trống!", {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    if (!editForm.description.trim()) {
+      toast.error("Mô tả không được để trống!", {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    if (!editForm.price || Number(editForm.price) <= 0) {
+      toast.error("Giá phải lớn hơn 0!", {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    
     try {
+      toast.loading("Đang cập nhật món ăn...", { id: "edit-food" });
+      
       let imgUrl = editForm.imgUrl;
       
       // Upload new image if selected
@@ -277,11 +334,22 @@ const Page = () => {
         editForm.quantity,
         language
       );
+      
+      toast.success(`Đã cập nhật món "${editForm.name}" thành công!`, {
+        id: "edit-food",
+        duration: 3000,
+        position: "top-center"
+      });
+      
       setShowEditModal(false);
       fetchFoods(currentPage, itemsPerPage, nameFilter, categoryFilter, statusFilter);
     } catch (err) {
       console.error("Error updating food:", err);
-      setError("Failed to update food");
+      toast.error("Không thể cập nhật món ăn. Vui lòng thử lại!", {
+        id: "edit-food",
+        duration: 4000,
+        position: "top-center"
+      });
     }
   };
 
@@ -292,12 +360,25 @@ const Page = () => {
 
   const handleDeleteConfirm = async () => {
     try {
+      toast.loading("Đang xóa món ăn...", { id: "delete-food" });
+      
       await foodService.deleteFood(selectedFood.id);
+      
+      toast.success(`Đã xóa món "${selectedFood.name}" thành công!`, {
+        id: "delete-food",
+        duration: 3000,
+        position: "top-center"
+      });
+      
       setShowDeleteModal(false);
       fetchFoods(currentPage, itemsPerPage, nameFilter, categoryFilter, statusFilter);
     } catch (err) {
       console.error("Error deleting food:", err);
-      setError("Failed to delete food");
+      toast.error("Không thể xóa món ăn. Vui lòng thử lại!", {
+        id: "delete-food",
+        duration: 4000,
+        position: "top-center"
+      });
     }
   };
 
@@ -308,12 +389,14 @@ const Page = () => {
       setShowViewModal(true);
     } catch (err) {
       console.error("Error fetching food details:", err);
-      setError("Failed to fetch food details");
+      toast.error("Không thể tải chi tiết món ăn. Vui lòng thử lại!", {
+        duration: 4000,
+        position: "top-center"
+      });
     }
   };
 
   if (loading) return <div className={Style.loading}>Loading...</div>;
-  if (error) return <div className={Style.error}>{error}</div>;
 
   return (
     <div className={Style.productt}>

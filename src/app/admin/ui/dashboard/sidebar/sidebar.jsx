@@ -54,11 +54,6 @@ const menuItems = [
         icon: <MdLocalOffer />,
       },
       {
-        title: "Transactions",
-        path: "/admin/dashboard/transactions",
-        icon: <MdAttachMoney />,
-      },
-      {
         title: "Table",
         path: "/admin/dashboard/table",
         icon: <MdTableRestaurant />,
@@ -89,7 +84,7 @@ const menuItems = [
     title: "User",
     list: [
       {
-        title: "Config",
+        title: "Settings",
         path: "/admin/dashboard/config",
         icon: <MdOutlineSettings />,
       },

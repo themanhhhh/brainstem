@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { getOrderByCustomerId } from '@/app/api/order/orderService';
 import { authService } from '@/app/api/auth/authService';
 import styles from './OrderHistory.module.css';
+import { Loader } from '@/app/components/componentsindex';
 import toast from 'react-hot-toast';
 
 const OrderHistory = () => {
@@ -176,17 +177,7 @@ const OrderHistory = () => {
   };
 
   if (loading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <h2>Order History</h2>
-        </div>
-        <div className={styles.loading}>
-          <div className={styles.spinner}></div>
-          <p>Loading your orders...</p>
-        </div>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (error) {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styles from './profile.module.css';
 import { authService } from '@/app/api/auth/authService';
 import { useCart } from '../../../context/CartContext';
+import toast from "react-hot-toast";
 
 const UpdateProfile = ({ profile, onProfileUpdated }) => {
   const [formData, setFormData] = useState({
@@ -14,8 +15,6 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
   const [imagePreview, setImagePreview] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState('');
-  const [error, setError] = useState('');
 
   const { uploadToPinata } = useCart();
 
@@ -44,13 +43,19 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        setError('Vui lòng chọn file ảnh hợp lệ');
+        toast.error('Vui lòng chọn file ảnh hợp lệ', {
+          duration: 3000,
+          position: "top-center"
+        });
         return;
       }
       
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        setError('Kích thước ảnh không được vượt quá 5MB');
+        toast.error('Kích thước ảnh không được vượt quá 5MB', {
+          duration: 3000,
+          position: "top-center"
+        });
         return;
       }
 
@@ -65,7 +70,11 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
         }
       };
       reader.readAsDataURL(file);
-      setError('');
+      
+      toast.success('Ảnh đã được chọn thành công!', {
+        duration: 2000,
+        position: "top-right"
+      });
     }
   };
 
@@ -74,11 +83,25 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
 
     setUploadingImage(true);
     try {
+      toast.loading("Đang upload ảnh...", { id: "upload-image" });
+      
       const imageUrl = await uploadToPinata(selectedImage);
       setFormData(prev => ({ ...prev, imgUrl: imageUrl }));
+      
+      toast.success("Upload ảnh thành công!", {
+        id: "upload-image",
+        duration: 2000,
+        position: "top-right"
+      });
+      
       return imageUrl;
     } catch (error) {
-      setError('Không thể upload ảnh. Vui lòng thử lại.');
+      console.error("Error uploading image:", error);
+      toast.error('Không thể upload ảnh. Vui lòng thử lại!', {
+        id: "upload-image",
+        duration: 4000,
+        position: "top-center"
+      });
       throw error;
     } finally {
       setUploadingImage(false);
@@ -87,11 +110,39 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMsg('');
-    setError('');
+    
+    // Validation
+    if (!formData.fullName.trim()) {
+      toast.error('Vui lòng nhập họ tên!', {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    
+    if (!formData.email.trim()) {
+      toast.error('Vui lòng nhập email!', {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error('Email không đúng định dạng!', {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    
     setLoading(true);
     
     try {
+      toast.loading("Đang cập nhật thông tin...", { id: "update-profile" });
+      
       let imageUrl = formData.imgUrl;
       
       // Upload image if new image is selected
@@ -102,16 +153,27 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
       const { fullName, phoneNumber, email } = formData;
       await authService.updateProfile(fullName, phoneNumber, email, imageUrl);
       
-      setMsg('Thông tin đã được cập nhật thành công!');
+      toast.success('Thông tin đã được cập nhật thành công!', {
+        id: "update-profile",
+        duration: 3000,
+        position: "top-center"
+      });
+      
       setSelectedImage(null);
       
       if (onProfileUpdated) {
         onProfileUpdated(); // Để fetch lại profile mới từ server
       }
     } catch (err) {
-      setError(err.message || 'Không thể cập nhật thông tin. Vui lòng thử lại sau.');
+      console.error("Error updating profile:", err);
+      toast.error(err.message || 'Không thể cập nhật thông tin. Vui lòng thử lại!', {
+        id: "update-profile",
+        duration: 4000,
+        position: "top-center"
+      });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const resetForm = () => {
@@ -123,8 +185,11 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
     });
     setSelectedImage(null);
     setImagePreview(profile.imgUrl || '');
-    setError('');
-    setMsg('');
+    
+    toast.success('Form đã được reset!', {
+      duration: 2000,
+      position: "top-right"
+    });
   };
 
   return (
@@ -194,8 +259,7 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
             placeholder="Enter your phone number"
           />
         </div>
-        {error && <div className={styles.formMsg} style={{color:'#e11d48'}}>{error}</div>}
-        {msg && <div className={styles.formMsg}>{msg}</div>}
+
         <div className={styles.formActions}>
           <button type="button" className={styles.cancelBtn} onClick={resetForm}>
             Cancel

@@ -4,11 +4,11 @@ import Style from "./log.module.css";
 import { getLogs, formatDate, getActionTypeColor } from "@/app/api/log/logService";
 import { Pagination } from "../../ui/dashboard/dashboardindex";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 const Page = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [metadata, setMetadata] = useState(null);
   const [itemsPerPage] = useState(10);
   
@@ -43,23 +43,37 @@ const Page = () => {
         
         console.log("Pagination Metadata (Logs):", metadataObj);
         setMetadata(metadataObj);
+        
+        // Hiển thị thông báo load thành công
+        if (page === 0) {
+          toast.success(`Đã tải ${data.content.length} bản ghi log`, {
+            duration: 2000,
+            position: "top-right"
+          });
+        }
       } else {
         console.error("Unexpected API response format:", data);
         setLogs([]);
+        toast.error("Dữ liệu trả về không đúng định dạng", {
+          duration: 3000,
+          position: "top-center"
+        });
       }
       
-      setError(null);
+
     } catch (err) {
-      setError("Failed to fetch logs");
       console.error("Error fetching logs:", err);
       setLogs([]);
+      toast.error("Không thể tải danh sách log. Vui lòng thử lại!", {
+        duration: 4000,
+        position: "top-center"
+      });
     } finally {
       setLoading(false);
     }
   };
 
   if (loading) return <div className={Style.loading}>Loading...</div>;
-  if (error) return <div className={Style.error}>{error}</div>;
 
   return (
     <div className={Style.container}>

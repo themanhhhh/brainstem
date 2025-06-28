@@ -5,13 +5,13 @@ import styles from "./order.module.css";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { Pagination, FilterableSearch } from "../../ui/dashboard/dashboardindex";
 import { useLanguageService } from "../../../hooks/useLanguageService";
+import toast from "react-hot-toast";
 
 const OrderPage = () => {
     const { orderService } = useLanguageService();
     const [orders, setOrders] = useState([]);
     const [metadata, setMetadata] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedStatus, setSelectedStatus] = useState("");
     const [showDetailModal, setShowDetailModal] = useState(false);
@@ -45,17 +45,32 @@ const OrderPage = () => {
             if (response.data && Array.isArray(response.data)) {
                 setOrders(response.data);
                 setMetadata(response.metadata || null);
+                
+                // Hiển thị thông báo load thành công
+                if (page === 0) {
+                    toast.success(`Đã tải ${response.data.length} đơn hàng`, {
+                        duration: 2000,
+                        position: "top-right"
+                    });
+                }
             } else {
                 console.warn("Unexpected orders response format", response);
                 setOrders([]);
                 setMetadata(null);
+                toast.error("Dữ liệu trả về không đúng định dạng", {
+                    duration: 3000,
+                    position: "top-center"
+                });
             }
-            setError(null);
+
         } catch (err) {
             console.error("Error fetching orders:", err);
             setOrders([]);
             setMetadata(null);
-            setError("Failed to fetch orders");
+            toast.error("Không thể tải danh sách đơn hàng. Vui lòng thử lại!", {
+                duration: 4000,
+                position: "top-center"
+            });
         } finally {
             setLoading(false);
         }
@@ -74,6 +89,10 @@ const OrderPage = () => {
             setShowDetailModal(true);
         } catch (err) {
             console.error("Error fetching order detail:", err);
+            toast.error("Không thể tải chi tiết đơn hàng. Vui lòng thử lại!", {
+                duration: 4000,
+                position: "top-center"
+            });
         }
     };
 
@@ -121,7 +140,6 @@ const OrderPage = () => {
     };
 
     if (loading) return <div className={styles.loading}>Đang tải...</div>;
-    if (error) return <div className={styles.error}>{error}</div>;
 
     return (
         <div className={styles.container}>
@@ -164,7 +182,7 @@ const OrderPage = () => {
                 <tbody>
                 {orders.length === 0 ? (
                     <tr>
-                        <td colSpan="10" className={styles.noData}>
+                        <td colSpan={10} className={styles.noData}>
                             Hiển thị 0 / 0 bản ghi
                         </td>
                     </tr>

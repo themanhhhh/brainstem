@@ -9,6 +9,7 @@ import Image from "next/image";
 import LogoutButton from "@/app/components/LogoutButton/LogoutButton";
 import Link from "next/link";
 import LanguageSelector from "@/app/components/LanguageSelector/LanguageSelector";
+import toast from "react-hot-toast";
 
 const Page = () => {
   const { categoryService, language } = useLanguageService();
@@ -108,16 +109,31 @@ const Page = () => {
         } else {
           console.warn("No metadata found in Categories API response");
         }
+        
+        // Hiển thị thông báo load thành công nếu không phải search
+        if (!name && !state && page === 0) {
+          toast.success(`Đã tải ${response.data.length} danh mục`, {
+            duration: 2000,
+            position: "top-right"
+          });
+        }
       } else {
         console.error("Unexpected API response format:", response);
         setCategories([]);
+        toast.error("Dữ liệu trả về không đúng định dạng", {
+          duration: 3000,
+          position: "top-center"
+        });
       }
       
       setError(null);
     } catch (err) {
-      setError("Failed to fetch categories");
       console.error("Error fetching categories:", err);
       setCategories([]);
+      toast.error("Không thể tải danh sách danh mục. Vui lòng thử lại!", {
+        duration: 4000,
+        position: "top-center"
+      });
     } finally {
       setLoading(false);
     }
@@ -136,10 +152,18 @@ const Page = () => {
       } else {
         console.warn("Unexpected active categories response format");
         setActiveCategories([]);
+        toast.error("Không thể tải danh sách danh mục active", {
+          duration: 3000,
+          position: "top-center"
+        });
       }
     } catch (err) {
       console.error("Error fetching active categories:", err);
       setActiveCategories([]);
+      toast.error("Lỗi khi tải danh mục active", {
+        duration: 3000,
+        position: "top-center"
+      });
     }
   };
 
@@ -177,9 +201,17 @@ const Page = () => {
       
       // Show the edit modal
       setShowEditModal(true);
+      
+      toast.success(`Đang chỉnh sửa danh mục: ${categoryDetail.name}`, {
+        duration: 2000,
+        position: "top-right"
+      });
     } catch (err) {
       console.error("Error preparing edit form:", err);
-      setError("Failed to prepare edit form");
+      toast.error("Không thể mở form chỉnh sửa. Vui lòng thử lại!", {
+        duration: 4000,
+        position: "top-center"
+      });
     } finally {
       setLoading(false);
     }
@@ -197,7 +229,10 @@ const Page = () => {
       setShowViewModal(true);
     } catch (err) {
       console.error("Error fetching category details:", err);
-      setError("Failed to fetch category details");
+      toast.error("Không thể tải chi tiết danh mục. Vui lòng thử lại!", {
+        duration: 4000,
+        position: "top-center"
+      });
     }
   };
 
@@ -213,7 +248,26 @@ const Page = () => {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
+    if (!formData.name.trim()) {
+      toast.error("Tên danh mục không được để trống!", {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    if (!formData.description.trim()) {
+      toast.error("Mô tả danh mục không được để trống!", {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    
     try {
+      toast.loading("Đang cập nhật danh mục...", { id: "edit-category" });
+      
       let categoryData = {
         name: formData.name,
         description: formData.description,
@@ -229,27 +283,50 @@ const Page = () => {
       }
       
       await categoryService.updateCategory(selectedCategory.id, categoryData, language);
+      
+      toast.success(`Đã cập nhật danh mục "${formData.name}" thành công!`, {
+        id: "edit-category",
+        duration: 3000,
+        position: "top-center"
+      });
+      
       setShowEditModal(false);
       fetchCategories(currentPage, itemsPerPage);
     } catch (err) {
       console.error("Error updating category:", err);
-      setError("Failed to update category");
+      toast.error("Không thể cập nhật danh mục. Vui lòng thử lại!", {
+        id: "edit-category",
+        duration: 4000,
+        position: "top-center"
+      });
     }
   };
 
   const handleDeleteConfirm = async () => {
     try {
+      toast.loading("Đang xóa danh mục...", { id: "delete-category" });
+      
       await categoryService.deleteCategory(selectedCategory.id);
+      
+      toast.success(`Đã xóa danh mục "${selectedCategory.name}" thành công!`, {
+        id: "delete-category",
+        duration: 3000,
+        position: "top-center"
+      });
+      
       setShowDeleteModal(false);
       fetchCategories(currentPage, itemsPerPage);
     } catch (err) {
       console.error("Error deleting category:", err);
-      setError("Failed to delete category");
+      toast.error("Không thể xóa danh mục. Vui lòng thử lại!", {
+        id: "delete-category",
+        duration: 4000,
+        position: "top-center"
+      });
     }
   };
 
   if (loading) return <div className={Style.loading}>Loading...</div>;
-  if (error) return <div className={Style.error}>{error}</div>;
 
   return (
     <div className={Style.categoryy}>

@@ -119,7 +119,7 @@ const AddUserPage = () => {
             <option value="STAFF">STAFF</option>
             <option value="CUSTOMER">CUSTOMER</option>
             <option value="MANAGER">MANAGER</option>
-            <option value="SHIPPER">SHIPPER</option>
+            
           </select>
         </div>
 

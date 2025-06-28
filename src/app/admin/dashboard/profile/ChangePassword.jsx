@@ -1,34 +1,68 @@
 import React, { useState } from 'react';
 import styles from './profile.module.css';
 import { authService } from '@/app/api/auth/authService';
+import toast from "react-hot-toast";
 
 const ChangePassword = () => {
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
   const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState('');
-  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMsg('');
-    setError('');
-    if (next !== confirm) {
-      setError('Mật khẩu mới và xác nhận không khớp!');
+    
+    // Validation
+    if (!current.trim()) {
+      toast.error('Vui lòng nhập mật khẩu hiện tại!', {
+        duration: 3000,
+        position: "top-center"
+      });
       return;
     }
+    
+    if (next.length < 8) {
+      toast.error('Mật khẩu mới phải có ít nhất 8 ký tự!', {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    
+    if (next !== confirm) {
+      toast.error('Mật khẩu mới và xác nhận không khớp!', {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    
     setLoading(true);
     try {
+      toast.loading("Đang đổi mật khẩu...", { id: "change-password" });
+      
       await authService.changePassword(current, next, confirm);
-      setMsg('Đổi mật khẩu thành công!');
+      
+      toast.success('Đổi mật khẩu thành công!', {
+        id: "change-password",
+        duration: 3000,
+        position: "top-center"
+      });
+      
+      // Reset form
       setCurrent('');
       setNext('');
       setConfirm('');
     } catch (err) {
-      setError(err.message || 'Đổi mật khẩu thất bại!');
+      console.error("Error changing password:", err);
+      toast.error(err.message || 'Đổi mật khẩu thất bại. Vui lòng thử lại!', {
+        id: "change-password",
+        duration: 4000,
+        position: "top-center"
+      });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -74,8 +108,7 @@ const ChangePassword = () => {
             Minimum 8 characters. Must include numbers, letters and special characters.
           </span>
         </div>
-        {error && <div className={styles.formMsg} style={{color:'#e11d48'}}>{error}</div>}
-        {msg && <div className={styles.formMsg}>{msg}</div>}
+
         <div className={styles.formActions}>
           <button type="submit" className={styles.saveBtn} disabled={loading}>
             {loading ? 'Saving...' : 'Save'}

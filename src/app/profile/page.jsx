@@ -13,6 +13,7 @@ import TableReservationHistory from './TableReservationHistory';
 import Navbar from '@/app/components/Navbar/Navbar';
 import Footer from '@/app/components/Footer/Footer';
 import { usePageProfileFetch } from '@/app/hooks/usePageProfileFetch';
+import { Loader } from '@/app/components/componentsindex';
 import toast from 'react-hot-toast';
 
 const menu = [
@@ -64,11 +65,7 @@ const Profile = () => {
   };
 
   if (loading || !profile) {
-    return (
-      <div className={styles.loading}>
-        Loading...
-      </div>
-    );
+    return <Loader />;
   }
 
   // Handle avatar: if imgUrl is 'admin' then use default icon

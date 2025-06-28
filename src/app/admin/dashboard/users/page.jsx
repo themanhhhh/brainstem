@@ -8,13 +8,13 @@ import { userService } from "../../../api/user/userService";
 import images from "../../../img/index";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import LogoutButton from "../../../components/LogoutButton/LogoutButton";
+import toast from "react-hot-toast";
 
 const Page = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [users, setUsers] = useState([]);
   const [metadata, setMetadata] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -75,16 +75,29 @@ const Page = () => {
         if (response.metadata) {
           setMetadata(response.metadata);
         }
+        
+        // Hiển thị thông báo load thành công
+        if (page === 0) {
+          toast.success(`Đã tải ${response.data.length} người dùng`, {
+            duration: 2000,
+            position: "top-right"
+          });
+        }
       } else {
         console.error("Unexpected API response format:", response);
         setUsers([]);
+        toast.error("Dữ liệu trả về không đúng định dạng", {
+          duration: 3000,
+          position: "top-center"
+        });
       }
-      
-      setError(null);
     } catch (err) {
-      setError("Failed to fetch users");
       console.error("Error fetching users:", err);
       setUsers([]);
+      toast.error("Không thể tải danh sách người dùng. Vui lòng thử lại!", {
+        duration: 4000,
+        position: "top-center"
+      });
     } finally {
       setLoading(false);
     }
@@ -124,7 +137,45 @@ const Page = () => {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
+    if (!editForm.fullName.trim()) {
+      toast.error("Họ tên không được để trống!", {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    
+    if (!editForm.username.trim()) {
+      toast.error("Username không được để trống!", {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    
+    if (!editForm.email.trim()) {
+      toast.error("Email không được để trống!", {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(editForm.email)) {
+      toast.error("Email không đúng định dạng!", {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    
     try {
+      toast.loading("Đang cập nhật người dùng...", { id: "edit-user" });
+      
       await userService.updateUser(
         selectedUser.id,
         editForm.fullName,
@@ -135,11 +186,22 @@ const Page = () => {
         editForm.role,
         editForm.state  
       );
+      
+      toast.success(`Đã cập nhật người dùng "${editForm.fullName}" thành công!`, {
+        id: "edit-user",
+        duration: 3000,
+        position: "top-center"
+      });
+      
       setShowEditModal(false);
       fetchUsers(currentPage, itemsPerPage);
     } catch (err) {
       console.error("Error updating user:", err);
-      setError("Failed to update user");
+      toast.error("Không thể cập nhật người dùng. Vui lòng thử lại!", {
+        id: "edit-user",
+        duration: 4000,
+        position: "top-center"
+      });
     }
   };
 
@@ -150,12 +212,25 @@ const Page = () => {
 
   const handleDeleteConfirm = async () => {
     try {
+      toast.loading("Đang xóa người dùng...", { id: "delete-user" });
+      
       await userService.deleteUser(selectedUser.id);
+      
+      toast.success(`Đã xóa người dùng "${selectedUser.fullName}" thành công!`, {
+        id: "delete-user",
+        duration: 3000,
+        position: "top-center"
+      });
+      
       setShowDeleteModal(false);
       fetchUsers(currentPage, itemsPerPage);
     } catch (err) {
       console.error("Error deleting user:", err);
-      setError("Failed to delete user");
+      toast.error("Không thể xóa người dùng. Vui lòng thử lại!", {
+        id: "delete-user",
+        duration: 4000,
+        position: "top-center"
+      });
     }
   };
 
@@ -166,12 +241,14 @@ const Page = () => {
       setShowViewModal(true);
     } catch (err) {
       console.error("Error fetching user details:", err);
-      setError("Failed to fetch user details");
+      toast.error("Không thể tải chi tiết người dùng. Vui lòng thử lại!", {
+        duration: 4000,
+        position: "top-center"
+      });
     }
   };
 
   if (loading) return <div className={Style.loading}>Loading...</div>;
-  if (error) return <div className={Style.error}>{error}</div>;
 
   return (
     <div className={Style.userr}>

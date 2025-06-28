@@ -1,21 +1,38 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/Loader/Loader';
+import toast from 'react-hot-toast';
 
 export default function AdminPage() {
   const { user, loading, isAdmin } = useAuth();
   const router = useRouter();
+  const [pageLoading, setPageLoading] = useState(true);
 
   useEffect(() => {
-    if (!loading && !isAdmin()) {
-      router.push('/login');
+    if (!loading) {
+      if (!isAdmin()) {
+        toast.error('Bạn không có quyền truy cập trang Admin!', {
+          duration: 4000,
+          position: "top-center"
+        });
+        router.push('/login');
+      } else {
+        // Simulate loading like other pages
+        setTimeout(() => {
+          setPageLoading(false);
+          toast.success(`Chào mừng ${user?.fullName} đến với Admin Dashboard!`, {
+            duration: 3000,
+            position: "top-right"
+          });
+        }, 1000);
+      }
     }
   }, [user, loading, router, isAdmin]);
 
-  if (loading) {
+  if (loading || pageLoading) {
     return <Loader/>;
   }
 
