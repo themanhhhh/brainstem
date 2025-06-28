@@ -19,6 +19,16 @@ import { Button } from "../../componentsindex";
 import ordertableService from "../../../api/ordertable/ordertableService";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { useAuth } from "../../../context/AuthContext";
+import toast from "react-hot-toast";
+
+// Utility function để extract error message
+const getErrorMessage = (error, defaultMessage) => {
+  if (error?.response?.data?.message) return error.response.data.message;
+  if (error?.message) return error.message;
+  if (error?.code >= 400 || error?.status >= 400) return error.message || `Lỗi ${error.code || error.status}`;
+  if (typeof error === 'string') return error;
+  return defaultMessage;
+};
 
 const Form = () => {
   const t = useTranslation();
@@ -56,16 +66,44 @@ const Form = () => {
       
       const response = await ordertableService.getActiveTable(0, 100);
       
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể tải danh sách bàn trống");
+        toast.error(errorMessage, {
+          duration: 4000,
+          position: "top-center"
+        });
+        setTables([]);
+        return;
+      }
+      
       if (response && Array.isArray(response)) {
         setTables(response);
+        toast.success(`Đã tải ${response.length} bàn trống`, {
+          duration: 2000,
+          position: "top-right"
+        });
       } else if (response && response.data && Array.isArray(response.data)) {
         setTables(response.data);
+        toast.success(`Đã tải ${response.data.length} bàn trống`, {
+          duration: 2000,
+          position: "top-right"
+        });
       } else {
         setTables([]);
+        toast.error("Không có bàn trống khả dụng", {
+          duration: 3000,
+          position: "top-center"
+        });
       }
     } catch (err) {
       console.error("Error fetching tables:", err);
+      const errorMessage = getErrorMessage(err, "Không thể tải danh sách bàn trống. Vui lòng thử lại!");
       setTables([]);
+      toast.error(errorMessage, {
+        duration: 4000,
+        position: "top-center"
+      });
     } finally {
       setTablesLoading(false);
     }
@@ -164,9 +202,14 @@ const Form = () => {
       
       // Kiểm tra authentication trước khi tạo order
       if (!user) {
-        alert('Vui lòng đăng nhập để đặt bàn!');
+        toast.error('Vui lòng đăng nhập để đặt bàn!', {
+          duration: 4000,
+          position: "top-center"
+        });
         return;
       }
+      
+      toast.loading("Đang tạo đơn đặt bàn...", { id: "create-reservation" });
       
       // Format datetime for API
       const formattedDateTime = formatDateTimeForAPI(formData.orderTime);
@@ -183,11 +226,27 @@ const Form = () => {
         orderTableState
       );
       
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể tạo đơn đặt bàn");
+        toast.error(errorMessage, {
+          id: "create-reservation",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
+      
       if (response) {
         const statusMessage = orderTableState === 'SUCCESS' 
-          ? 'Reservation created successfully! We will contact you soon to confirm.' 
-          : 'Reservation cancelled successfully!';
-        alert(statusMessage);
+          ? `Đã tạo đơn đặt bàn cho ${formData.fullName} thành công! Chúng tôi sẽ liên hệ để xác nhận.`
+          : `Đã hủy đơn đặt bàn cho ${formData.fullName}!`;
+        
+        toast.success(statusMessage, {
+          id: "create-reservation",
+          duration: 4000,
+          position: "top-center"
+        });
         
         // Reset form
         setFormData({
@@ -206,7 +265,12 @@ const Form = () => {
       }
     } catch (error) {
       console.error('Error creating reservation:', error);
-      alert(error.message || 'Failed to create reservation. Please try again.');
+      const errorMessage = getErrorMessage(error, 'Không thể tạo đơn đặt bàn. Vui lòng thử lại!');
+      toast.error(errorMessage, {
+        id: "create-reservation",
+        duration: 4000,
+        position: "top-center"
+      });
     } finally {
       setLoading(false);
     }

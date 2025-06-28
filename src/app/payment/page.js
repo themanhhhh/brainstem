@@ -16,6 +16,15 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
+// Utility function để extract error message
+const getErrorMessage = (error, defaultMessage) => {
+  if (error?.response?.data?.message) return error.response.data.message;
+  if (error?.message) return error.message;
+  if (error?.code >= 400 || error?.status >= 400) return error.message || `Lỗi ${error.code || error.status}`;
+  if (typeof error === 'string') return error;
+  return defaultMessage;
+};
+
 const PaymentPage = () => {
   const router = useRouter();
   const { cartItems, getCartTotal, clearCart } = useCart();
@@ -117,6 +126,19 @@ const PaymentPage = () => {
     try {
       setLoadingAddresses(true);
       const response = await addressService.getUserAddresses();
+      
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể tải danh sách địa chỉ");
+        toast.error(errorMessage, {
+          duration: 4000,
+          position: "top-center"
+        });
+        setSavedAddresses([]);
+        setShowAddressForm(true);
+        return;
+      }
+      
       let addresses = [];
       if (response && Array.isArray(response)) {
         addresses = response;
@@ -124,14 +146,25 @@ const PaymentPage = () => {
         addresses = response.data;
       }
       setSavedAddresses(addresses);
+      
       // If no saved addresses and no address form shown, show the form
       if (addresses.length === 0) {
         setShowAddressForm(true);
+      } else {
+        toast.success(`Đã tải ${addresses.length} địa chỉ đã lưu`, {
+          duration: 2000,
+          position: "top-right"
+        });
       }
     } catch (error) {
       console.error('Error fetching addresses:', error);
+      const errorMessage = getErrorMessage(error, 'Không thể tải danh sách địa chỉ');
       setSavedAddresses([]);
       setShowAddressForm(true);
+      toast.error(errorMessage, {
+        duration: 4000,
+        position: "top-center"
+      });
     } finally {
       setLoadingAddresses(false);
     }
@@ -143,11 +176,35 @@ const PaymentPage = () => {
       const total = getOrderTotal();
       const response = await discountService.getDiscountByPrice(total);
       console.log('Order total for discount calculation:', total);
+      
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể tải danh sách mã giảm giá");
+        toast.error(errorMessage, {
+          duration: 4000,
+          position: "top-center"
+        });
+        setDiscounts([]);
+        return;
+      }
+      
       if (response.data && Array.isArray(response.data)) {
         setDiscounts(response.data);
+        toast.success(`Đã tải ${response.data.length} mã giảm giá khả dụng`, {
+          duration: 2000,
+          position: "top-right"
+        });
+      } else {
+        setDiscounts([]);
       }
     } catch (error) {
       console.error('Error fetching discounts:', error);
+      const errorMessage = getErrorMessage(error, 'Không thể tải danh sách mã giảm giá');
+      toast.error(errorMessage, {
+        duration: 4000,
+        position: "top-center"
+      });
+      setDiscounts([]);
     } finally {
       setLoading(false);
     }
@@ -159,13 +216,39 @@ const PaymentPage = () => {
       console.log('Fetching order data for ID:', orderId);
       const response = await getOrderById(orderId);
       console.log('Order data response:', response);
+      
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể tải thông tin đơn hàng");
+        toast.error(errorMessage, {
+          duration: 4000,
+          position: "top-center"
+        });
+        console.warn('Will fallback to cart data for total calculation');
+        setOrderData(null);
+        return;
+      }
+      
       console.log('Order total price:', response?.totalPrice);
       console.log('Order food infos:', response?.foodInfos);
       setOrderData(response);
+      
+      if (response) {
+        toast.success('Đã tải thông tin đơn hàng thành công!', {
+          duration: 2000,
+          position: "top-right"
+        });
+      }
     } catch (error) {
       console.error('Error fetching order data:', error);
+      const errorMessage = getErrorMessage(error, 'Không thể tải thông tin đơn hàng');
+      toast.error(errorMessage, {
+        duration: 4000,
+        position: "top-center"
+      });
       console.warn('Will fallback to cart data for total calculation');
       // Nếu không lấy được order data, fallback về cart data
+      setOrderData(null);
     } finally {
       setLoadingOrder(false);
     }
@@ -358,14 +441,34 @@ const PaymentPage = () => {
       console.log('Creating address with data:', newAddress);
 
       const response = await addressService.createAddress(newAddress);
+      
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể tạo địa chỉ mới");
+        toast.error(errorMessage, {
+          duration: 4000,
+          position: "top-center"
+        });
+        throw new Error(errorMessage);
+      }
+      
       if (response) {
         console.log('Address created successfully:', response);
+        toast.success('Đã tạo địa chỉ mới thành công!', {
+          duration: 3000,
+          position: "top-center"
+        });
         // Refresh address list
         await fetchSavedAddresses();
         return response;
       }
     } catch (error) {
       console.error('Error saving address:', error);
+      const errorMessage = getErrorMessage(error, 'Không thể lưu địa chỉ');
+      toast.error(errorMessage, {
+        duration: 4000,
+        position: "top-center"
+      });
       throw error;
     } finally {
       setSaving(false);
@@ -514,34 +617,84 @@ const PaymentPage = () => {
 
       // Cập nhật thông tin đơn hàng
       try {
+        toast.loading("Đang cập nhật thông tin đơn hàng...", { id: "update-order" });
+        
         const updateResponse = await updateOrderInfo(currentOrderId, orderUpdateData);
-        console.log('Order info updated successfully:', updateResponse);
-        toast.success('Cập nhật thông tin đơn hàng thành công!');
+        
+        // Kiểm tra lỗi từ updateResponse
+        if (updateResponse && (updateResponse.code >= 400 || updateResponse.error || updateResponse.status >= 400)) {
+          const errorMessage = getErrorMessage(updateResponse, "Không thể cập nhật thông tin đơn hàng");
+          toast.error(errorMessage + ', nhưng sẽ tiếp tục thanh toán', {
+            id: "update-order",
+            duration: 4000,
+            position: "top-center"
+          });
+          console.log('Continuing with payment despite order update failure...');
+        } else {
+          console.log('Order info updated successfully:', updateResponse);
+          toast.success('Cập nhật thông tin đơn hàng thành công!', {
+            id: "update-order",
+            duration: 2000,
+            position: "top-right"
+          });
+        }
       } catch (updateError) {
         console.error('Error updating order info:', updateError);
-        toast.error('Không thể cập nhật thông tin đơn hàng, nhưng sẽ tiếp tục thanh toán');
+        const errorMessage = getErrorMessage(updateError, 'Không thể cập nhật thông tin đơn hàng');
+        toast.error(errorMessage + ', nhưng sẽ tiếp tục thanh toán', {
+          id: "update-order",
+          duration: 4000,
+          position: "top-center"
+        });
         // Tiếp tục với payment dù update order info thất bại
         console.log('Continuing with payment despite order update failure...');
       }
       
       // Gọi API tạo thanh toán VNPay
+      toast.loading("Đang tạo thanh toán VNPay...", { id: "create-payment" });
+      
       const paymentResponse = await createPayment(currentOrderId);
       
       console.log('Payment response:', paymentResponse);
       
+      // Kiểm tra lỗi từ paymentResponse
+      if (paymentResponse && (paymentResponse.code >= 400 || paymentResponse.error || paymentResponse.status >= 400)) {
+        const errorMessage = getErrorMessage(paymentResponse, "Không thể tạo thanh toán");
+        toast.error(errorMessage, {
+          id: "create-payment",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
+      
       // Kiểm tra response
       if (paymentResponse.code === '00' && paymentResponse.paymentUrl) {
+        toast.success('Tạo thanh toán thành công! Đang chuyển hướng...', {
+          id: "create-payment",
+          duration: 2000,
+          position: "top-center"
+        });
         // Chuyển hướng trực tiếp đến VNPay (không mở cửa sổ mới)
         window.location.href = paymentResponse.paymentUrl;
         
       } else {
         // Xử lý lỗi
-        alert(paymentResponse.message || 'Có lỗi xảy ra khi tạo thanh toán!');
+        const errorMessage = paymentResponse.message || 'Có lỗi xảy ra khi tạo thanh toán!';
+        toast.error(errorMessage, {
+          id: "create-payment",
+          duration: 4000,
+          position: "top-center"
+        });
       }
       
     } catch (error) {
       console.error('Error creating payment:', error);
-      alert('Có lỗi xảy ra khi tạo thanh toán. Vui lòng thử lại!');
+      const errorMessage = getErrorMessage(error, 'Có lỗi xảy ra khi tạo thanh toán. Vui lòng thử lại!');
+      toast.error(errorMessage, {
+        duration: 4000,
+        position: "top-center"
+      });
     } finally {
       setSubmitting(false);
     }
@@ -561,11 +714,37 @@ const PaymentPage = () => {
   // Hàm chọn địa chỉ khác làm mặc định
   const handleSetDefaultAddress = async (addressId) => {
     try {
-      await addressService.updateAddressDefault(addressId);
+      toast.loading("Đang cập nhật địa chỉ mặc định...", { id: "update-default-address" });
+      
+      const response = await addressService.updateAddressDefault(addressId);
+      
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể cập nhật địa chỉ mặc định");
+        toast.error(errorMessage, {
+          id: "update-default-address",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
+      
+      toast.success('Đã cập nhật địa chỉ mặc định thành công!', {
+        id: "update-default-address",
+        duration: 3000,
+        position: "top-center"
+      });
+      
       await fetchSavedAddresses();
       setShowAddressListModal(false);
     } catch (error) {
-      alert('Failed to set default address');
+      console.error('Error setting default address:', error);
+      const errorMessage = getErrorMessage(error, 'Không thể cập nhật địa chỉ mặc định');
+      toast.error(errorMessage, {
+        id: "update-default-address",
+        duration: 4000,
+        position: "top-center"
+      });
     }
   };
 

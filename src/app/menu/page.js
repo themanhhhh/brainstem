@@ -6,6 +6,16 @@ import Banner from "./Banner/Banner";
 import MenuCategory from "./menuCategory/menuCategory";
 import MenuCard from "./menuCard/menuCard";
 import { useLanguageService } from "../hooks/useLanguageService";
+import toast from "react-hot-toast";
+
+// Utility function để extract error message
+const getErrorMessage = (error, defaultMessage) => {
+  if (error?.response?.data?.message) return error.response.data.message;
+  if (error?.message) return error.message;
+  if (error?.code >= 400 || error?.status >= 400) return error.message || `Lỗi ${error.code || error.status}`;
+  if (typeof error === 'string') return error;
+  return defaultMessage;
+};
 
 const MenuPage = () => {
   const { foodService, categoryService, language } = useLanguageService();
@@ -45,17 +55,38 @@ const MenuPage = () => {
       setLoading(true);
       // Lấy danh sách danh mục đang hoạt động
       const categoryResponse = await categoryService.getCategoryView();
-      if (categoryResponse && categoryResponse.data) {
-       
+      
+      // Kiểm tra lỗi từ category response
+      if (categoryResponse && (categoryResponse.code >= 400 || categoryResponse.error || categoryResponse.status >= 400)) {
+        const errorMessage = getErrorMessage(categoryResponse, "Không thể tải danh sách danh mục");
+        toast.error(errorMessage, {
+          duration: 4000,
+          position: "top-center"
+        });
+        setCategories([]);
+      } else if (categoryResponse && categoryResponse.data) {
         const categoriesData = Array.isArray(categoryResponse.data) ? categoryResponse.data : categoryResponse.data.content;
         setCategories(categoriesData || []);
         console.log("Categories loaded:", categoriesData);
+        toast.success(`Đã tải ${categoriesData?.length || 0} danh mục`, {
+          duration: 2000,
+          position: "top-right"
+        });
       }
+      
       // Lấy danh sách món ăn
       const foodResponse = await foodService.getFoodView();
       console.log("Food response:", foodResponse);
       
-      if (foodResponse) {
+      // Kiểm tra lỗi từ food response
+      if (foodResponse && (foodResponse.code >= 400 || foodResponse.error || foodResponse.status >= 400)) {
+        const errorMessage = getErrorMessage(foodResponse, "Không thể tải danh sách món ăn");
+        toast.error(errorMessage, {
+          duration: 4000,
+          position: "top-center"
+        });
+        setFoods([]);
+      } else if (foodResponse) {
         // Kiểm tra cấu trúc response - có thể là array trực tiếp hoặc wrapped trong data
         let foodsData;
         if (Array.isArray(foodResponse)) {
@@ -70,11 +101,20 @@ const MenuPage = () => {
         
         setFoods(foodsData || []);
         console.log("Foods loaded:", foodsData);
+        toast.success(`Đã tải ${foodsData?.length || 0} món ăn`, {
+          duration: 2000,
+          position: "top-right"
+        });
       }
       setError(null);
     } catch (err) {
       console.error("Lỗi khi lấy dữ liệu:", err);
-      setError("Không thể tải dữ liệu. Vui lòng thử lại sau.");
+      const errorMessage = getErrorMessage(err, "Không thể tải dữ liệu. Vui lòng thử lại sau.");
+      setError(errorMessage);
+      toast.error(errorMessage, {
+        duration: 4000,
+        position: "top-center"
+      });
     } finally {
       setLoading(false);
     }
