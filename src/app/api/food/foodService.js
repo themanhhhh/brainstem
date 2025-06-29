@@ -22,11 +22,9 @@ export const foodService = {
         return response.json();
     },
     getMainDishes: async (page = 0, size = 100, language = 'VI') => {
-        const token = getToken();
-        if (!token) throw new Error('No authentication token found');
         const response = await fetch(`${API_URL}/food/view?isMain=true&page=${page}&size=${size}&language=${language}`, {
             headers: {
-                'Authorization': `Bearer ${token}`,
+                
                 'Content-Type': 'application/json',
             },
             method: 'GET',
