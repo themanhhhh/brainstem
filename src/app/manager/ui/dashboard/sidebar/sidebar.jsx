@@ -49,21 +49,6 @@ const menuItems = [
         icon: <IoFastFoodOutline />,
       },
       {
-        title: "Discounts",
-        path: "/admin/dashboard/discount",
-        icon: <MdLocalOffer />,
-      },
-      {
-        title: "Table",
-        path: "/admin/dashboard/table",
-        icon: <MdTableRestaurant />,
-      },
-      {
-        title: "Order",
-        path: "/admin/dashboard/order",
-        icon: <FaTablet />,
-      },
-      {
         title: "Order Table",
         path: "/admin/dashboard/orderTable",
         icon: <RiListOrdered />,
@@ -73,11 +58,6 @@ const menuItems = [
   {
     title: "User",
     list: [
-      {
-        title: "Config",
-        path: "/admin/dashboard/config",
-        icon: <MdOutlineSettings />,
-      },
       {
         title: "Log Activity",
         path: "/admin/dashboard/log",
