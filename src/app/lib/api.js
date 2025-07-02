@@ -233,8 +233,6 @@ export const authApi = {
     });
     return response.json();
   },
-
-  // Thêm các methods khác...
 };
 
 export const userApi = {
@@ -259,5 +257,4 @@ export const userApi = {
     return response.json();
   },
 
-  // Thêm các methods khác...
 };

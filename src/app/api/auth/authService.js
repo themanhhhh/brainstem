@@ -163,7 +163,7 @@ export const authService = {
 
   forgotPassword: async (email) => {
     try {
-      const response = await fetch(`${API_URL}/auth/forgotpassword`, {
+      const response = await fetch(`${API_URL}/auth/forgot-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -183,14 +183,14 @@ export const authService = {
       throw error;
     }
   } ,
-  verifyOtp: async (email, otp) => {
+  verifyOtp: async (email, otpCode) => {
     try {
-      const response = await fetch(`${API_URL}/auth/verifyotp`, {
+      const response = await fetch(`${API_URL}/auth/verify-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, otp })
+        body: JSON.stringify({ email, otpCode })
       });
 
       const data = await response.json();
@@ -205,14 +205,14 @@ export const authService = {
       throw error;
     } 
   } ,
-  resetPassword: async (email, newPassword, confirmPassword , token) => {
+  resetPassword: async (email, password, confirmPassword , token) => {
     try {
-      const response = await fetch(`${API_URL}/auth/resetpassword`, {
+      const response = await fetch(`${API_URL}/auth/reset-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, newPassword, confirmPassword , token})
+        body: JSON.stringify({ email, password, confirmPassword , token})
       });
 
       const data = await response.json();
