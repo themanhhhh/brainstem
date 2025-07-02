@@ -139,13 +139,13 @@ const OrderPage = () => {
     // Get status class name
     const getStatusClass = (status) => {
         switch (status) {
-            case 'COMPLETED':
+            case 'DONE':
                 return styles.statusCompleted;
             case 'PAID':
                 return styles.statusPaid;
             case 'HOLD':
                 return styles.statusHold;
-            case 'PENDING':
+            case 'PROCESSING':
                 return styles.statusPending;
             case 'CANCELLED':
                 return styles.statusCancelled;
@@ -186,9 +186,9 @@ const OrderPage = () => {
                     statusOptions={[
                         { value: "", label: "Tất cả trạng thái" },
                         { value: "HOLD", label: "Tạm giữ" },
-                        { value: "PENDING", label: "Chờ xử lý" },
+                        { value: "PROCESSING", label: "Chờ xử lý" },
                         { value: "PAID", label: "Đã thanh toán" },
-                        { value: "COMPLETED", label: "Hoàn thành" },
+                        { value: "DONE", label: "Hoàn thành" },
                         { value: "CANCELLED", label: "Đã hủy" },
                         { value: "FAILED", label: "Thất bại" },
                     ]}

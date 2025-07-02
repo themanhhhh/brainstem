@@ -47,10 +47,7 @@ const RevenuePage = () => {
       
       setStatistics(response);
       setError(null);
-      toast.success("Đã tải dữ liệu thống kê thành công!", {
-        duration: 2000,
-        position: "top-right"
-      });
+      console.log("Statistics loaded:", response);
     } catch (err) {
       const errorMessage = getErrorMessage(err, 'Lỗi khi tải dữ liệu thống kê');
       setError(errorMessage);

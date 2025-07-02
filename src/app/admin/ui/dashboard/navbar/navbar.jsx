@@ -64,12 +64,7 @@ const Navbar = () => {
     <div className={styles.container}>
       <div className={styles.title}>{formattedTitle}</div>
       <div className={styles.menu}>
-        <div className={styles.icons}>
-          <MdOutlineChat size={20} />
-          <MdNotifications size={20} />
-          <MdPublic size={20} />
-         
-        </div>
+        
         {/* Avatar + Profile menu */}
         <div className={styles.avatarWrapper} ref={avatarRef}>
           <div

@@ -67,11 +67,7 @@ const MenuPage = () => {
       } else if (categoryResponse && categoryResponse.data) {
         const categoriesData = Array.isArray(categoryResponse.data) ? categoryResponse.data : categoryResponse.data.content;
         setCategories(categoriesData || []);
-        console.log("Categories loaded:", categoriesData);
-        toast.success(`Đã tải ${categoriesData?.length || 0} danh mục`, {
-          duration: 2000,
-          position: "top-right"
-        });
+        
       }
       
       // Lấy danh sách món ăn
@@ -101,10 +97,7 @@ const MenuPage = () => {
         
         setFoods(foodsData || []);
         console.log("Foods loaded:", foodsData);
-        toast.success(`Đã tải ${foodsData?.length || 0} món ăn`, {
-          duration: 2000,
-          position: "top-right"
-        });
+        
       }
       setError(null);
     } catch (err) {

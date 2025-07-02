@@ -99,10 +99,7 @@ const Page = () => {
         
         // Hiển thị thông báo load thành công
         if (page === 0) {
-          toast.success(`Đã tải ${response.data.length} bàn`, {
-            duration: 2000,
-            position: "top-right"
-          });
+          console.log("Tables loaded:", response.data.length);
         }
       } else {
         console.error("Unexpected API response format:", response);
@@ -486,8 +483,7 @@ const Page = () => {
                   required
                 >
                   <option value="AVAILABLE">Available</option>
-                  <option value="OCCUPIED">Occupied</option>
-                  <option value="RESERVED">Reserved</option>
+                  <option value="IN_AVAILABLE">In Available</option>
                 </select>
               </div>
               <div className={Style.modalButtons}>

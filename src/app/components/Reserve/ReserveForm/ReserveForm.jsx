@@ -79,16 +79,10 @@ const Form = () => {
       
       if (response && Array.isArray(response)) {
         setTables(response);
-        toast.success(`Đã tải ${response.length} bàn trống`, {
-          duration: 2000,
-          position: "top-right"
-        });
+        
       } else if (response && response.data && Array.isArray(response.data)) {
         setTables(response.data);
-        toast.success(`Đã tải ${response.data.length} bàn trống`, {
-          duration: 2000,
-          position: "top-right"
-        });
+        console.log("Tables loaded:", response.data.length);
       } else {
         setTables([]);
         toast.error("Không có bàn trống khả dụng", {

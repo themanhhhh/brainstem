@@ -151,10 +151,7 @@ const PaymentPage = () => {
       if (addresses.length === 0) {
         setShowAddressForm(true);
       } else {
-        toast.success(`Đã tải ${addresses.length} địa chỉ đã lưu`, {
-          duration: 2000,
-          position: "top-right"
-        });
+        console.log("Addresses loaded:", addresses.length);
       }
     } catch (error) {
       console.error('Error fetching addresses:', error);
@@ -190,10 +187,7 @@ const PaymentPage = () => {
       
       if (response.data && Array.isArray(response.data)) {
         setDiscounts(response.data);
-        toast.success(`Đã tải ${response.data.length} mã giảm giá khả dụng`, {
-          duration: 2000,
-          position: "top-right"
-        });
+        console.log("Discounts loaded:", response.data.length);
       } else {
         setDiscounts([]);
       }
@@ -234,10 +228,7 @@ const PaymentPage = () => {
       setOrderData(response);
       
       if (response) {
-        toast.success('Đã tải thông tin đơn hàng thành công!', {
-          duration: 2000,
-          position: "top-right"
-        });
+        console.log("Order data loaded:", response);
       }
     } catch (error) {
       console.error('Error fetching order data:', error);

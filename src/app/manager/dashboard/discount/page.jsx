@@ -113,10 +113,7 @@ const Page = () => {
         
         // Hiển thị thông báo load thành công
         if (page === 0) {
-          toast.success(`Đã tải ${response.data.length} mã giảm giá`, {
-            duration: 2000,
-            position: "top-right"
-          });
+          console.log("Discounts loaded:", response.data.length);
         }
       } else {
         console.error("Unexpected API response format:", response);

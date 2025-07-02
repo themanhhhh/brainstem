@@ -140,12 +140,7 @@ const Page = () => {
         }
         
         // Hiển thị thông báo load thành công nếu không phải search
-        if (!name && !state && page === 0) {
-          toast.success(`Đã tải ${response.data.length} danh mục`, {
-            duration: 2000,
-            position: "top-right"
-          });
-        }
+        
       } else {
         console.error("Unexpected API response format:", response);
         setCategories([]);

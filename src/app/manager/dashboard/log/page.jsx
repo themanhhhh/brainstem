@@ -75,10 +75,7 @@ const Page = () => {
         
         // Hiển thị thông báo load thành công
         if (page === 0) {
-          toast.success(`Đã tải ${data.content.length} bản ghi log`, {
-            duration: 2000,
-            position: "top-right"
-          });
+          console.log("Logs loaded:", data.content.length);
         }
       } else {
         console.error("Unexpected API response format:", data);
