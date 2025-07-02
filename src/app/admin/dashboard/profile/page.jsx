@@ -45,10 +45,7 @@ const Profile = () => {
         }
         
         setProfile(data);
-        toast.success("Đã tải thông tin người dùng thành công!", {
-          duration: 2000,
-          position: "top-right"
-        });
+        console.log("Profile loaded:", data);
       } catch (err) {
         console.error("Error fetching profile:", err);
         const errorMessage = getErrorMessage(err, 'Không thể tải thông tin người dùng. Vui lòng thử lại!');

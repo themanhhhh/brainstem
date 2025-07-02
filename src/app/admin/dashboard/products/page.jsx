@@ -157,10 +157,7 @@ const Page = () => {
         
         // Hiển thị thông báo load thành công nếu không có filter
         if (!name && !categoryId && !state && page === 0) {
-          toast.success(`Đã tải ${response.data.length} món ăn`, {
-            duration: 2000,
-            position: "top-right"
-          });
+          console.log("Foods loaded:", response.data.length);
         }
       } else {
         console.error("Unexpected API response format:", response);

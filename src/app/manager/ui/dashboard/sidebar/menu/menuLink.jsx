@@ -12,6 +12,7 @@ const MenuLink = ({item}) => {
     <Link href={item.path} className={`${styles.container} ${pathname === item.path && styles.active}`}>
       {item.icon}
       {item.title}
+      
     </Link>
   )
 }

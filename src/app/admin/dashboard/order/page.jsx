@@ -77,10 +77,7 @@ const OrderPage = () => {
                 
                 // Hiển thị thông báo load thành công
                 if (page === 0) {
-                    toast.success(`Đã tải ${response.data.length} đơn hàng`, {
-                        duration: 2000,
-                        position: "top-right"
-                    });
+                    console.log("Orders loaded:", response.data.length);
                 }
             } else {
                 console.warn("Unexpected orders response format", response);

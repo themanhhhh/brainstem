@@ -21,7 +21,20 @@ export const userService = {
             },
             body: JSON.stringify({fullName, username, password, phoneNumber, email, role, state}),
         });
-        return response.json();
+        
+        const result = await response.json();
+        
+        // Check for HTTP errors
+        if (!response.ok) {
+            throw new Error(result.message || `HTTP error! status: ${response.status}`);
+        }
+        
+        // Check for application-level errors in response
+        if (result.code && result.code !== 200 && result.code >= 1000) {
+            throw new Error(result.message || 'API error occurred');
+        }
+        
+        return result;
     },
 
     getUser: async (page = 0, size = 10) => {

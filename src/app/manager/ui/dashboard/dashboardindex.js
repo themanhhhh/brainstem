@@ -7,6 +7,7 @@ import Transactions from "./transactions/transactions";
 import Search from "./search/search";
 import Pagination from "./pagination/pagination";
 import NumberCard from "./numbercard/numbercard";
+import FilterableSearch from "./FilterableSearch/FilterableSearch";
 
 export { 
     Card, 
@@ -17,5 +18,6 @@ export {
     Transactions ,
     Search,
     Pagination,
-    NumberCard
+    NumberCard,
+    FilterableSearch
 };

@@ -13,51 +13,74 @@ import {
   MdHelpCenter,
   MdLogout,
   MdLocalOffer,
+  
 } from "react-icons/md";
+import { RiListOrdered } from "react-icons/ri";
 import { IoFastFoodOutline } from "react-icons/io5";
 import { BiCategoryAlt } from "react-icons/bi";
 import { MdTableRestaurant } from "react-icons/md";
 import { LuSquareActivity } from "react-icons/lu";
 import { Style } from "@mui/icons-material";
+import { FaTablet } from "react-icons/fa6";
+
 
 const menuItems = [
   {
-    title: "Pages",
+    title: "Management",
     list: [
       {
         title: "Dashboard",
-        path: "/manager/dashboard",
+        path: "/admin/dashboard",
         icon: <MdDashboard />,
       },
       {
         title: "Users",
-        path: "/manager/dashboard/users",
+        path: "/admin/dashboard/users",
         icon: <MdSupervisedUserCircle />,
       },
       {
         title: "Category",
-        path: "/manager/dashboard/category",
+        path: "/admin/dashboard/category",
         icon: <BiCategoryAlt />,
       },
       {
-        title: "Foods",
-        path: "/manager/dashboard/products",
+        title: "Foods Management",
+        path: "/admin/dashboard/products",
         icon: <IoFastFoodOutline />,
       },
       {
-        title: "Order Table",
-        path: "/manager/dashboard/ordertable",
+        title: "Discounts",
+        path: "/admin/dashboard/discount",
+        icon: <MdLocalOffer />,
+      },
+      {
+        title: "Table",
+        path: "/admin/dashboard/table",
         icon: <MdTableRestaurant />,
+      },
+      {
+        title: "Order",
+        path: "/admin/dashboard/order",
+        icon: <FaTablet />,
+      },
+      {
+        title: "Order Table",
+        path: "/admin/dashboard/orderTable",
+        icon: <RiListOrdered />,
       },
     ],
   },
   {
     title: "User",
     list: [
-      
       {
-        title: "Log",
-        path: "/manager/dashboard/log",
+        title: "Config",
+        path: "/admin/dashboard/config",
+        icon: <MdOutlineSettings />,
+      },
+      {
+        title: "Log Activity",
+        path: "/admin/dashboard/log",
         icon: <LuSquareActivity/>
       }
     ],

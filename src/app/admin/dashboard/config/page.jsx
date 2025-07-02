@@ -146,10 +146,7 @@ const Page = () => {
 
         // Hiển thị thông báo load thành công
         if (!key && page === 0) { // Chỉ hiển thị khi load lần đầu
-          toast.success(`Đã tải ${response.data.length} configuration`, {
-            duration: 2000,
-            position: "top-right"
-          });
+          console.log("Configs loaded:", response.data.length);
         }
       } else {
         console.error("Unexpected API response format:", response);
