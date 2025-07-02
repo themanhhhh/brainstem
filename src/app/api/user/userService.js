@@ -1,3 +1,5 @@
+import { apiRequest } from '../../lib/api';
+
 const API_URL = 'https://dev.quyna.online/project_4/restaurant';
 
 // Helper function để lấy accessToken từ cookie
@@ -10,105 +12,57 @@ const getToken = () => {
 
 export const userService = {
     addUser: async (fullName, username, password, phoneNumber, email, role, state) => {
-        const token = getToken();
-        if (!token) throw new Error('No authentication token found');
-
-        const response = await fetch(`${API_URL}/account`, {
+        const { data } = await apiRequest(`${API_URL}/account`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
             body: JSON.stringify({fullName, username, password, phoneNumber, email, role, state}),
         });
         
-        const result = await response.json();
-        
-        // Check for HTTP errors
-        if (!response.ok) {
-            throw new Error(result.message || `HTTP error! status: ${response.status}`);
-        }
-        
         // Check for application-level errors in response
-        if (result.code && result.code !== 200 && result.code >= 1000) {
-            throw new Error(result.message || 'API error occurred');
+        if (data.code && data.code !== 200 && data.code >= 1000) {
+            throw new Error(data.message || 'API error occurred');
         }
         
-        return result;
+        return data;
     },
 
     getUser: async (page = 0, size = 10) => {
-        const token = getToken();
-        if (!token) throw new Error('No authentication token found');
-
-        const response = await fetch(`${API_URL}/account?page=${page}&size=${size}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            method: 'GET',
-        });
-        return response.json();
+        const { data } = await apiRequest(`${API_URL}/account?page=${page}&size=${size}`);
+        return data;
     },
 
     // Get all user accounts with filter
     getAllUsers: async (search = '', state = null, page = 0, size = 20) => {
-        const token = getToken();
-        if (!token) throw new Error('No authentication token found');
-
         let url = `${API_URL}/account?page=${page}&size=${size}`;
         if (search) url += `&search=${encodeURIComponent(search)}`;
         if (state) url += `&state=${state}`;
 
-        const response = await fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            method: 'GET',
-        });
-        return response.json();
+        const { data } = await apiRequest(url);
+        return data;
     },
 
     getUserById: async (id) => {
-        const token = getToken();
-        if (!token) throw new Error('No authentication token found');
-
-        const response = await fetch(`${API_URL}/account/${id}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            method: 'GET',
-        });
-        return response.json();
+        const { data } = await apiRequest(`${API_URL}/account/${id}`);
+        return data;
     },
 
-    updateUser: async (id, fullName, username, password, phoneNumber, email, role , state) => {
-        const token = getToken();   
-        if (!token) throw new Error('No authentication token found');
-
-        const response = await fetch(`${API_URL}/account/${id}`, {
+    updateUser: async (id, fullName, username, password, phoneNumber, email, role, state) => {
+        const { data } = await apiRequest(`${API_URL}/account/${id}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
             body: JSON.stringify({fullName, username, password, phoneNumber, email, role, state}),
         });
-        return response.json();
+        
+        // Check for application-level errors in response
+        if (data.code && data.code !== 200 && data.code >= 1000) {
+            throw new Error(data.message || 'API error occurred');
+        }
+        
+        return data;
     },
 
     deleteUser: async (id) => {
-        const token = getToken();
-        if (!token) throw new Error('No authentication token found');
-
-        const response = await fetch(`${API_URL}/account/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+        const { data } = await apiRequest(`${API_URL}/account/${id}`, {
+            method: 'DELETE'
         });
-        return response.json();
+        return data;
     }
 };  

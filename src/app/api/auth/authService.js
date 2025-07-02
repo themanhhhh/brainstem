@@ -1,3 +1,5 @@
+import { apiRequest } from '../../lib/api';
+
 const API_URL = 'https://dev.quyna.online/project_4/restaurant';
 
 export const authService = {
@@ -79,14 +81,15 @@ export const authService = {
   },
 
   // Làm mới token
-  refreshToken: async (refreshToken) => {
+  refreshToken: async () => {
     try {
+      const refreshToken = getCookie('refreshToken');
       const response = await fetch(`${API_URL}/auth/refreshtoken`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refreshToken })
+          'Authorization': `Bearer ${refreshToken}`
+        }
       });
 
       const data = await response.json();
@@ -113,22 +116,9 @@ export const authService = {
         return null;
       }
       
-      const response = await fetch(`${API_URL}/auth/profile`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      const data = await response.json();
-      console.log('📡 getProfile API response:', { status: response.status, data });
-
-      if (!response.ok) {
-        console.log('❌ Profile API failed, throwing error:', data);
-        throw new Error(data.message || data.error || 'Profile fetch failed');
-      }
-
-      console.log('✅ Profile fetched successfully');
+      console.log('📡 getProfile using apiRequest...');
+      const { data } = await apiRequest(`${API_URL}/auth/profile`);
+      console.log('✅ Profile fetched successfully via interceptor');
       return data;
     } catch (error) {
       console.log('❌ getProfile error:', error);
@@ -139,54 +129,38 @@ export const authService = {
 
   updateProfile: async (fullName, phoneNumber, email, imgUrl = null) => {
     try {
-      const token = getToken();
       const profileData = { fullName, phoneNumber, email };
       // Chỉ thêm imgUrl vào request nếu nó được cung cấp
       if (imgUrl) {
         profileData.imgUrl = imgUrl;
       }
-      const response = await fetch(`${API_URL}/auth/update-profile`, {
+      
+      const { data } = await apiRequest(`${API_URL}/auth/update-profile`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify(profileData)
       });
-      const data = await response.json();
-      if (!response.ok) { 
-        throw new Error(data.message || 'Profile update failed');
-      }
+      
       return data;
     } catch (error) {
       console.error('Profile update error:', error);
       throw error;
     }
   },
-  changePassword: async (oldPassword, newPassword , confirmPassword) => {
+
+  changePassword: async (oldPassword, newPassword, confirmPassword) => {
     try {
-      const token = getToken();
-      const response = await fetch(`${API_URL}/auth/changepassword`, {
+      const { data } = await apiRequest(`${API_URL}/auth/changepassword`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ oldPassword, newPassword , confirmPassword})
+        body: JSON.stringify({ oldPassword, newPassword, confirmPassword})
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Password change failed');
-      }
 
       return data;
     } catch (error) {
       console.error('Password change error:', error);
       throw error;
     }
-  } ,
+  },
+
   forgotPassword: async (email) => {
     try {
       const response = await fetch(`${API_URL}/auth/forgotpassword`, {

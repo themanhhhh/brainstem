@@ -44,6 +44,41 @@ export function AuthProvider({ children }) {
   const [lastProfileFetch, setLastProfileFetch] = useState(0); // Timestamp của lần fetch cuối
   const router = useRouter();
 
+  // Function to update user data when token is refreshed
+  const updateUserFromToken = useCallback(() => {
+    try {
+      const token = getCookie('token');
+      const userData = getCookie('user');
+      
+      if (token && userData) {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        console.log('✅ User data updated after token refresh');
+      }
+    } catch (error) {
+      console.error('Error updating user data after token refresh:', error);
+    }
+  }, []);
+
+  // Listen for token refresh events (for custom event system)
+  useEffect(() => {
+    const handleTokenRefresh = (event) => {
+      console.log('🔄 Token refresh event received');
+      updateUserFromToken();
+      // Optionally fetch fresh profile data
+      if (profileFetched) {
+        fetchProfile(true);
+      }
+    };
+
+    // Custom event for when our API interceptor refreshes tokens
+    window.addEventListener('tokenRefreshed', handleTokenRefresh);
+    
+    return () => {
+      window.removeEventListener('tokenRefreshed', handleTokenRefresh);
+    };
+  }, [updateUserFromToken, profileFetched]);
+
   // Fetch profile function - memo để tránh recreation
   const fetchProfile = useCallback(async (forceRefetch = false) => {
     console.log('🔍 fetchProfile called with forceRefetch:', forceRefetch);
@@ -89,167 +124,13 @@ export function AuthProvider({ children }) {
       });
       setProfileFetched(true);
       
-      // Tránh redirect liên tục
-      if (isRedirecting) {
-        console.log('⚠️ Already redirecting, skipping...');
-        return null;
-      }
-      
-      // Khi fetchProfile thất bại, clear token và user data
-      const currentPath = window.location.pathname;
-      console.log('🔍 Checking error type for path:', currentPath);
-      
-      // Xử lý cụ thể cho "Invalid token" - logout và điều hướng về trang chủ
-      console.log('🔍 Checking for Invalid token:', {
-        messageIncludes: error?.message?.includes('Invalid token'),
-        responseDataError: error?.response?.data?.error,
-        responseDataMessage: error?.response?.data?.message,
-        errorField: error?.error,
-        stringCheck: (typeof error === 'string' && error.includes('Invalid token'))
-      });
-      
-      if (error?.message?.includes('Invalid token') || 
-          error?.response?.data?.error === 'Invalid token' ||
-          error?.response?.data?.message === 'Invalid token' ||
-          error?.error === 'Invalid token' ||
-          (typeof error === 'string' && error.includes('Invalid token'))) {
-        console.log('🚨 Invalid token detected, logging out and redirecting to homepage');
-        
-        // Hiển thị thông báo cho user
-        toast.error('Phiên đăng nhập không hợp lệ! Hệ thống sẽ đăng xuất bạn.', {
-          duration: 3000,
-          position: 'top-center',
-          style: {
-            background: '#ff4444',
-            color: 'white',
-            fontWeight: '500',
-          },
-        });
-        
-        setIsRedirecting(true);
-        setUser(null);
-        setProfile(null);
-        setProfileFetched(false);
-        
-        // Thực hiện logout trước khi redirect (nếu có refreshToken)
-        const refreshToken = getCookie('refreshToken');
-        console.log('Debug - RefreshToken available:', !!refreshToken);
-        
-        if (refreshToken) {
-          try {
-            console.log('Attempting to logout via API with refreshToken:', refreshToken.substring(0, 20) + '...');
-            const logoutResult = await authService.logout();
-            console.log('Logout API completed successfully:', logoutResult);
-            
-            // Thông báo nhỏ cho biết đã logout server-side
-            toast.success('Đã đăng xuất khỏi server', {
-              duration: 1500,
-              position: 'top-right',
-              style: {
-                fontSize: '12px',
-                background: '#28a745',
-                color: 'white',
-              },
-            });
-          } catch (logoutError) {
-            console.warn('Logout API failed during invalid token handling:', {
-              error: logoutError,
-              message: logoutError.message,
-              status: logoutError.status
-            });
-            // Tiếp tục xử lý dù logout API thất bại
-          }
-        } else {
-          console.log('No refreshToken found, skipping logout API call');
-        }
-        
-        clearAllAuthCookies();
-        
-        // Luôn chuyển về trang chủ khi gặp Invalid token (delay để user thấy thông báo)
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 3500); // Tăng thời gian để user đọc thông báo
-        return null;
-      }
-      
-      // Nếu là lỗi 401 (Unauthorized) hoặc token không hợp lệ, chuyển về login
-      if (error?.response?.status === 401 || error?.status === 401 || 
-          error?.message?.includes('401') || error?.message?.includes('Unauthorized')) {
-        
-        // Hiển thị thông báo cho user
-        toast.error('Phiên đăng nhập đã hết hạn! Vui lòng đăng nhập lại.', {
-          duration: 3000,
-          position: 'top-center',
-          style: {
-            background: '#ff6b6b',
-            color: 'white',
-            fontWeight: '500',
-          },
-        });
-        
-        setIsRedirecting(true);
-        setUser(null);
-        setProfile(null);
-        clearAllAuthCookies();
-        
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 3500);
-        return null;
-      }
-      
-      // Nếu đang ở trang protected (admin/manager) thì chuyển về login
-      if (currentPath.startsWith('/admin') || currentPath.startsWith('/manager')) {
-        
-        // Hiển thị thông báo cho user
-        toast.error('Bạn không có quyền truy cập! Hệ thống sẽ chuyển về trang đăng nhập.', {
-          duration: 3000,
-          position: 'top-center',
-          style: {
-            background: '#ff8c00',
-            color: 'white',
-            fontWeight: '500',
-          },
-        });
-        
-        setIsRedirecting(true);
-        setUser(null);
-        setProfile(null);
-        clearAllAuthCookies();
-        
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 3500);
-        return null;
-      }
-      
-      // Với các lỗi khác, chỉ chuyển về trang chủ nếu không phải đang ở trang chủ hoặc login
-      if (currentPath !== '/' && currentPath !== '/login') {
-        
-        // Hiển thị thông báo cho user
-        toast.error('Có lỗi xảy ra với phiên đăng nhập! Hệ thống sẽ chuyển về trang chủ.', {
-          duration: 3000,
-          position: 'top-center',
-          style: {
-            background: '#666',
-            color: 'white',
-            fontWeight: '500',
-          },
-        });
-        
-        setIsRedirecting(true);
-        setUser(null);
-        setProfile(null);
-        clearAllAuthCookies(); // Xoá tất cả cookie liên quan đến auth
-        
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 3500);
-      }
+      // Note: Token refresh sẽ được handle bởi API interceptor
+      // AuthContext không cần handle redirect cho expired token nữa
+      // vì API interceptor đã làm việc đó
       
       return null;
     }
-  }, [profileFetched, lastProfileFetch, profile, isRedirecting]); // Dependencies cho useCallback
+  }, [profileFetched, lastProfileFetch, profile]); // Dependencies cho useCallback
 
   useEffect(() => {
     // Reset redirect flag khi component mount
@@ -335,6 +216,17 @@ export function AuthProvider({ children }) {
       console.log('🚀 Calling fetchProfile after login...');
       await fetchProfile(true);
 
+      // Show success message
+      toast.success('Đăng nhập thành công!', {
+        duration: 2000,
+        position: 'top-center',
+        style: {
+          background: '#4caf50',
+          color: 'white',
+          fontWeight: '500',
+        },
+      });
+
       // Chuyển hướng dựa vào role
       if (userData.role === "ADMIN") {
         window.location.href = '/admin/dashboard';
@@ -365,7 +257,7 @@ export function AuthProvider({ children }) {
       });
     } catch (error) {
       console.error('Logout error:', error);
-      // Hiển thị thông báo lỗi khi logout
+      // Hiển thị thông báo đăng xuất thành công dù có lỗi
       toast.success('Đăng xuất thành công!', {
         duration: 2000,
         position: 'top-center',
@@ -414,8 +306,6 @@ export function AuthProvider({ children }) {
     return user?.role === "MANAGER";
   };
 
-
-
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -425,6 +315,7 @@ export function AuthProvider({ children }) {
       logout,
       register,
       fetchProfile,
+      updateUserFromToken, // Expose this for manual updates
       isAdmin, 
       isUser,
       isManager
