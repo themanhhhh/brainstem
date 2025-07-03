@@ -30,27 +30,27 @@ const menuItems = [
     list: [
       {
         title: "Dashboard",
-        path: "/admin/dashboard",
+        path: "/manager/dashboard",
         icon: <MdDashboard />,
       },
       {
         title: "Users",
-        path: "/admin/dashboard/users",
+        path: "/manager/dashboard/users",
         icon: <MdSupervisedUserCircle />,
       },
       {
         title: "Category",
-        path: "/admin/dashboard/category",
+        path: "/manager/dashboard/category",
         icon: <BiCategoryAlt />,
       },
       {
         title: "Foods Management",
-        path: "/admin/dashboard/products",
+        path: "/manager/dashboard/products",
         icon: <IoFastFoodOutline />,
       },
       {
         title: "Order Table",
-        path: "/admin/dashboard/orderTable",
+        path: "/manager/dashboard/orderTable",
         icon: <RiListOrdered />,
       },
     ],
@@ -60,7 +60,7 @@ const menuItems = [
     list: [
       {
         title: "Log Activity",
-        path: "/admin/dashboard/log",
+        path: "/manager/dashboard/log",
         icon: <LuSquareActivity/>
       }
     ],
