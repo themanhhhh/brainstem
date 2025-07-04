@@ -15,6 +15,12 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
   const [imagePreview, setImagePreview] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({
+    fullName: '',
+    phoneNumber: '',
+    email: '',
+    imgUrl: ''
+  });
 
   const { uploadToPinata } = useCart();
 
@@ -36,6 +42,62 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
       ...prev,
       [name]: value
     }));
+    
+    // Validate field immediately
+    validateField(name, value);
+  };
+
+  const validateField = (fieldName, value) => {
+    let error = '';
+
+    switch (fieldName) {
+      case 'fullName':
+        if (!value.trim()) {
+          error = 'Họ tên là bắt buộc';
+        } else if (value.trim().split(' ').length < 2) {
+          error = 'Vui lòng nhập đầy đủ họ và tên';
+        } else if (/[\d!@#$%^&*(),.?":{}|<>]/.test(value)) {
+          error = 'Họ tên không được chứa số hoặc ký tự đặc biệt';
+        }
+        break;
+
+      case 'email':
+        const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+        if (!value.trim()) {
+          error = 'Email là bắt buộc';
+        } else if (!emailRegex.test(value)) {
+          error = 'Email không hợp lệ';
+        }
+        break;
+
+      case 'phoneNumber':
+        if (value.trim()) {
+          const phoneRegex = /^(0|\+84)([1-9][0-9]{8}|[1-9][0-9]{8})$/;
+          if (!phoneRegex.test(value)) {
+            error = 'Số điện thoại không hợp lệ (VD: 0912345678 hoặc +84912345678)';
+          }
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    setErrors(prev => ({
+      ...prev,
+      [fieldName]: error
+    }));
+
+    return !error;
+  };
+
+  const validateForm = () => {
+    // Validate all fields
+    const isFullNameValid = validateField('fullName', formData.fullName);
+    const isEmailValid = validateField('email', formData.email);
+    const isPhoneValid = validateField('phoneNumber', formData.phoneNumber);
+
+    return isFullNameValid && isEmailValid && isPhoneValid;
   };
 
   const handleImageChange = (e) => {
@@ -109,10 +171,20 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate form before submission
+    if (!validateForm()) {
+      toast.error('Vui lòng kiểm tra lại thông tin!', {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+
     setLoading(true);
     
     try {
-      toast.loading('Updating profile...', { id: 'update-profile' });
+      toast.loading('Đang cập nhật thông tin...', { id: 'update-profile' });
       
       let imageUrl = formData.imgUrl;
       
@@ -124,7 +196,7 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
       const { fullName, phoneNumber, email } = formData;
       await authService.updateProfile(fullName, phoneNumber, email, imageUrl);
       
-      toast.success('Profile updated successfully!', {
+      toast.success('Cập nhật thông tin thành công!', {
         id: 'update-profile',
         duration: 3000,
         position: "top-center"
@@ -133,11 +205,11 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
       setSelectedImage(null);
       
       if (onProfileUpdated) {
-        onProfileUpdated(); // To fetch updated profile from server
+        onProfileUpdated();
       }
     } catch (err) {
       console.error('Error updating profile:', err);
-      toast.error(err.message || 'Failed to update profile. Please try again later.', {
+      toast.error(err.message || 'Cập nhật thông tin thất bại. Vui lòng thử lại sau.', {
         id: 'update-profile',
         duration: 4000,
         position: "top-center"
@@ -165,18 +237,18 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
 
   return (
     <div className={styles.card}>
-      <div className={styles.cardTitle}>Update Your Profile</div>
+      <div className={styles.cardTitle}>Cập nhật thông tin</div>
       <form className={styles.form} onSubmit={handleSubmit}>
         {/* Avatar Upload Section */}
         <div className={styles.formGroup}>
-          <label>Profile Avatar</label>
+          <label>Ảnh đại diện</label>
           <div className={styles.avatarUpload}>
             <div className={styles.avatarPreview}>
               {imagePreview ? (
                 <img src={imagePreview} alt="Profile Preview" className={styles.avatarImage} />
               ) : (
                 <div className={styles.avatarPlaceholder}>
-                  <span>No Image</span>
+                  <span>Chưa có ảnh</span>
                 </div>
               )}
             </div>
@@ -189,54 +261,73 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
                 className={styles.fileInput}
               />
               <label htmlFor="avatar" className={styles.uploadBtn}>
-                Choose Image
+                Chọn ảnh
               </label>
               {selectedImage && (
                 <span className={styles.fileName}>{selectedImage.name}</span>
               )}
             </div>
           </div>
+          {errors.imgUrl && <span className={styles.errorMessage}>{errors.imgUrl}</span>}
         </div>
 
         <div className={styles.formGroup}>
-          <label>Full Name</label>
+          <label>Họ và tên *</label>
           <input
             type="text"
             name="fullName"
             value={formData.fullName}
             onChange={handleChange}
+            onBlur={(e) => validateField('fullName', e.target.value)}
             required
-            placeholder="Enter your full name"
+            placeholder="Nhập họ và tên"
+            className={errors.fullName ? styles.errorInput : ''}
           />
+          {errors.fullName && <span className={styles.errorMessage}>{errors.fullName}</span>}
         </div>
+
         <div className={styles.formGroup}>
-          <label>Email</label>
+          <label>Email *</label>
           <input
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
+            onBlur={(e) => validateField('email', e.target.value)}
             required
-            placeholder="Enter your email"
+            placeholder="Nhập địa chỉ email"
+            className={errors.email ? styles.errorInput : ''}
           />
+          {errors.email && <span className={styles.errorMessage}>{errors.email}</span>}
         </div>
+
         <div className={styles.formGroup}>
-          <label>Phone Number</label>
+          <label>Số điện thoại</label>
           <input
             type="text"
             name="phoneNumber"
             value={formData.phoneNumber}
             onChange={handleChange}
-            placeholder="Enter your phone number"
+            onBlur={(e) => validateField('phoneNumber', e.target.value)}
+            placeholder="Nhập số điện thoại"
+            className={errors.phoneNumber ? styles.errorInput : ''}
           />
+          {errors.phoneNumber && <span className={styles.errorMessage}>{errors.phoneNumber}</span>}
+          {!errors.phoneNumber && formData.phoneNumber && (
+            <span className={styles.successMessage}>✓ Số điện thoại hợp lệ</span>
+          )}
         </div>
         
         <div className={styles.formActions}>
           <button type="button" className={styles.cancelBtn} onClick={resetForm}>
-            Cancel
+            Hủy
           </button>
-          <button type="submit" className={styles.saveBtn} disabled={loading || uploadingImage}>
-            {loading ? 'Saving...' : uploadingImage ? 'Uploading...' : 'Save'}
+          <button 
+            type="submit" 
+            className={styles.saveBtn} 
+            disabled={loading || uploadingImage || Object.values(errors).some(error => error !== '')}
+          >
+            {loading ? 'Đang lưu...' : uploadingImage ? 'Đang tải ảnh...' : 'Lưu thay đổi'}
           </button>
         </div>
       </form>
