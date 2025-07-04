@@ -407,7 +407,7 @@ const Page = () => {
               { value: 'INACTIVE', label: 'Inactive' }
             ]}
           />
-          <Link href="/admin/dashboard/category/add" className={Style.addButton}>
+          <Link href="/manager/dashboard/category/add" className={Style.addButton}>
             Add New Category
           </Link>
         </div>

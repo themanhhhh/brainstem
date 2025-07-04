@@ -172,23 +172,6 @@ const Register = () => {
       return false;
     }
 
-    const strippedPhone = formData.phoneNumber.replace(/[^0-9]/g, '');
-    if (strippedPhone.length < 10) {
-      toast.error('Phone number too short (minimum 10 digits)', {
-        duration: 3000,
-        position: 'top-center'
-      });
-      return false;
-    }
-
-    if (strippedPhone.length > 15) {
-      toast.error('Phone number too long (maximum 15 digits)', {
-        duration: 3000,
-        position: 'top-center'
-      });
-      return false;
-    }
-
     // Password validation
     if (!formData.password) {
       toast.error('Password is required', {
@@ -206,10 +189,6 @@ const Register = () => {
       return false;
     }
 
-    
-
-    
-
     // Confirm Password validation
     if (!formData.confirmPassword) {
       toast.error('Please confirm your password', {
@@ -221,6 +200,21 @@ const Register = () => {
 
     if (formData.password !== formData.confirmPassword) {
       toast.error('Passwords do not match', {
+        duration: 3000,
+        position: 'top-center'
+      });
+      return false;
+    }
+
+    if (formData.password.length > 30) {
+      toast.error('Password too long (maximum 30 characters)', {
+        duration: 3000,
+        position: 'top-center'
+      });
+      return false;
+    }
+    if(formData.phoneNumber.length !== 10){
+      toast.error('Phone number must be 10 digits', {
         duration: 3000,
         position: 'top-center'
       });

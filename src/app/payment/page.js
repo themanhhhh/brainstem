@@ -259,6 +259,20 @@ const PaymentPage = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     console.log('Form input changed:', name, '=', value); // Debug log
+    
+    // Validate phone number
+    if (name === 'phone') {
+      // Chỉ cho phép nhập số
+      const numbersOnly = value.replace(/[^\d]/g, '');
+      // Giới hạn 10 số
+      const truncated = numbersOnly.slice(0, 10);
+      setFormData(prev => ({
+        ...prev,
+        [name]: truncated
+      }));
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value,
@@ -550,6 +564,15 @@ const PaymentPage = () => {
     setSubmitting(true);
     
     try {
+      // Validate phone number
+      if (formData.phone.length !== 10) {
+        toast.error('Số điện thoại phải có đúng 10 số!', {
+          duration: 3000,
+          position: "top-center"
+        });
+        return;
+      }
+
       // Lấy orderId từ cookie
       const currentOrderId = getOrderId();
       if (!currentOrderId) {
@@ -1199,8 +1222,16 @@ const PaymentPage = () => {
                     placeholder={t('payment.phone')}
                     value={formData.phone}
                     onChange={handleInputChange}
+                    maxLength={10}
+                    pattern="[0-9]{10}"
+                    title="Vui lòng nhập đúng 10 số điện thoại"
                     required
                   />
+                  {formData.phone && formData.phone.length !== 10 && (
+                    <div className={styles.errorMessage}>
+                      Số điện thoại phải có đúng 10 số
+                    </div>
+                  )}
                 </div>
               </div>
 

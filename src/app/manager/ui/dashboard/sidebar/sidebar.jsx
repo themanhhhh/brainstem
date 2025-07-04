@@ -53,6 +53,16 @@ const menuItems = [
         path: "/manager/dashboard/orderTable",
         icon: <RiListOrdered />,
       },
+      {
+        title: "Order",
+        path: "/manager/dashboard/order",
+        icon: <MdOutlineSettings />,
+      },
+      {
+        title: "Table",
+        path: "/manager/dashboard/table",
+        icon: <MdTableRestaurant />,
+      }
     ],
   },
   {

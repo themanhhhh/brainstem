@@ -201,7 +201,7 @@ const Page = () => {
               placeholder="Tìm kiếm theo tên, mô tả hoặc danh mục món ăn..."
             />
           </Suspense>
-          <Link href="/admin/dashboard/products/add">
+          <Link href="/manager/dashboard/products/add">
             <button className={Style.addButton}>Add New</button>
           </Link>
       </div>

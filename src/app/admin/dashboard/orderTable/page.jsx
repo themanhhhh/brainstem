@@ -29,7 +29,6 @@ const Page = () => {
     phoneNumber: '',
     periodType: 'LUNCH',
     tableId: '',
-    orderTime: ''
   });
 
   // Fetch available tables for selection
@@ -174,13 +173,7 @@ const Page = () => {
       });
       return false;
     }
-    if (!formData.orderTime) {
-      toast.error('Vui lòng chọn thời gian đặt bàn', {
-        duration: 3000,
-        position: "top-center"
-      });
-      return false;
-    }
+    
     if (formData.description.trim().length < 5) {
       toast.error('Mô tả phải có ít nhất 5 ký tự', {
         duration: 3000,
@@ -220,9 +213,7 @@ const Page = () => {
     try {
       toast.loading("Đang tạo đơn đặt bàn...", { id: "create-order" });
       
-      const formattedDateTime = formatDateTimeForAPI(formData.orderTime);
-      console.log('Original orderTime:', formData.orderTime);
-      console.log('Formatted orderTime:', formattedDateTime);
+      
       
       const response = await ordertableService.createOrder(
         formData.email,
@@ -231,7 +222,7 @@ const Page = () => {
         formData.phoneNumber,
         formData.periodType,
         parseInt(formData.tableId),
-        formattedDateTime,
+       
         orderTableState
       );
 
@@ -265,7 +256,7 @@ const Page = () => {
           phoneNumber: '',
           periodType: 'LUNCH',
           tableId: '',
-          orderTime: ''
+       
         });
         // Refresh tables
         fetchTables();
@@ -398,20 +389,6 @@ const Page = () => {
         </div>
 
         <div className={styles.formGroup}>
-          <label htmlFor="orderTime" className={styles.label}>Order Time *</label>
-          <input
-            type="datetime-local"
-            id="orderTime"
-            name="orderTime"
-            value={formData.orderTime}
-            onChange={handleInputChange}
-            className={styles.input}
-            min={getCurrentDateTime()}
-            required
-          />
-        </div>
-
-        <div className={styles.formGroup}>
           <label htmlFor="periodType" className={styles.label}>Period Type</label>
           <select
             id="periodType"
@@ -420,10 +397,10 @@ const Page = () => {
             onChange={handleInputChange}
             className={styles.select}
           >
-            <option value="MORNING">Morning</option>
-            <option value="LUNCH">Lunch</option>
-            <option value="AFTERNOON">Afternoon</option>
-            <option value="EVENING">Evening</option>
+            <option value="MORNING">Morning (08:00 - 11:00)</option>
+            <option value="LUNCH">Lunch (11:00 - 14:00)</option>
+            <option value="AFTERNOON">Afternoon (14:00 - 17:00)</option>
+            <option value="EVENING">Evening (17:00 - 22:00)</option>
           </select>
         </div>
 
