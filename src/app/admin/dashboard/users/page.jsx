@@ -47,7 +47,7 @@ const Page = () => {
   
   // Lấy trang hiện tại từ URL (API bắt đầu từ 0)
   const currentPage = parseInt(searchParams.get("page") || "0");
-  
+
   // Lấy các tham số lọc từ URL
   const searchFilter = searchParams.get("search") || "";
   const statusFilter = searchParams.get("status") || "";
@@ -324,12 +324,12 @@ const Page = () => {
     <div className={Style.userr}>
       
       <div className={Style.container}>
-                  <div className={Style.top}>
-              <Suspense fallback={<div>Loading...</div>}>
+        <div className={Style.top}>
+            <Suspense fallback={<div>Loading...</div>}>
                 <FilterableSearch 
                   placeholder="Tìm kiếm theo tên, email, username, hoặc số điện thoại..."
-                  onChange={handleSearch} 
-                  onSearch={handleSearch}
+                onChange={handleSearch} 
+                onSearch={handleSearch} 
                   value={searchTerm}
                   statusFilter={selectedStatus}
                   onStatusChange={handleStatusChange}
@@ -338,12 +338,12 @@ const Page = () => {
                     { value: 'ACTIVE', label: 'Active' },
                     { value: 'INACTIVE', label: 'Inactive' }
                   ]}
-                />
-              </Suspense>
-              <Link href="/admin/dashboard/users/add">
-                <button className={Style.addButton}>Add New</button>
-              </Link>
-          </div>
+              />
+            </Suspense>
+            <Link href="/admin/dashboard/users/add">
+              <button className={Style.addButton}>Add New</button>
+            </Link>
+        </div>
       
         {/* Hiển thị kết quả tìm kiếm */}
         {searchFilter && (

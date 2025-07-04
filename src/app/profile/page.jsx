@@ -79,6 +79,10 @@ const Profile = () => {
     const d = new Date(ts);
     return d.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
   };
+  const isAdmin = profile.role === 'ADMIN';
+  const isManager = profile.role === 'MANAGER';
+  const isUser = profile.role === 'CUSTOMER';
+
 
   return (
     <div className={styles.settings}>
@@ -88,19 +92,26 @@ const Profile = () => {
       <aside className={styles.sidebar}>
         <div className={styles.menuTitle}>Settings</div>
         <ul className={styles.menuList}>
-          {menu.map((item, idx) => (
-            <li
-              key={item.label}
-              className={activeTab === idx ? styles.active : ''}
-              onClick={() => setActiveTab(idx)}
-            >
-              {item.icon}
-              <div>
-                <div className={styles.menuLabel}>{item.label}</div>
-                <div className={styles.menuDesc}>{item.desc}</div>
-              </div>
-            </li>
-          ))}
+          {menu.map((item, idx) => {
+            // Show all items except Order History and Table Reservations for admin/manager
+            if ((isAdmin || isManager) && (item.label === 'Order History' || item.label === 'Table Reservations')) {
+              return null;
+            }
+            // Show all items for regular users
+            return (
+              <li
+                key={item.label}
+                className={activeTab === idx ? styles.active : ''}
+                onClick={() => setActiveTab(idx)}
+              >
+                {item.icon}
+                <div>
+                  <div className={styles.menuLabel}>{item.label}</div>
+                  <div className={styles.menuDesc}>{item.desc}</div>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       </aside>
 
@@ -118,10 +129,10 @@ const Profile = () => {
         {activeTab === 3 && (
           <AddressManager />
         )}
-        {activeTab === 4 && (
+        {activeTab === 4 && isUser && (
           <OrderHistory />
         )}
-        {activeTab === 5 && (
+        {activeTab === 5 && isUser && (
           <TableReservationHistory />
         )}
       </main>
