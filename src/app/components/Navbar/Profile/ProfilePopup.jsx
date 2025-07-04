@@ -38,7 +38,7 @@ const ProfilePopup = ({ profile: propProfile }) => {
       <div className={styles.menu}>
         <div className={styles.menuItem}>
           <FaUserAlt />
-          <Link href="/profile">My Profile</Link>
+          <Link href="/admin/dashboard/profile">My Profile</Link>
         </div>
       
         <div className={styles.menuItem} onClick={handleLogout} style={{ cursor: 'pointer' }}>

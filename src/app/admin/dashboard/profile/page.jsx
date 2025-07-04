@@ -108,10 +108,6 @@ const Profile = () => {
 
   return (
     <div className={styles.settings}>
-      <div className={styles.settingsHeader}>
-        <h1>Settings</h1>
-        <LogoutButton />
-      </div>
       <div className={styles.settingsLayout}>
       {/* Sidebar */}
       <aside className={styles.sidebar}>

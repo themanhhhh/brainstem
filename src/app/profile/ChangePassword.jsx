@@ -46,8 +46,8 @@ const ChangePassword = () => {
       newErrors.next = 'Mật khẩu mới là bắt buộc';
     } else if (next.length < 8) {
       newErrors.next = 'Mật khẩu mới phải có ít nhất 8 ký tự';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(next)) {
-      newErrors.next = 'Mật khẩu mới phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt';
+    } else if (next.length > 30) {
+      newErrors.next = 'Mật khẩu mới không được vượt quá 30 ký tự';
     } else if (next === current) {
       newErrors.next = 'Mật khẩu mới phải khác mật khẩu hiện tại';
     }
@@ -284,7 +284,7 @@ const ChangePassword = () => {
           {errors.next && <span className={styles.errorMessage}>{errors.next}</span>}
           {!errors.next && next && (
             <span className={styles.inputHint}>
-              💡 Tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt
+              💡 Tối thiểu 8 ký tự, tối đa 30 ký tự
             </span>
           )}
         </div>

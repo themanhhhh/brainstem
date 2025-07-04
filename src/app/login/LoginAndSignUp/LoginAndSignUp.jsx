@@ -49,6 +49,14 @@ const LoginAndSignUp = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
+    // Prevent whitespace in username
+    if (name === 'username' && value.includes(' ')) {
+      toast.error('Username cannot contain spaces', {
+        duration: 3000,
+        position: 'top-center'
+      });
+      return;
+    }
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -58,6 +66,15 @@ const LoginAndSignUp = () => {
   const validateForm = () => {
     if (!formData.username.trim()) {
       toast.error('Username is required', {
+        duration: 3000,
+        position: 'top-center'
+      });
+      return false;
+    }
+
+    // Check for whitespace in username
+    if (formData.username.includes(' ')) {
+      toast.error('Username cannot contain spaces', {
         duration: 3000,
         position: 'top-center'
       });

@@ -397,7 +397,6 @@ const Page = () => {
             ))}
           </tbody>
         </table>
-      
         <div className={Style.darkBg}>
           <Suspense fallback={<div>Loading...</div>}>
             <Pagination metadata={metadata || { page: 0, totalPages: 1, count: users.length, totalElements: users.length }} />

@@ -46,6 +46,70 @@ const Register = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // Validation rules during input
+    switch(name) {
+      case 'username':
+        // Check for spaces and special characters
+        if (value.includes(' ')) {
+          toast.error('Username cannot contain spaces', {
+            duration: 3000,
+            position: 'top-center'
+          });
+          return;
+        }
+        if (/[^a-zA-Z0-9]/.test(value)) {
+          toast.error('Only letters and numbers allowed in username', {
+            duration: 3000,
+            position: 'top-center'
+          });
+          return;
+        }
+        if (value.length > 30) {
+          toast.error('Username too long (maximum 30 characters)', {
+            duration: 3000,
+            position: 'top-center'
+          });
+          return;
+        }
+        break;
+        
+      case 'phoneNumber':
+        // Allow only numbers and basic phone number characters
+        if (/[^0-9+\-\(\) ]/.test(value)) {
+          toast.error('Phone number can only contain numbers and basic symbols', {
+            duration: 3000,
+            position: 'top-center'
+          });
+          return;
+        }
+        break;
+
+      case 'password':
+        // Real-time password validation feedback
+        if (value.length > 0) {
+          if (value.length < 8) {
+            toast.error('Password must be at least 8 characters', {
+              duration: 3000,
+              position: 'top-center'
+            });
+          }
+          if (!/[A-Z]/.test(value)) {
+            toast.error('Password must contain at least one uppercase letter', {
+              duration: 3000,
+              position: 'top-center'
+            });
+          }
+          if (!/[0-9]/.test(value)) {
+            toast.error('Password must contain at least one number', {
+              duration: 3000,
+              position: 'top-center'
+            });
+          }
+        }
+        break;
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -53,7 +117,7 @@ const Register = () => {
   };
 
   const validateForm = () => {
-    // Check required fields
+    // Username validation
     if (!formData.username.trim()) {
       toast.error('Username is required', {
         duration: 3000,
@@ -61,7 +125,32 @@ const Register = () => {
       });
       return false;
     }
-    
+
+    if (formData.username.length < 3) {
+      toast.error('Username must be at least 3 characters', {
+        duration: 3000,
+        position: 'top-center'
+      });
+      return false;
+    }
+
+    if (formData.username.length > 30) {
+      toast.error('Username too long (maximum 30 characters)', {
+        duration: 3000,
+        position: 'top-center'
+      });
+      return false;
+    }
+
+    if (/[^a-zA-Z0-9]/.test(formData.username)) {
+      toast.error('Username can only contain letters and numbers', {
+        duration: 3000,
+        position: 'top-center'
+      });
+      return false;
+    }
+
+    // Email validation
     if (!formData.email.trim()) {
       toast.error('Email is required', {
         duration: 3000,
@@ -69,7 +158,17 @@ const Register = () => {
       });
       return false;
     }
-    
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error('Invalid email format', {
+        duration: 3000,
+        position: 'top-center'
+      });
+      return false;
+    }
+
+    // Full Name validation
     if (!formData.fullName.trim()) {
       toast.error('Full name is required', {
         duration: 3000,
@@ -77,7 +176,16 @@ const Register = () => {
       });
       return false;
     }
-    
+
+    if (formData.fullName.length > 100) {
+      toast.error('Full name is too long (maximum 100 characters)', {
+        duration: 3000,
+        position: 'top-center'
+      });
+      return false;
+    }
+
+    // Phone Number validation
     if (!formData.phoneNumber.trim()) {
       toast.error('Phone number is required', {
         duration: 3000,
@@ -85,54 +193,74 @@ const Register = () => {
       });
       return false;
     }
-    
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      toast.error('Please enter a valid email address', {
+
+    const strippedPhone = formData.phoneNumber.replace(/[^0-9]/g, '');
+    if (strippedPhone.length < 10) {
+      toast.error('Phone number too short (minimum 10 digits)', {
         duration: 3000,
         position: 'top-center'
       });
       return false;
     }
-    
-    // Validate username length
-    if (formData.username.length < 3) {
-      toast.error('Username must be at least 3 characters long', {
+
+    if (strippedPhone.length > 15) {
+      toast.error('Phone number too long (maximum 15 digits)', {
         duration: 3000,
         position: 'top-center'
       });
       return false;
     }
-    
-    // Validate password
-    if (formData.password.length < 6) {
-      toast.error('Password must be at least 6 characters long', {
+
+    // Password validation
+    if (!formData.password) {
+      toast.error('Password is required', {
         duration: 3000,
         position: 'top-center'
       });
       return false;
     }
-    
-    // Check password confirmation
+
+    if (formData.password.length < 8) {
+      toast.error('Password must be at least 8 characters', {
+        duration: 3000,
+        position: 'top-center'
+      });
+      return false;
+    }
+
+    if (!/[A-Z]/.test(formData.password)) {
+      toast.error('Password must contain at least one uppercase letter', {
+        duration: 3000,
+        position: 'top-center'
+      });
+      return false;
+    }
+
+    if (!/[0-9]/.test(formData.password)) {
+      toast.error('Password must contain at least one number', {
+        duration: 3000,
+        position: 'top-center'
+      });
+      return false;
+    }
+
+    // Confirm Password validation
+    if (!formData.confirmPassword) {
+      toast.error('Please confirm your password', {
+        duration: 3000,
+        position: 'top-center'
+      });
+      return false;
+    }
+
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Password confirmation does not match', {
+      toast.error('Passwords do not match', {
         duration: 3000,
         position: 'top-center'
       });
       return false;
     }
-    
-    // Validate phone number format (basic)
-    const phoneRegex = /^[+]?[(]?[\d\s\-\(\)]{10,}$/;
-    if (!phoneRegex.test(formData.phoneNumber)) {
-      toast.error('Please enter a valid phone number', {
-        duration: 3000,
-        position: 'top-center'
-      });
-      return false;
-    }
-    
+
     return true;
   };
 
