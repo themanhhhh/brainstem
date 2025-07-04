@@ -85,29 +85,7 @@ const Register = () => {
         }
         break;
 
-      case 'password':
-        // Real-time password validation feedback
-        if (value.length > 0) {
-          if (value.length < 8) {
-            toast.error('Password must be at least 8 characters', {
-              duration: 3000,
-              position: 'top-center'
-            });
-          }
-          if (!/[A-Z]/.test(value)) {
-            toast.error('Password must contain at least one uppercase letter', {
-              duration: 3000,
-              position: 'top-center'
-            });
-          }
-          if (!/[0-9]/.test(value)) {
-            toast.error('Password must contain at least one number', {
-              duration: 3000,
-              position: 'top-center'
-            });
-          }
-        }
-        break;
+      
     }
 
     setFormData(prev => ({
@@ -228,21 +206,9 @@ const Register = () => {
       return false;
     }
 
-    if (!/[A-Z]/.test(formData.password)) {
-      toast.error('Password must contain at least one uppercase letter', {
-        duration: 3000,
-        position: 'top-center'
-      });
-      return false;
-    }
+    
 
-    if (!/[0-9]/.test(formData.password)) {
-      toast.error('Password must contain at least one number', {
-        duration: 3000,
-        position: 'top-center'
-      });
-      return false;
-    }
+    
 
     // Confirm Password validation
     if (!formData.confirmPassword) {

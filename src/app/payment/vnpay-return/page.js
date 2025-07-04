@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { clearOrderId, getOrderId, clearCartItemsFromCookie, updateOrderState } from '../../api/order/orderService';
+import { clearOrderId, getOrderId, clearCartItemsFromCookie, updateOrderState, removeFoodFromOrder, getCartItemsFromCookie } from '../../api/order/orderService';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import styles from '../../styles/payment-result.module.css';
@@ -82,9 +82,29 @@ const VNPayReturnPage = () => {
         console.log('✅ OrderId exists, proceeding with order state update');
         try {
           const orderState = code === '00' ? 'DONE' : 'CANCEL';
-        
+          
+          // Lấy cartItems từ cookies
+          const cartItemsFromCookie = getCartItemsFromCookie();
+          console.log('Cart items from cookie:', cartItemsFromCookie);
+
+          // Nếu thanh toán thất bại và có cartItems, thực hiện removeFoodFromOrder
+          if (orderState === 'CANCEL' && cartItemsFromCookie && cartItemsFromCookie.length > 0) {
+            const foodInfo = {
+              foodInfo: cartItemsFromCookie.map(item => ({
+                foodId: item.id,
+                quantity: item.quantity
+              }))
+            };
+            console.log('Removing food from order with data:', foodInfo);
+            await removeFoodFromOrder(orderId);
+          }
+
+          // Cập nhật trạng thái đơn hàng
           await updateOrderState(orderId, { orderState });
+          console.log('Order state updated to:', orderState);
+
         } catch (error) {
+          console.error('Error updating order:', error);
           toast.error('Failed to update order status, but payment was processed');
         }
       } else {

@@ -16,7 +16,7 @@ export const getOrderId = () => {
 };
 
 export const setOrderId = (orderId) => {
-    document.cookie = `orderId=${orderId}; path=/; max-age=${60 * 10}`; // Lưu 10 phút
+    document.cookie = `orderId=${orderId}; path=/; max-age=${60 * 60 * 24 * 30  }`; // Lưu 30 ngày
 };
 
 export const clearOrderId = () => {
@@ -161,6 +161,28 @@ export const updateOrderInfo = async (id, orderData) => {
         return data;
     } catch (error) {
         console.error('Error updating order:', error);
+        throw error;
+    }
+};
+
+export const removeFoodFromOrder = async (id, foodInfo) => {
+    const token = getToken();
+    if (!token) throw new Error('No authentication token found');
+    try {
+        const response = await fetch(`${API_URL}/customer/order/order-delFood/${id}`, {
+            method: 'PUT',
+            headers: {  
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(foodInfo),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to remove food from order');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error removing food from order:', error);
         throw error;
     }
 };

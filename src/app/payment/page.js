@@ -4,7 +4,18 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../context/CartContext';
 import { discountService } from '../api/discount/discountService';
-import { createOrder, getOrderId, clearOrderId, getOrderById, createPayment, checkPaymentStatus, updateOrderInfo } from '../api/order/orderService';
+import { 
+  createOrder, 
+  getOrderId, 
+  clearOrderId, 
+  getOrderById, 
+  createPayment, 
+  checkPaymentStatus, 
+  updateOrderInfo, 
+  removeFoodFromOrder,
+  getCartItemsFromCookie,
+  clearCartItemsFromCookie 
+} from '../api/order/orderService';
 import { addressService } from '../api/address/addressService';
 import AddressAutocomplete from '../components/AddressAutocomplete/AddressAutocomplete';
 import styles from '../styles/payment.module.css';
@@ -245,55 +256,9 @@ const PaymentPage = () => {
     }
   };
 
-  // Thêm hàm validate phone number
-  const validatePhoneNumber = (phone) => {
-    // Loại bỏ tất cả ký tự không phải số
-    const strippedPhone = phone.replace(/[^0-9]/g, '');
-    
-    // Kiểm tra độ dài
-    if (strippedPhone.length < 10) {
-      return { isValid: false, message: 'Số điện thoại phải có ít nhất 10 số' };
-    }
-    if (strippedPhone.length > 15) {
-      return { isValid: false, message: 'Số điện thoại không được quá 15 số' };
-    }
-
-    // Kiểm tra định dạng số Việt Nam
-    const vietnamPhoneRegex = /^(0|84|\+84)([3|5|7|8|9])([0-9]{8})$/;
-    if (!vietnamPhoneRegex.test(phone)) {
-      return { isValid: false, message: 'Số điện thoại không đúng định dạng Việt Nam' };
-    }
-
-    return { isValid: true };
-  };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     console.log('Form input changed:', name, '=', value); // Debug log
-
-    // Validation cho số điện thoại
-    if (name === 'phone') {
-      // Chỉ cho phép nhập số và một số ký tự đặc biệt
-      if (/[^\d\s+\-()]/.test(value)) {
-        toast.error('Số điện thoại chỉ được chứa số và các ký tự +, -, (, )', {
-          duration: 3000,
-          position: 'top-center'
-        });
-        return;
-      }
-
-      // Validate khi người dùng nhập
-      if (value.length > 0) {
-        const validation = validatePhoneNumber(value);
-        if (!validation.isValid) {
-          toast.error(validation.message, {
-            duration: 3000,
-            position: 'top-center'
-          });
-        }
-      }
-    }
-
     setFormData(prev => ({
       ...prev,
       [name]: value,
@@ -585,24 +550,6 @@ const PaymentPage = () => {
     setSubmitting(true);
     
     try {
-      // Validate phone number trước khi submit
-      if (!formData.phone) {
-        toast.error('Vui lòng nhập số điện thoại', {
-          duration: 3000,
-          position: 'top-center'
-        });
-        return;
-      }
-
-      const phoneValidation = validatePhoneNumber(formData.phone);
-      if (!phoneValidation.isValid) {
-        toast.error(phoneValidation.message, {
-          duration: 3000,
-          position: 'top-center'
-        });
-        return;
-      }
-
       // Lấy orderId từ cookie
       const currentOrderId = getOrderId();
       if (!currentOrderId) {
@@ -808,7 +755,53 @@ const PaymentPage = () => {
     await fetchDiscounts();
   };
 
-
+  const handleCancelPayment = async () => {
+    try {
+      const currentOrderId = getOrderId();
+      if (currentOrderId) {
+        toast.loading("Đang hủy đơn hàng...", { id: "cancel-order" });
+        
+        // Lấy cartItems từ cookies
+        const cartItemsFromCookie = getCartItemsFromCookie();
+        
+        if (cartItemsFromCookie && cartItemsFromCookie.length > 0) {
+          const foodInfo = {
+            foodInfo: cartItemsFromCookie.map(item => ({
+              foodId: item.id,
+              quantity: item.quantity
+            }))
+          };
+          
+          // Gọi API để xóa food khỏi order
+          await removeFoodFromOrder(currentOrderId, foodInfo);
+          
+          // Xóa cookies
+          clearOrderId();
+          clearCartItemsFromCookie();
+          clearCart(); // Xóa cart trong context
+          
+          toast.success('Đã hủy đơn hàng thành công!', {
+            id: "cancel-order",
+            duration: 3000,
+            position: "top-center"
+          });
+        }
+      }
+      
+      // Chuyển về trang cart
+      router.push('/cart');
+    } catch (error) {
+      console.error('Error canceling order:', error);
+      const errorMessage = getErrorMessage(error, 'Không thể hủy đơn hàng');
+      toast.error(errorMessage, {
+        id: "cancel-order",
+        duration: 4000,
+        position: "top-center"
+      });
+      // Vẫn chuyển về trang cart ngay cả khi có lỗi
+      router.push('/cart');
+    }
+  };
 
   if (!orderData && cartItems.length === 0) {
     return (
@@ -842,7 +835,7 @@ const PaymentPage = () => {
                   {/* Hiển thị địa chỉ mặc định */}
                   {loadingAddresses ? (
                     <div className={styles.loadingAddresses}>Loading saved addresses...</div>
-                  ) : defaultAddress ? (
+                  ) : savedAddresses.length > 0 ? (
                     <div className={styles.savedAddresses}>
                       <h3>Default Address:</h3>
                       <div className={styles.addressCard}>
@@ -853,13 +846,22 @@ const PaymentPage = () => {
                         </div>
                         <p className={styles.addressText}>{defaultAddress.addressDetail}</p>
                       </div>
-                      <button
-                        type="button"
-                        className={styles.addNewAddressBtn}
-                        onClick={() => setShowAddressListModal(true)}
-                      >
-                        Chọn địa chỉ khác
-                      </button>
+                      <div className={styles.addressActions}>
+                        <button
+                          type="button"
+                          className={styles.addNewAddressBtn}
+                          onClick={() => setShowAddressListModal(true)}
+                        >
+                          Chọn địa chỉ khác
+                        </button>
+                        <button
+                          type="button"
+                          className={`${styles.addNewAddressBtn} ${styles.secondary}`}
+                          onClick={() => setShowAddressForm(true)}
+                        >
+                          + Thêm địa chỉ mới
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <div className={styles.noAddressContainer}>
@@ -911,6 +913,7 @@ const PaymentPage = () => {
                       </div>
                     </div>
                   )}
+                  {/* Chỉ hiển thị form khi showAddressForm = true hoặc không có địa chỉ nào */}
                   {(showAddressForm || savedAddresses.length === 0) && (
                     <div className={styles.addressForm}>
                       <div className={styles.addressFormHeader}>
@@ -922,7 +925,10 @@ const PaymentPage = () => {
                           <button
                             type="button"
                             className={styles.cancelAddressBtn}
-                            onClick={resetAddressForm}
+                            onClick={() => {
+                              setShowAddressForm(false);
+                              resetAddressForm();
+                            }}
                           >
                             <FaTimes /> Hủy
                           </button>
@@ -1025,7 +1031,10 @@ const PaymentPage = () => {
                         <button 
                           type="button"
                           className={styles.cancelButton}
-                          onClick={resetAddressForm}
+                          onClick={() => {
+                            setShowAddressForm(false);
+                            resetAddressForm();
+                          }}
                         >
                           <FaTimes /> Hủy
                         </button>
@@ -1198,9 +1207,23 @@ const PaymentPage = () => {
               {/* Payment Details */}
               
 
-              <button type="submit" className={styles.payButton} disabled={submitting}>
-                {submitting ? 'Đang xử lý...' : `Thanh toán `}
-              </button>
+              <div className={styles.formActions}>
+                <button 
+                  type="button" 
+                  className={styles.cancelPaymentButton} 
+                  onClick={handleCancelPayment}
+                  disabled={submitting}
+                >
+                  Hủy đơn hàng
+                </button>
+                <button 
+                  type="submit" 
+                  className={styles.payButton} 
+                  disabled={submitting}
+                >
+                  {submitting ? 'Đang xử lý...' : 'Thanh toán'}
+                </button>
+              </div>
             </form>
           </div>
 
