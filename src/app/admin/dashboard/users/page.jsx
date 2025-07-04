@@ -471,18 +471,12 @@ const Page = () => {
                 </div>
                 <div className={Style.formGroup}>
                   <label>Role:</label>
-                  <select
+                  <input
+                    type="text"
                     value={editForm.role}
-                    onChange={(e) => setEditForm({...editForm, role: e.target.value})}
-                    required
-                  >
-                    <option value={editForm.role}>{editForm.role}</option>
-                    {editForm.role !== 'ADMIN' && <option value="ADMIN">ADMIN</option>}
-                    {editForm.role !== 'STAFF' && <option value="STAFF">STAFF</option>}
-                    {editForm.role !== 'CUSTOMER' && <option value="CUSTOMER">CUSTOMER</option>}
-                    {editForm.role !== 'MANAGER' && <option value="MANAGER">MANAGER</option>}
-                   
-                  </select>
+                    readOnly
+                    className={Style.readOnlyInput}
+                  />
                 </div>
                 <div className={Style.formGroup}>
                   <label>Status:</label>

@@ -340,9 +340,7 @@ const Page = () => {
                   ]}
                 />
               </Suspense>
-              <Link href="/admin/dashboard/users/add">
-                <button className={Style.addButton}>Add New</button>
-              </Link>
+             
           </div>
       
         {/* Hiển thị kết quả tìm kiếm */}
@@ -393,18 +391,6 @@ const Page = () => {
                     >
                       View
                     </button>
-                    <button 
-                      className={`${Style.button} ${Style.edit}`}
-                      onClick={() => handleEdit(user)}
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      className={`${Style.button} ${Style.delete}`}
-                      onClick={() => handleDelete(user)}
-                    >
-                      Delete
-                    </button>
                   </div>
                 </td>
               </tr>
@@ -417,123 +403,6 @@ const Page = () => {
             <Pagination metadata={metadata || { page: 0, totalPages: 1, count: users.length, totalElements: users.length }} />
           </Suspense>
         </div>
-
-        {/* Edit Modal */}
-        {showEditModal && (
-          <div className={Style.modalOverlay}>
-            <div className={Style.modal}>
-              <h2>Edit User</h2>
-              <form onSubmit={handleEditSubmit}>
-                <div className={Style.formGroup}>
-                  <label>Full Name:</label>
-                  <input
-                    type="text"
-                    value={editForm.fullName}
-                    onChange={(e) => setEditForm({...editForm, fullName: e.target.value})}
-                    required
-                  />
-                </div>
-                <div className={Style.formGroup}>
-                  <label>Username:</label>
-                  <input
-                    type="text"
-                    value={editForm.username}
-                    onChange={(e) => setEditForm({...editForm, username: e.target.value})}
-                    required
-                  />
-                </div>
-                <div className={Style.formGroup}>
-                  <label>Password:</label>
-                  <input
-                    type="password"
-                    value={editForm.password}
-                    onChange={(e) => setEditForm({...editForm, password: e.target.value})}
-                    placeholder="Leave blank to keep current password"
-                  />
-                </div>
-                <div className={Style.formGroup}>
-                  <label>Phone Number:</label>
-                  <input
-                    type="text"
-                    value={editForm.phoneNumber}
-                    onChange={(e) => setEditForm({...editForm, phoneNumber: e.target.value})}
-                    required
-                  />
-                </div>
-                <div className={Style.formGroup}>
-                  <label>Email:</label>
-                  <input
-                    type="email"
-                    value={editForm.email}
-                    onChange={(e) => setEditForm({...editForm, email: e.target.value})}
-                    required
-                  />
-                </div>
-                <div className={Style.formGroup}>
-                  <label>Role:</label>
-                  <select
-                    value={editForm.role}
-                    onChange={(e) => setEditForm({...editForm, role: e.target.value})}
-                    required
-                  >
-                    <option value={editForm.role}>{editForm.role}</option>
-                    {editForm.role !== 'ADMIN' && <option value="ADMIN">ADMIN</option>}
-                    {editForm.role !== 'STAFF' && <option value="STAFF">STAFF</option>}
-                    {editForm.role !== 'CUSTOMER' && <option value="CUSTOMER">CUSTOMER</option>}
-                    {editForm.role !== 'MANAGER' && <option value="MANAGER">MANAGER</option>}
-                   
-                  </select>
-                </div>
-                <div className={Style.formGroup}>
-                  <label>Status:</label>
-                  <select
-                    value={editForm.state}
-                    onChange={(e) => setEditForm({...editForm, state: e.target.value})}
-                    required
-                  >
-                    <option value={editForm.state}>{editForm.state}</option>
-                    {editForm.state !== 'ACTIVE' && <option value="ACTIVE">ACTIVE</option>}
-                    {editForm.state !== 'INACTIVE' && <option value="INACTIVE">INACTIVE</option>}
-                  </select>
-                </div>
-                <div className={Style.modalButtons}>
-                  <button type="submit" className={Style.saveButton}>Save Changes</button>
-                  <button 
-                    type="button" 
-                    className={Style.cancelButton}
-                    onClick={() => setShowEditModal(false)}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Delete Modal */}
-        {showDeleteModal && (
-          <div className={Style.modalOverlay}>
-            <div className={Style.modal}>
-              <h2>Delete User</h2>
-              <p>Are you sure you want to delete user {selectedUser?.fullName}?</p>
-              <div className={Style.modalButtons}>
-                <button 
-                  className={Style.deleteButton}
-                  onClick={handleDeleteConfirm}
-                >
-                  Delete
-                </button>
-                <button 
-                  className={Style.cancelButton}
-                  onClick={() => setShowDeleteModal(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* View Modal */}
         {showViewModal && (
