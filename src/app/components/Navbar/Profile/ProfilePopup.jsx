@@ -5,14 +5,16 @@ import { TbInvoice, TbDownload } from "react-icons/tb";
 import { MdPerson } from "react-icons/md";
 import Link from 'next/link';
 import { useAuth } from '../../../context/AuthContext';
+import { useCart } from '../../../context/CartContext';
 
 const ProfilePopup = ({ profile: propProfile }) => {
   const { profile: authProfile, logout } = useAuth();
   const profile = propProfile || authProfile;
   if (!profile) return null;
   const avatar = profile.imgUrl && profile.imgUrl !== 'admin' ? profile.imgUrl : null;
-
+  const { clearCart } = useCart();
   const handleLogout = () => {
+    clearCart();
     logout();
   };
 

@@ -237,6 +237,7 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       await authService.logout();
+      clearAllAuthCookies();
       // Hiển thị thông báo đăng xuất thành công
       toast.success('Đăng xuất thành công!', {
         duration: 2000,

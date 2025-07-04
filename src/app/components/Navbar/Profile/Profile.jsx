@@ -5,15 +5,16 @@ import { MdHelpCenter, MdPerson } from "react-icons/md";
 import { TbDownloadOff, TbDownload} from "react-icons/tb";
 import { TbInvoice } from "react-icons/tb";
 import { useAuth } from "../../../context/AuthContext";
-
+import { useCart } from "../../../context/CartContext";
 import Style from "./Profile.module.css";
 import images from "../../../img";
 import Link from "next/link";
 
 const Profile = () => {
   const { profile, logout } = useAuth();
-
+  const { clearCart } = useCart();
   const handleLogout = () => {
+    clearCart();
     logout();
   };
 
@@ -71,7 +72,6 @@ const Profile = () => {
                 Logout
             </p>
           </div>
-         
         </div>
       </div>
     </div>
