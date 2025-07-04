@@ -61,14 +61,7 @@ const Profile = () => {
             </p>
           </div>
           {/* Hide My Orders menu item for ADMIN */}
-          {!isAdmin && (
-            <div className={Style.profile_menu_one_item}>
-              <TbInvoice/>
-              <p>
-                <Link href={{pathname: '/orders'}}>My Orders</Link>
-              </p>
-            </div>
-          )}
+          
           
         </div>
 

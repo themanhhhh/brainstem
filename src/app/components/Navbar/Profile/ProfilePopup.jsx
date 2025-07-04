@@ -40,13 +40,7 @@ const ProfilePopup = ({ profile: propProfile }) => {
           <FaUserAlt />
           <Link href="/profile">My Profile</Link>
         </div>
-        {/* Hide My Orders menu item for ADMIN */}
-        {!isAdmin && (
-          <div className={styles.menuItem}>
-            <TbInvoice />
-            <Link href="/orders">My Orders</Link>
-          </div>
-        )}
+      
         <div className={styles.menuItem} onClick={handleLogout} style={{ cursor: 'pointer' }}>
           <TbDownload />
           <span>Logout</span>

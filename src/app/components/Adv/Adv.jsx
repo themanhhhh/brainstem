@@ -15,6 +15,13 @@ import { useTranslation } from "../../hooks/useTranslation";
 const Adv = () => {
     const router = useRouter();
     const t = useTranslation();
+    const handleBookTableClick = (e) => {
+        e.preventDefault();
+        const reserveSection = document.getElementById('reserve');
+        if (reserveSection) {
+            reserveSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
   return (
     <div className={Style.Adv}>
         <div className={Style.Adv_box}>
@@ -64,7 +71,7 @@ const Adv = () => {
                     </div>
                 </div>
                 <div className={Style.Adv_box_left_btn}>
-                    <Button btnName={t('adv.bookTable')} onClick={()=>router.push("/menu")}/>               
+                    <Button btnName={t('adv.bookTable')} onClick={handleBookTableClick}/>               
                 </div>
             </div>
         </div>

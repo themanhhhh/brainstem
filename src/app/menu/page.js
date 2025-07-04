@@ -150,7 +150,9 @@ const MenuPage = () => {
             );
           })}
 
-      <Reserve />
+        <div id="reserve">
+          <Reserve/>
+        </div>
       <Footer />
     </div>
   );

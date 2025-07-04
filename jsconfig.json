@@ -13,6 +13,6 @@
     "esModuleInterop": true,
     "resolveJsonModule": true
   },
-  "include": ["**/*.js", "**/*.jsx"],
+  "include": ["**/*.js", "**/*.jsx", "src/app/service/catering-service/page.js"],
   "exclude": ["node_modules", ".next", "out"]
 }

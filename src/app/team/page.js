@@ -11,7 +11,9 @@ const page = () => {
             <Banner />
             <OurTeam />
             <FAQ/>
-            <Reserve/>
+            <div id="reserve">
+                <Reserve/>
+            </div>
             <Footer />
         </div>
     );

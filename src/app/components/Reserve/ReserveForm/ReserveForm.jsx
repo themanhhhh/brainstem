@@ -468,8 +468,9 @@ const Form = () => {
                 >
                   <option value="MORNING">{t('reserve.form.breakfast')}</option>
                   <option value="LUNCH">{t('reserve.form.lunch')}</option>
-                  <option value="EVENING">{t('reserve.form.dinner')}</option>
                   <option value="AFTERNOON">{t('reserve.form.afternoon')}</option>
+                  <option value="EVENING">{t('reserve.form.dinner')}</option>
+                  
                 </select>
               </div>
               {errors.periodType && <span className={Style.error}>{errors.periodType}</span>}

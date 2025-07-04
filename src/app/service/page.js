@@ -118,7 +118,9 @@ const Service = () => {
                 </div>
             </div>
             <ChefTeam/>
-            <Reserve/>
+            <div id="reserve">
+                <Reserve/>
+            </div>
             <Footer />
         </div>
     );

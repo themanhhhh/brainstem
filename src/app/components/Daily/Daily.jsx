@@ -15,6 +15,13 @@ import { useTranslation } from "../../hooks/useTranslation";
 const Daily = () => {
     const router = useRouter();
     const t = useTranslation();
+    const handleBookTableClick = (e) => {
+        e.preventDefault();
+        const reserveSection = document.getElementById('reserve');
+        if (reserveSection) {
+            reserveSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
   return (
     <div className={Style.Daily}>
         <div className={Style.Daily_box}>
@@ -35,8 +42,8 @@ const Daily = () => {
                 <p><BsCheckCircleFill className={Style.Daily_box_left_icon}/>  {t('daily.vegetarianOptions')}</p>
                 <p><BsCheckCircleFill className={Style.Daily_box_left_icon}/>  {t('daily.exquisitePairings')}</p>
                 <div className={Style.Daily_box_left_btn}>
-                    <Button btnName={t('daily.bookTable')} onClick={()=>router.push("/menu")}/>
-                    <Button btnName={t('daily.exploreMenu')} onClick={()=>{}}/>
+                    <Button btnName={t('daily.bookTable')} onClick={handleBookTableClick}/>
+                    <Button btnName={t('daily.exploreMenu')} onClick={()=>router.push("/menu")}/>
                 </div>
             </div>
         </div>

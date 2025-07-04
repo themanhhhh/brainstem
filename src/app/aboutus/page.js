@@ -38,7 +38,9 @@ const page = () => {
       <Daily/>
       <ChefTeam/>
       <FAQ/>
-      <Reserve/>
+      <div id="reserve">
+          <Reserve/>
+        </div>
       <Footer/>
     </div>
   )

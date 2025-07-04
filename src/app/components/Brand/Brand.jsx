@@ -18,6 +18,13 @@ import { motion } from "framer-motion";
 const Brand = () => {
     const router = useRouter();
     const t = useTranslation();
+    const handleBookTableClick = (e) => {
+        e.preventDefault();
+        const reserveSection = document.getElementById('reserve');
+        if (reserveSection) {
+            reserveSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
   return (
     <div className={Style.Brand}>
         <div className={Style.Brand_box}>
@@ -47,8 +54,8 @@ const Brand = () => {
                 <p><BsCheckCircleFill className={Style.Brand_box_left_icon}/>  {t('brand.vegetarianOptions')}</p>
                 <p><BsCheckCircleFill className={Style.Brand_box_left_icon}/>  {t('brand.exquisitePairings')}</p>
                 <div className={Style.Brand_box_left_btn}>
-                    <Button btnName={t('brand.orderNow')} onClick={()=>router.push("/menu")}/>
-                    <Button btnName={t('brand.readMore')} onClick={()=>{}}/>
+                    <Button btnName={t('brand.orderNow')} onClick={handleBookTableClick}/>
+                    <Button btnName={t('brand.readMore')} onClick={()=>router.push("/service")}/>
                 </div>
             </div>
         </div>
