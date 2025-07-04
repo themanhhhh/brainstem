@@ -9,6 +9,13 @@ import { useTranslation } from "../../hooks/useTranslation";
 
 const HeroSection = () => {
     const t = useTranslation();
+    const handleBookTableClick = (e) => {
+        e.preventDefault();
+        const reserveSection = document.getElementById('reserve');
+        if (reserveSection) {
+            reserveSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
     return (
         <div className={Style.heroSection}>
             <div className={Style.heroSection_box}>
@@ -21,7 +28,7 @@ const HeroSection = () => {
                     <p>
                     {t('heroSection.description')}
                     </p>
-                    <Button btnName={t('heroSection.bookTable')} handleClick={()=>{}}/>
+                    <Button btnName={t('heroSection.bookTable')} handleClick={handleBookTableClick}/>
                 </div>
                 <div className={Style.heroSection_box_right}>
                     <div className={Style.heroSection_box_right_ellipse}>

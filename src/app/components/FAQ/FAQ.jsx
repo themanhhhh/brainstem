@@ -33,7 +33,7 @@ const FAQ = () => {
           <p>{t('faq.intro')}</p>
           <br></br>
           <div className={Style.FAQ_box_left_btn}>
-            <Button btnName={t('faq.viewAll')} onClick={()=>{}}/>
+            
           </div>
         </div>
         <div className={Style.FAQ_box_right}>
