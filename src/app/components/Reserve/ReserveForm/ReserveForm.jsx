@@ -43,8 +43,7 @@ const Form = () => {
     description: '',
     phoneNumber: '',
     periodType: 'LUNCH',
-    tableId: '',
-    orderTime: ''
+    tableId: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -103,52 +102,160 @@ const Form = () => {
     }
   };
 
+  // Validate individual field
+  const validateField = (name, value) => {
+    let error = '';
+    
+    switch (name) {
+      case 'fullName':
+        if (!value.trim()) {
+          error = 'Tên là bắt buộc';
+        } else if (value.trim().length < 2) {
+          error = 'Tên phải có ít nhất 2 ký tự';
+        } else if (value.trim().length > 50) {
+          error = 'Tên không được vượt quá 50 ký tự';
+        } else if (!/^[a-zA-ZÀ-ỹ\s]+$/.test(value.trim())) {
+          error = 'Tên chỉ được chứa chữ cái và khoảng trắng';
+        }
+        break;
+        
+      case 'email':
+        if (!value.trim()) {
+          error = 'Email là bắt buộc';
+        } else if (value.trim().length > 100) {
+          error = 'Email không được vượt quá 100 ký tự';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
+          error = 'Email không hợp lệ (ví dụ: example@gmail.com)';
+        }
+        break;
+        
+      case 'phoneNumber':
+        if (!value.trim()) {
+          error = 'Số điện thoại là bắt buộc';
+        } else if (!/^[0-9+\-\s()]+$/.test(value.trim())) {
+          error = 'Số điện thoại chỉ được chứa số và các ký tự +, -, (), khoảng trắng';
+        } else if (value.replace(/[^0-9]/g, '').length < 10) {
+          error = 'Số điện thoại phải có ít nhất 10 chữ số';
+        } else if (value.replace(/[^0-9]/g, '').length > 15) {
+          error = 'Số điện thoại không được vượt quá 15 chữ số';
+        }
+        break;
+        
+      case 'tableId':
+        if (!value) {
+          error = 'Vui lòng chọn bàn';
+        } else if (tables.length > 0 && !tables.find(table => table.id.toString() === value.toString())) {
+          error = 'Bàn được chọn không tồn tại';
+        }
+        break;
+        
+               // orderTime validation removed since the field is no longer in the form
+          break;
+        
+      case 'description':
+        if (!value.trim()) {
+          error = 'Mô tả yêu cầu đặc biệt là bắt buộc';
+        } else if (value.trim().length < 5) {
+          error = 'Mô tả phải có ít nhất 5 ký tự';
+        } else if (value.trim().length > 500) {
+          error = 'Mô tả không được vượt quá 500 ký tự';
+        }
+        break;
+        
+              case 'periodType':
+        const validPeriodTypes = ['MORNING', 'LUNCH', 'EVENING', 'AFTERNOON'];
+        if (!validPeriodTypes.includes(value)) {
+          error = 'Thời gian phục vụ không hợp lệ';
+        }
+        break;
+    }
+    
+    return error;
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
+    
+    // Real-time validation
+    const error = validateField(name, value);
+    setErrors(prev => ({
+      ...prev,
+      [name]: error
+    }));
   };
 
   const validateForm = () => {
     const newErrors = {};
     
+    // Validate fullName
     if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Name is required';
+      newErrors.fullName = 'Tên là bắt buộc';
+    } else if (formData.fullName.trim().length < 2) {
+      newErrors.fullName = 'Tên phải có ít nhất 2 ký tự';
+    } else if (formData.fullName.trim().length > 50) {
+      newErrors.fullName = 'Tên không được vượt quá 50 ký tự';
+    } else if (!/^[a-zA-ZÀ-ỹ\s]+$/.test(formData.fullName.trim())) {
+      newErrors.fullName = 'Tên chỉ được chứa chữ cái và khoảng trắng';
     }
     
+    // Validate email
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = 'Email là bắt buộc';
+    } else if (formData.email.trim().length > 100) {
+      newErrors.email = 'Email không được vượt quá 100 ký tự';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      newErrors.email = 'Email không hợp lệ (ví dụ: example@gmail.com)';
     }
     
+    // Validate phoneNumber
     if (!formData.phoneNumber.trim()) {
-      newErrors.phoneNumber = 'Phone number is required';
+      newErrors.phoneNumber = 'Số điện thoại là bắt buộc';
+    } else if (!/^[0-9+\-\s()]+$/.test(formData.phoneNumber.trim())) {
+      newErrors.phoneNumber = 'Số điện thoại chỉ được chứa số và các ký tự +, -, (), khoảng trắng';
+    } else if (formData.phoneNumber.replace(/[^0-9]/g, '').length < 10) {
+      newErrors.phoneNumber = 'Số điện thoại phải có ít nhất 10 chữ số';
+    } else if (formData.phoneNumber.replace(/[^0-9]/g, '').length > 15) {
+      newErrors.phoneNumber = 'Số điện thoại không được vượt quá 15 chữ số';
     }
     
+    // Validate tableId
     if (!formData.tableId) {
-      newErrors.tableId = 'Please select a table';
+      newErrors.tableId = 'Vui lòng chọn bàn';
+    } else if (tables.length > 0 && !tables.find(table => table.id.toString() === formData.tableId.toString())) {
+      newErrors.tableId = 'Bàn được chọn không tồn tại';
     }
     
-    if (!formData.orderTime) {
-      newErrors.orderTime = 'Please select date and time';
+    // orderTime validation removed since the field is no longer in the form
+    
+    // Validate description
+    if (!formData.description.trim()) {
+      newErrors.description = 'Mô tả yêu cầu đặc biệt là bắt buộc';
+    } else if (formData.description.trim().length < 5) {
+      newErrors.description = 'Mô tả phải có ít nhất 5 ký tự';
+    } else if (formData.description.trim().length > 500) {
+      newErrors.description = 'Mô tả không được vượt quá 500 ký tự';
     }
     
-    if (!formData.description.trim() || formData.description.trim().length < 5) {
-      newErrors.description = 'Description must be at least 5 characters';
+    // Validate periodType (should always be valid from select, but just in case)
+    const validPeriodTypes = ['MORNING', 'LUNCH', 'EVENING', 'AFTERNOON'];
+    if (!validPeriodTypes.includes(formData.periodType)) {
+      newErrors.periodType = 'Thời gian phục vụ không hợp lệ';
     }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  // Check if form is complete and valid
+  const isFormComplete = () => {
+    const requiredFields = ['fullName', 'email', 'phoneNumber', 'tableId', 'description', 'periodType'];
+    const allFieldsFilled = requiredFields.every(field => formData[field] && formData[field].toString().trim());
+    const noErrors = Object.values(errors).every(error => !error);
+    return allFieldsFilled && noErrors;
   };
 
   // Format datetime for API
@@ -205,8 +312,9 @@ const Form = () => {
       
       toast.loading("Đang tạo đơn đặt bàn...", { id: "create-reservation" });
       
-      // Format datetime for API
-      const formattedDateTime = formatDateTimeForAPI(formData.orderTime);
+      // Use current datetime for API since orderTime field is removed
+      const currentDateTime = new Date();
+      const formattedDateTime = formatDateTimeForAPI(currentDateTime.toISOString().slice(0, 16));
       
       // Call ordertableService.createOrder with individual parameters
       const response = await ordertableService.createOrder(
@@ -249,8 +357,7 @@ const Form = () => {
           description: '',
           phoneNumber: '',
           periodType: 'LUNCH',
-          tableId: '',
-          orderTime: ''
+          tableId: ''
         });
         // Refresh tables
         fetchTables();
@@ -270,16 +377,7 @@ const Form = () => {
     }
   };
 
-  // Get current datetime for min attribute
-  const getCurrentDateTime = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  };
+  // getCurrentDateTime function removed since orderTime field is no longer needed
 
   return (
     <div className={Style.Form}>
@@ -298,11 +396,13 @@ const Form = () => {
               id="fullName"
               placeholder={t('reserve.form.fullName')}  
               className={Style.Form_box_input_userName}
+              maxLength={50}
               value={formData.fullName}
               onChange={handleInputChange}
               required
             />
             {errors.fullName && <span className={Style.error}>{errors.fullName}</span>}
+            {!errors.fullName && formData.fullName && <small className={Style.helper}>✓ Tên hợp lệ</small>}
           </div>
 
           <div className={Style.Form_box_contact}>
@@ -318,12 +418,14 @@ const Form = () => {
                   id="email"
                   placeholder={t('reserve.form.email')} 
                   className={Style.Form_box_input_Email}
+                  maxLength={100}
                   value={formData.email}
                   onChange={handleInputChange}
                   required
                 />
                 </div>
                 {errors.email && <span className={Style.error}>{errors.email}</span>}
+                {!errors.email && formData.email && <small className={Style.helper}>✓ Email hợp lệ</small>}
             </div>
             <div className={Style.Form_box_contact_input}>
                 <label htmlFor="phoneNumber">{t('reserve.form.phone')} *</label>
@@ -337,35 +439,19 @@ const Form = () => {
                       id="phoneNumber"
                       placeholder={t('reserve.form.phone')} 
                       className={Style.Form_box_input_Email}
+                      maxLength={20}
+                      pattern="[0-9+\-\s()]*"
                       value={formData.phoneNumber}
                       onChange={handleInputChange}
                       required
                     />
                 </div>
                 {errors.phoneNumber && <span className={Style.error}>{errors.phoneNumber}</span>}
+                {!errors.phoneNumber && formData.phoneNumber && <small className={Style.helper}>✓ Số điện thoại hợp lệ</small>}
             </div>
           </div>
 
           <div className={Style.Form_box_input_social}>
-            <div className={Style.Form_box_input}> 
-              <label htmlFor="orderTime">{t('reserve.form.dateTime')} *</label>
-              <div className={Style.Form_box_input_box}>
-                <div className={Style.Form_box_input_box_icon}>
-                  <CiCalendarDate/>
-                </div>
-                <input 
-                  type="datetime-local"
-                  name="orderTime"
-                  id="orderTime"
-                  min={getCurrentDateTime()}
-                  value={formData.orderTime}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              {errors.orderTime && <span className={Style.error}>{errors.orderTime}</span>}
-            </div>
-
             <div className={Style.Form_box_input}> 
               <label htmlFor="periodType">{t('reserve.form.periodType')} *</label>
               <div className={Style.Form_box_input_box}>
@@ -386,6 +472,8 @@ const Form = () => {
                   <option value="AFTERNOON">{t('reserve.form.afternoon')}</option>
                 </select>
               </div>
+              {errors.periodType && <span className={Style.error}>{errors.periodType}</span>}
+              {!errors.periodType && formData.periodType && <small className={Style.helper}>✓ Thời gian phục vụ hợp lệ</small>}
             </div>
 
             <div className={Style.Form_box_input}> 
@@ -416,6 +504,8 @@ const Form = () => {
                 </select>
               </div>
               {errors.tableId && <span className={Style.error}>{errors.tableId}</span>}
+              {!errors.tableId && formData.tableId && <small className={Style.helper}>✓ Đã chọn bàn</small>}
+              
             </div>
           </div>
 
@@ -427,13 +517,18 @@ const Form = () => {
               placeholder={t('reserve.form.placeholder')}
               className={Style.Form_box_input_textarea}
               rows="3"
+              maxLength={500}
               value={formData.description}
               onChange={handleInputChange}
               required
             />
             {errors.description && <span className={Style.error}>{errors.description}</span>}
+            {!errors.description && formData.description && formData.description.length >= 5 && <small className={Style.helper}>✓ Mô tả hợp lệ</small>}
             <small className={Style.charCount}>
-              {formData.description.length}/5 {t('reserve.form.charMin')}
+              {formData.description.length}/500 ký tự
+              {formData.description.length < 5 && ` (tối thiểu 5 ký tự)`}
+              {formData.description.length >= 450 && formData.description.length < 500 && ` (còn ${500 - formData.description.length} ký tự)`}
+              {formData.description.length >= 500 && ' (đã đạt giới hạn)'}
             </small>
           </div>
 
@@ -441,7 +536,7 @@ const Form = () => {
             <button 
               type="submit"
               className={Style.button}
-              disabled={loading || tablesLoading}
+              disabled={loading || tablesLoading || !isFormComplete()}
             >
                 {loading ? (
                   <>

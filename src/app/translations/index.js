@@ -98,10 +98,10 @@ export const translations = {
         confirmMessage: "Are you sure you want to create this reservation for",
         cancel: "Cancel",
         confirm: "Confirm",
-        breakfast: "Breakfast",
-        lunch: "Lunch",
-        dinner: "Dinner",
-        afternoon: "Afternoon",
+        breakfast: "Breakfast (8:00 AM - 11:00 PM)",
+        lunch: "Lunch (11:00 PM - 2:00 PM)",
+        dinner: "Dinner (5:00 PM - 9:00 PM)",
+        afternoon: "Afternoon (2:00 PM - 5:00 PM)",
       }
     },
     
@@ -398,10 +398,10 @@ export const translations = {
         confirmMessage: "Bạn có chắc muốn đặt bàn cho",
         cancel: "Hủy",
         confirm: "Xác nhận",
-        breakfast: "Bữa sáng",
-        lunch: "Bữa trưa",
-        dinner: "Bữa tối",
-        afternoon: "Bữa chiều"
+        breakfast: "Bữa sáng (8:00 AM - 11:00 AM)",
+        lunch: "Bữa trưa (11:00 AM - 2:00 PM)",
+        dinner: "Bữa tối (5:00 PM - 9:00 PM)",
+        afternoon: "Bữa chiều (2:00 PM - 5:00 PM)"
       }
     },
     

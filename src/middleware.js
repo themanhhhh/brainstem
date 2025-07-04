@@ -6,7 +6,7 @@ export function middleware(request) {
   const path = request.nextUrl.pathname;
 
   // Các đường dẫn công khai không cần xác thực
-  const isPublicPath = path === '/login' || path === '/' || path === '/menu';
+  const isPublicPath = path === '/login' || path === '/' || path === '/menu' || path === '/aboutus' || path === '/service' || path === '/team' || path === '/register' || path === '/forgot-password' || path.startsWith('/product/');
 
   // Kiểm tra xem có token trong cookies không
   const token = request.cookies.get('token')?.value || '';
@@ -25,9 +25,16 @@ export const config = {
     '/',
     '/login',
     '/admin/:path*',
+    '/manager/:path*',
+    '/profile/:path*',
     '/menu',
     '/cart',
     '/payment',
-    '/aboutus'
+    '/aboutus',
+    '/service',
+    '/team',
+    '/register',
+    '/forgot-password',
+    '/product/:path*'
   ]
 };

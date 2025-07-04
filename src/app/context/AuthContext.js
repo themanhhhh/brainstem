@@ -217,15 +217,7 @@ export function AuthProvider({ children }) {
       await fetchProfile(true);
 
       // Show success message
-      toast.success('Đăng nhập thành công!', {
-        duration: 2000,
-        position: 'top-center',
-        style: {
-          background: '#4caf50',
-          color: 'white',
-          fontWeight: '500',
-        },
-      });
+      
 
       // Chuyển hướng dựa vào role
       if (userData.role === "ADMIN") {

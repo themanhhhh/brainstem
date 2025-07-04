@@ -149,8 +149,8 @@ export const authService = {
 
   changePassword: async (oldPassword, newPassword, confirmPassword) => {
     try {
-      const { data } = await apiRequest(`${API_URL}/auth/changepassword`, {
-        method: 'POST',
+      const { data } = await apiRequest(`${API_URL}/auth/change-password`, {
+        method: 'PUT',
         body: JSON.stringify({ oldPassword, newPassword, confirmPassword})
       });
 

@@ -1,12 +1,12 @@
 .Reserve{
     width: 100%;
-    height: 750px;
+    height: 850px;
     justify-items: center;
     padding-bottom: 100px;
 }
 .Reserve_box{
     width: 100%;
-    height: 480px;
+    height: 580px;
     display: grid;
     grid-template-columns: 50% 50%;
     background-color: #262626;
@@ -26,6 +26,7 @@
     line-height: 1.0;
 }
 .Reserve_box_left_title span{
+    margin-top: 50px;
     font-size: small;
     color: var(--icons-color);
 }
