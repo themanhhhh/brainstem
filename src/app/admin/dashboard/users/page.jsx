@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, Suspense, useEffect, useCallback } from "react";
 import Style from "./users.module.css";
-import { Pagination, Search } from "../../ui/dashboard/dashboardindex";
+import { Pagination, FilterableSearch } from "../../ui/dashboard/dashboardindex";
 import Image from "next/image";
 import Link from "next/link";
 import { userService } from "../../../api/user/userService";
@@ -21,6 +21,7 @@ const getErrorMessage = (error, defaultMessage) => {
 
 const Page = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
   const [users, setUsers] = useState([]);
   const [metadata, setMetadata] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -39,9 +40,6 @@ const Page = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   
-  // Thêm debounce cho việc tìm kiếm
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-  
   // Lấy tham số từ URL
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -49,32 +47,61 @@ const Page = () => {
   
   // Lấy trang hiện tại từ URL (API bắt đầu từ 0)
   const currentPage = parseInt(searchParams.get("page") || "0");
+  
+  // Lấy các tham số lọc từ URL
+  const searchFilter = searchParams.get("search") || "";
+  const statusFilter = searchParams.get("status") || "";
 
-  // Effect khi trang thay đổi, gọi API để lấy dữ liệu
+  // Sync state với URL parameters
   useEffect(() => {
-    fetchUsers(currentPage, itemsPerPage);
-  }, [currentPage, itemsPerPage]);
+    setSearchTerm(searchFilter);
+    setSelectedStatus(statusFilter);
+  }, [searchFilter, statusFilter]);
+
+  // Effect khi trang hoặc bộ lọc thay đổi, gọi API để lấy dữ liệu
+  useEffect(() => {
+    fetchUsers(currentPage, itemsPerPage, searchFilter, statusFilter);
+  }, [currentPage, itemsPerPage, searchFilter, statusFilter]);
 
   useEffect(() => {
     const timerId = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-      if (searchTerm) {
-        // Khi tìm kiếm, quay về trang đầu tiên
-        const params = new URLSearchParams(searchParams);
-        params.set("page", "0");
-        replace(`${pathname}?${params}`);
+      if (searchTerm !== searchFilter) {
+        // Cập nhật URL với từ khóa tìm kiếm
+        updateFilters({ search: searchTerm });
       }
     }, 500);
 
     return () => {
       clearTimeout(timerId);
     };
-  }, [searchTerm, pathname, replace, searchParams]);
+  }, [searchTerm, searchFilter]);
 
-  const fetchUsers = async (page, size) => {
+  // Cập nhật bộ lọc vào URL và quay về trang đầu tiên
+  const updateFilters = (newFilters) => {
+    const params = new URLSearchParams(searchParams);
+    
+    // Cập nhật các tham số
+    Object.entries(newFilters).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, value);
+      } else {
+        params.delete(key);
+      }
+    });
+    
+    // Khi thay đổi bộ lọc, quay về trang đầu tiên
+    params.set("page", "0");
+    
+    // Cập nhật URL
+    replace(`${pathname}?${params}`);
+  };
+
+  const fetchUsers = async (page, size, search = "", state = "") => {
     try {
       setLoading(true);
-      const response = await userService.getUser(page, size);
+      const response = await userService.getAllUsers(search, state, page, size);
+      
+      console.log("API Response (Users):", response); // Debug thông tin API trả về
       
       // Kiểm tra lỗi từ response
       if (response && (response.code >= 400 || response.error || response.status >= 400)) {
@@ -93,12 +120,10 @@ const Page = () => {
         
         // Lưu metadata để sử dụng cho phân trang
         if (response.metadata) {
+          console.log("Pagination Metadata (Users):", response.metadata); // Debug metadata
           setMetadata(response.metadata);
-        }
-        
-        // Hiển thị thông báo load thành công
-        if (page === 0) {
-          console.log("Users loaded:", response.data.length);
+        } else {
+          console.warn("No metadata found in Users API response");
         }
       } else {
         console.error("Unexpected API response format:", response);
@@ -125,19 +150,10 @@ const Page = () => {
     setSearchTerm(value);
   };
 
-  // Lọc dữ liệu phía client (chỉ áp dụng khi có search term)
-  const filteredUsers = users.filter(user => {
-    if (!debouncedSearchTerm) return true;
-    
-    const searchLower = debouncedSearchTerm.toLowerCase();
-    
-    return (
-      (user?.fullName?.toLowerCase().includes(searchLower)) ||
-      (user?.email?.toLowerCase().includes(searchLower)) ||
-      (user?.username?.toLowerCase().includes(searchLower)) ||
-      (user?.phoneNumber?.toLowerCase().includes(searchLower))
-    );
-  });
+  const handleStatusChange = (status) => {
+    setSelectedStatus(status);
+    updateFilters({ status });
+  };
 
   const handleEdit = (user) => {
     setSelectedUser(user);
@@ -223,7 +239,7 @@ const Page = () => {
       });
       
       setShowEditModal(false);
-      fetchUsers(currentPage, itemsPerPage);
+      fetchUsers(currentPage, itemsPerPage, searchFilter, statusFilter);
     } catch (err) {
       console.error("Error updating user:", err);
       const errorMessage = getErrorMessage(err, "Không thể cập nhật người dùng. Vui lòng thử lại!");
@@ -264,7 +280,7 @@ const Page = () => {
       });
       
       setShowDeleteModal(false);
-      fetchUsers(currentPage, itemsPerPage);
+      fetchUsers(currentPage, itemsPerPage, searchFilter, statusFilter);
     } catch (err) {
       console.error("Error deleting user:", err);
       const errorMessage = getErrorMessage(err, "Không thể xóa người dùng. Vui lòng thử lại!");
@@ -308,24 +324,35 @@ const Page = () => {
     <div className={Style.userr}>
       
       <div className={Style.container}>
-        <div className={Style.top}>
-            <Suspense fallback={<div>Loading...</div>}>
-              <Search 
-                onChange={handleSearch} 
-                onSearch={handleSearch} 
-                placeholder="Tìm kiếm theo tên, email, username, hoặc số điện thoại..."
-              />
-            </Suspense>
-            <Link href="/admin/dashboard/users/add">
-              <button className={Style.addButton}>Add New</button>
-            </Link>
-        </div>
+                  <div className={Style.top}>
+              <Suspense fallback={<div>Loading...</div>}>
+                <FilterableSearch 
+                  placeholder="Tìm kiếm theo tên, email, username, hoặc số điện thoại..."
+                  onChange={handleSearch} 
+                  onSearch={handleSearch}
+                  value={searchTerm}
+                  statusFilter={selectedStatus}
+                  onStatusChange={handleStatusChange}
+                  statusOptions={[
+                    { value: '', label: 'All Statuses' },
+                    { value: 'ACTIVE', label: 'Active' },
+                    { value: 'INACTIVE', label: 'Inactive' }
+                  ]}
+                />
+              </Suspense>
+              <Link href="/admin/dashboard/users/add">
+                <button className={Style.addButton}>Add New</button>
+              </Link>
+          </div>
       
         {/* Hiển thị kết quả tìm kiếm */}
-        {debouncedSearchTerm && (
+        {searchFilter && (
           <div className={Style.searchInfo}>
-            Kết quả tìm kiếm cho: <strong>{debouncedSearchTerm}</strong> | 
-            Tìm thấy: <strong>{filteredUsers.length}</strong> người dùng
+            Kết quả tìm kiếm cho: <strong>{searchFilter}</strong> | 
+            Tìm thấy: <strong>{users.length}</strong> người dùng
+            {statusFilter && (
+              <span> | Trạng thái: <strong>{statusFilter}</strong></span>
+            )}
           </div>
         )}
 
@@ -342,7 +369,7 @@ const Page = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.map((user) => (
+            {users.map((user) => (
               <tr key={user.id}>
                 <td>
                   <div className={Style.user}>
@@ -387,7 +414,7 @@ const Page = () => {
       
         <div className={Style.darkBg}>
           <Suspense fallback={<div>Loading...</div>}>
-            <Pagination metadata={metadata || { page: 0, totalPages: 1, count: filteredUsers.length, totalElements: filteredUsers.length }} />
+            <Pagination metadata={metadata || { page: 0, totalPages: 1, count: users.length, totalElements: users.length }} />
           </Suspense>
         </div>
 

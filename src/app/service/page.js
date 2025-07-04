@@ -11,7 +11,7 @@ import {
 } from 'react-icons/io5';
 import Style from './service.module.css';
 import { Footer, Navbar, Reserve, ChefTeam, Loader } from '../components/componentsindex';
-import Banner from './Banner/Banner';
+import Banner from './components/Banner/Banner';
 
 const Service = () => {
     const [loading, setLoading] = useState(true);
@@ -29,7 +29,7 @@ const Service = () => {
 
     return (
         <div>
-            <Banner/>
+            <Banner title=" Our Services"/>
             <div className={Style.serviceContainer}>
                 <div className={Style.serviceGrid}>
                     {/* Dine-In Experience Card */}

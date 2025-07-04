@@ -268,12 +268,12 @@ export const translations = {
     },
     
     footer: {
-      intro: "The world's first and largest digital marketplace for crypto collectibles and non-fungible tokens (NFTs). Buy, sell, and discover exclusive digital items.",
+      intro: "Experience culinary excellence at its finest. We are passionate about creating unforgettable dining experiences with fresh ingredients, innovative recipes, and exceptional service that brings people together.",
       discover: "Discover",
       helpCenter: "Help Center",
-      subscribe: "Subscribe",
-      emailPlaceholder: "Enter your email *",
-      subscribeInfo: "Join our mailing list to stay in the loop with our newest feature releases, NFT drops, and tips and tricks for navigating OpenSea."
+      subscribe: "Newsletter",
+      emailPlaceholder: "Enter your email for updates *",
+      subscribeInfo: "Subscribe to our newsletter to receive the latest updates on new menu items, seasonal specials, exclusive events, and special promotions delivered directly to your inbox."
     },
     
     faq: {
@@ -568,12 +568,12 @@ export const translations = {
     },
     
     footer: {
-      intro: "Nền tảng giao dịch NFT và bộ sưu tập kỹ thuật số lớn nhất thế giới. Mua, bán và khám phá các sản phẩm kỹ thuật số độc quyền.",
+      intro: "Trải nghiệm ẩm thực đỉnh cao. Chúng tôi đam mê tạo ra những trải nghiệm ẩm thực khó quên với nguyên liệu tươi ngon, công thức sáng tạo và dịch vụ xuất sắc mang mọi người lại gần nhau.",
       discover: "Khám phá",
       helpCenter: "Trung tâm trợ giúp",
-      subscribe: "Đăng ký nhận tin",
-      emailPlaceholder: "Nhập email của bạn *",
-      subscribeInfo: "Tham gia danh sách nhận tin để cập nhật các tính năng mới, ưu đãi NFT và mẹo sử dụng OpenSea."
+      subscribe: "Bản tin",
+      emailPlaceholder: "Nhập email để nhận cập nhật *",
+      subscribeInfo: "Đăng ký nhận bản tin để cập nhật thông tin món ăn mới, ưu đãi theo mùa, sự kiện độc quyền và khuyến mãi đặc biệt được gửi trực tiếp đến hộp thư của bạn."
     },
     
     faq: {

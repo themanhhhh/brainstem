@@ -91,6 +91,14 @@ import user from "./user.png";
 import sliderimg from "./sliderimg.jpg";
 import daily from "./daily.png";
 
+import service1 from "./service1.png";
+import service2 from "./service2.png";
+import service3 from "./service3.png";
+
+import serviceonline from "./servicesonl.jpg";
+import servicedine from "./servicedine.jpg";
+import servicedelivery from "./servicedeli.jpg";
+
 export default {
   daily,
   aboutusimg1 ,
@@ -175,4 +183,10 @@ export default {
   team8,
   user,
   sliderimg,
+  service1,
+  service2,
+  service3,
+  serviceonline,
+  servicedine,
+  servicedelivery,
 };

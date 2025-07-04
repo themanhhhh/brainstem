@@ -1,12 +1,12 @@
 import React from "react";
-import { Navbar } from "../../components/componentsindex";
+import { Navbar } from "../../../components/componentsindex";
 import Style from "./Banner.module.css";
 import Link from "next/link";
 
 import Image from "next/image";
-import images from "../../img/index";
+import images from "../../../img/index";
 
-const Banner = () => {
+const Banner = ({title}) => {
   return (
     <div className={Style.Banner}>
       <div className={Style.background}>
@@ -25,7 +25,7 @@ const Banner = () => {
       <div className={Style.content}>
         <Navbar/>
         <div className={Style.bannerContent}>
-          <h1 className={Style.title}>OUR SERVICES</h1>
+          <h1 className={Style.title}>{title}</h1>
           <div className={Style.breadcrumbs}>
             <Link href="/">Home</Link> / <span>Services</span>
           </div>

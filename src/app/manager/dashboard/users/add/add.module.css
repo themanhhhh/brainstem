@@ -40,6 +40,24 @@
     outline: none;
     border-color: #5d57c9;
   }
+
+  /* Error styles for validation */
+  .errorInput {
+    border-color: #dc3545 !important;
+    background-color: #fff5f5;
+  }
+
+  .errorInput:focus {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25);
+  }
+
+  .errorText {
+    color: #dc3545;
+    font-size: 12px;
+    font-weight: 400;
+    margin-top: 4px;
+  }
   
   .buttonGroup {
     display: flex;
@@ -63,9 +81,15 @@
     background-color: #5d57c9;
     color: white;
   }
-  
-  .submitButton:hover {
+
+  .submitButton:hover:not(:disabled) {
     background-color: #4a45a0;
+  }
+
+  .submitButton:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
   }
   
   .cancelButton {
@@ -73,6 +97,12 @@
     color: white;
   }
   
-  .cancelButton:hover {
+  .cancelButton:hover:not(:disabled) {
     background-color: #c82333;
+  }
+
+  .cancelButton:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
   }
