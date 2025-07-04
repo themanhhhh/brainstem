@@ -229,23 +229,23 @@ const OrderPage = () => {
                             <td>User ID: {order.userId}</td>
                             <td>{order.phoneNumber || "Chưa có"}</td>
                             <td>
-                                <span className={styles.orderType}>
+                                <p className={styles.orderType}>
                                     {order.orderType || "N/A"}
-                                </span>
+                                </p>
                             </td>
                             <td>
-                  <span className={`${styles.status} ${getStatusClass(order.orderState)}`}>
+                  <p className={`${styles.status} ${getStatusClass(order.orderState)}`}>
                     {order.orderState}
-                  </span>
+                  </p>
                             </td>
                             <td>{getTakingMethodText(order.takingMethod)}</td>
                             <td className={styles.price}>
                                 {formatCurrency(order.totalPriceAfterDiscount)}
                             </td>
                             <td>
-                                <span className={styles.foodCount}>
+                                <p className={styles.foodCount}>
                                     {order.foodInfos?.length || 0} món
-                                </span>
+                                </p>
                             </td>
                             <td>
                                 <button
@@ -284,45 +284,45 @@ const OrderPage = () => {
                                 <div className={styles.infoGrid}>
                                     <div className={styles.infoItem}>
                                         <strong>Tên đơn hàng:</strong>
-                                        <span>{selectedOrder.name}</span>
+                                        <p>{selectedOrder.name}</p>
                                     </div>
                                     <div className={styles.infoItem}>
                                         <strong>Mô tả:</strong>
-                                        <span>{selectedOrder.description || "Không có"}</span>
+                                        <p>{selectedOrder.description || "Không có"}</p>
                                     </div>
                                     <div className={styles.infoItem}>
                                         <strong>Khách hàng:</strong>
-                                        <span>User ID: {selectedOrder.userId}</span>
+                                        <p>User ID: {selectedOrder.userId}</p>
                                     </div>
                                     <div className={styles.infoItem}>
                                         <strong>Số điện thoại:</strong>
-                                        <span>{selectedOrder.phoneNumber || "Chưa có"}</span>
+                                        <p>{selectedOrder.phoneNumber || "Chưa có"}</p>
                                     </div>
                                     <div className={styles.infoItem}>
                                         <strong>Loại đơn hàng:</strong>
-                                        <span>{selectedOrder.orderType || "N/A"}</span>
+                                        <p>{selectedOrder.orderType || "N/A"}</p>
                                     </div>
                                     <div className={styles.infoItem}>
                                         <strong>Trạng thái:</strong>
-                                        <span className={`${styles.status} ${getStatusClass(selectedOrder.orderState)}`}>
+                                        <p className={`${styles.status} ${getStatusClass(selectedOrder.orderState)}`}>
                                             {selectedOrder.orderState}
-                                        </span>
+                                        </p>
                                     </div>
                                     <div className={styles.infoItem}>
                                         <strong>Phương thức lấy hàng:</strong>
-                                        <span>{getTakingMethodText(selectedOrder.takingMethod)}</span>
+                                        <p>{getTakingMethodText(selectedOrder.takingMethod)}</p>
                                     </div>
                                     <div className={styles.infoItem}>
                                         <strong>Phương thức thanh toán:</strong>
-                                        <span>{selectedOrder.paymentMethod || "Chưa chọn"}</span>
+                                        <p>{selectedOrder.paymentMethod || "Chưa chọn"}</p>
                                     </div>
                                     <div className={styles.infoItem}>
                                         <strong>Địa chỉ ID:</strong>
-                                        <span>{selectedOrder.addressId || "Chưa có"}</span>
+                                        <p>{selectedOrder.addressId || "Chưa có"}</p>
                                     </div>
                                     <div className={styles.infoItem}>
                                         <strong>Mã giảm giá:</strong>
-                                        <span>{selectedOrder.discountId || "Không có"}</span>
+                                        <p>{selectedOrder.discountId || "Không có"}</p>
                                     </div>
                                 </div>
                             </div>
@@ -332,13 +332,13 @@ const OrderPage = () => {
                                 <div className={styles.priceGrid}>
                                     <div className={styles.priceItem}>
                                         <strong>Tổng tiền gốc:</strong>
-                                        <span>{formatCurrency(selectedOrder.totalPrice)}</span>
+                                        <p>{formatCurrency(selectedOrder.totalPrice)}</p>
                                     </div>
                                     <div className={styles.priceItem}>
                                         <strong>Tổng tiền sau giảm giá:</strong>
-                                        <span className={styles.finalPrice}>
+                                        <p className={styles.finalPrice}>
                                             {formatCurrency(selectedOrder.totalPriceAfterDiscount)}
-                                        </span>
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -350,11 +350,11 @@ const OrderPage = () => {
                                         {selectedOrder.foodInfos.map((food, index) => (
                                             <div key={`${food.foodId}-${index}`} className={styles.foodItem}>
                                                 <div className={styles.foodDetails}>
-                                                    <span className={styles.foodName}>{food.foodName}</span>
-                                                    <span className={styles.foodId}>ID: {food.foodId}</span>
+                                                    <p className={styles.foodName}>{food.foodName}</p>
+                                                    <p className={styles.foodId}>ID: {food.foodId}</p>
                                                 </div>
                                                 <div className={styles.foodQuantity}>
-                                                    <span>Số lượng: {food.quantity}</span>
+                                                    <p>Số lượng: {food.quantity}</p>
                                                 </div>
                                             </div>
                                         ))}

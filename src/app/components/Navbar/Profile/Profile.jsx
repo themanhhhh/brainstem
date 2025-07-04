@@ -60,9 +60,6 @@ const Profile = () => {
               <Link href={{pathname: '/profile'}}>My Profile</Link>
             </p>
           </div>
-          {/* Hide My Orders menu item for ADMIN */}
-          
-          
         </div>
 
 
