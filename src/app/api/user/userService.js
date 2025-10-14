@@ -1,68 +1,107 @@
-import { apiRequest } from '../../lib/api';
+import { mockData, mockApiResponse, paginateData, filterData } from '../../data/mockData';
 
-const API_URL = 'https://dev.quyna.online/project_4/restaurant';
-
-// Helper function để lấy accessToken từ cookie
-const getToken = () => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; token=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return null;
-};
-
+// Mock service for users
 export const userService = {
     addUser: async (fullName, username, password, phoneNumber, email, role, state) => {
-        const { data } = await apiRequest(`${API_URL}/account`, {
-            method: 'POST',
-            body: JSON.stringify({fullName, username, password, phoneNumber, email, role, state}),
-        });
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Check for application-level errors in response
-        if (data.code && data.code !== 200 && data.code >= 1000) {
-            throw new Error(data.message || 'API error occurred');
-        }
+        // Create new user with new structure
+        const newUser = {
+            MaHV: mockData.users.length + 1,
+            HoTen: fullName,
+            NgaySinh: '1990-01-01',
+            GioiTinh: 'Nam',
+            Email: email,
+            SDT: phoneNumber,
+            NgayDangKy: new Date().toISOString(),
+            TrangThai: state,
+            MaCD: 1,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
         
-        return data;
+        mockData.users.push(newUser);
+        
+        return mockApiResponse(newUser);
     },
 
     getUser: async (page = 0, size = 10) => {
-        const { data } = await apiRequest(`${API_URL}/account?page=${page}&size=${size}`);
-        return data;
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const result = paginateData(mockData.users, page, size);
+        return mockApiResponse(result.data, result.metadata);
     },
 
     // Get all user accounts with filter
     getAllUsers: async (search = '', state = null, page = 0, size = 20) => {
-        let url = `${API_URL}/account?page=${page}&size=${size}`;
-        if (search) url += `&search=${encodeURIComponent(search)}`;
-        if (state) url += `&state=${state}`;
-
-        const { data } = await apiRequest(url);
-        return data;
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        let filteredUsers = [...mockData.users];
+        
+        // Apply filters
+        if (search) {
+            filteredUsers = filteredUsers.filter(user => 
+                user.HoTen.toLowerCase().includes(search.toLowerCase()) ||
+                user.Email.toLowerCase().includes(search.toLowerCase()) ||
+                user.SDT.includes(search)
+            );
+        }
+        
+        if (state) {
+            filteredUsers = filteredUsers.filter(user => user.TrangThai === state);
+        }
+        
+        const result = paginateData(filteredUsers, page, size);
+        return mockApiResponse(result.data, result.metadata);
     },
 
     getUserById: async (id) => {
-        const { data } = await apiRequest(`${API_URL}/account/${id}`);
-        return data;
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const user = mockData.users.find(u => u.MaHV === parseInt(id));
+        if (!user) {
+            return mockApiResponse(null, null);
+        }
+        
+        return mockApiResponse(user);
     },
 
     updateUser: async (id, fullName, username, password, phoneNumber, email, role, state) => {
-        const { data } = await apiRequest(`${API_URL}/account/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify({fullName, username, password, phoneNumber, email, role, state}),
-        });
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Check for application-level errors in response
-        if (data.code && data.code !== 200 && data.code >= 1000) {
-            throw new Error(data.message || 'API error occurred');
+        const userIndex = mockData.users.findIndex(u => u.MaHV === parseInt(id));
+        if (userIndex === -1) {
+            throw new Error('User not found');
         }
         
-        return data;
+        // Update user
+        mockData.users[userIndex] = {
+            ...mockData.users[userIndex],
+            HoTen: fullName,
+            Email: email,
+            SDT: phoneNumber,
+            TrangThai: state,
+            updatedAt: new Date().toISOString()
+        };
+        
+        return mockApiResponse(mockData.users[userIndex]);
     },
 
     deleteUser: async (id) => {
-        const { data } = await apiRequest(`${API_URL}/account/${id}`, {
-            method: 'DELETE'
-        });
-        return data;
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const userIndex = mockData.users.findIndex(u => u.MaHV === parseInt(id));
+        if (userIndex === -1) {
+            throw new Error('User not found');
+        }
+        
+        const deletedUser = mockData.users.splice(userIndex, 1)[0];
+        return mockApiResponse(deletedUser);
     }
 };  

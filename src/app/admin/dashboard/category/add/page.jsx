@@ -3,43 +3,66 @@ import React, { useState } from 'react';
 import styles from './add.module.css';
 import { useLanguageService } from "../../../../hooks/useLanguageService";
 import { useRouter } from 'next/navigation';
-import { useCart } from '../../../../context/CartContext';
+import { mockData } from '../../../../data/mockData';
 import toast from "react-hot-toast";
 
-const AddCategoryPage = () => {
-  const { categoryService, language } = useLanguageService();
+const AddLeadPage = () => {
+  const { language } = useLanguageService();
   const router = useRouter();
-  const { uploadToPinata, error, openError } = useCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    image: null,
-    imgUrl: '',
-    state: 'ACTIVE'
+    HoTen: '',
+    Email: '',
+    SDT: '',
+    NgaySinh: '',
+    GioiTinh: 'Nam',
+    TrangThai: 'INTERESTED',
+    MaCD: ''
   });
 
   // Validation functions
-  const validateName = (value) => {
-    if (!value.trim()) return 'Name is required';
-    if (value.trim().length < 5) return 'Name must be at least 5 characters';
+  const validateHoTen = (value) => {
+    if (!value.trim()) return 'Họ tên là bắt buộc';
+    if (value.trim().length < 2) return 'Họ tên phải có ít nhất 2 ký tự';
     return '';
   };
 
-  const validateDescription = (value) => {
-    if (!value.trim()) return 'Description is required';
-    if (value.trim().length < 10) return 'Description must be at least 10 characters';
+  const validateEmail = (value) => {
+    if (!value.trim()) return 'Email là bắt buộc';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value)) return 'Email không hợp lệ';
+    return '';
+  };
+
+  const validateSDT = (value) => {
+    if (!value.trim()) return 'Số điện thoại là bắt buộc';
+    const phoneRegex = /^[0-9]{10,11}$/;
+    if (!phoneRegex.test(value.replace(/\s/g, ''))) return 'Số điện thoại không hợp lệ';
+    return '';
+  };
+
+  const validateNgaySinh = (value) => {
+    if (!value) return 'Ngày sinh là bắt buộc';
+    const birthDate = new Date(value);
+    const today = new Date();
+    if (birthDate > today) return 'Ngày sinh không thể là ngày tương lai';
+    const age = today.getFullYear() - birthDate.getFullYear();
+    if (age < 5 || age > 100) return 'Tuổi phải từ 5 đến 100';
     return '';
   };
 
   // Validate single field
   const validateField = (name, value) => {
     switch (name) {
-      case 'name':
-        return validateName(value);
-      case 'description':
-        return validateDescription(value);
+      case 'HoTen':
+        return validateHoTen(value);
+      case 'Email':
+        return validateEmail(value);
+      case 'SDT':
+        return validateSDT(value);
+      case 'NgaySinh':
+        return validateNgaySinh(value);
       default:
         return '';
     }
@@ -49,7 +72,7 @@ const AddCategoryPage = () => {
   const validateForm = () => {
     const newErrors = {};
     Object.keys(formData).forEach(key => {
-      if (key !== 'state' && key !== 'image' && key !== 'imgUrl') {
+      if (key !== 'TrangThai' && key !== 'GioiTinh' && key !== 'MaCD') {
         const error = validateField(key, formData[key]);
         if (error) newErrors[key] = error;
       }
@@ -83,78 +106,43 @@ const AddCategoryPage = () => {
     }
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    setFormData(prev => ({
-      ...prev,
-      image: file
-    }));
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Validate form before submission
     if (!validateForm()) {
-      toast.error('Please fix the validation errors before submitting');
-      return;
-    }
-
-    if (!formData.image && !formData.imgUrl) {
-      toast.error('Please select an image');
+      toast.error('Vui lòng sửa các lỗi validation trước khi gửi');
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      let imgUrl = formData.imgUrl;
-      if (formData.image) {
-        imgUrl = await uploadToPinata(formData.image);
-      }
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      const result = await categoryService.addCategory({
-        name: formData.name,
-        description: formData.description,
-        imgUrl,
-        state: formData.state
-      });
-
-      // Check if API response contains error
-      if (result.code && result.code !== 200) {
-        const errorMessage = result.message || 'Failed to add category. Please try again.';
-        toast.error(errorMessage);
-        return;
-      }
-
-      // Check if response has error field or unsuccessful structure
-      if (result.error || (result.code && result.code >= 1000)) {
-        const errorMessage = result.message || result.error || 'Failed to add category. Please try again.';
-        toast.error(errorMessage);
-        return;
-      }
+      // Create new lead data
+      const newLead = {
+        MaHVTN: mockData.hocVienTiemNang.length + 1,
+        HoTen: formData.HoTen,
+        Email: formData.Email,
+        SDT: formData.SDT,
+        NgaySinh: formData.NgaySinh,
+        GioiTinh: formData.GioiTinh,
+        TrangThai: formData.TrangThai,
+        MaCD: formData.MaCD ? parseInt(formData.MaCD) : null,
+        NgayDangKy: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
 
       // Success case
-      toast.success('Category added successfully!');
+      toast.success('Đã thêm học viên tiềm năng thành công!');
       router.push('/admin/dashboard/category');
     } catch (error) {
-      console.error('Error adding category:', error);
-      
-      // Parse error response to get message from API
-      let errorMessage = 'Failed to add category. Please try again.';
-      
-      if (error.response && error.response.data) {
-        const errorData = error.response.data;
-        if (errorData.message) {
-          errorMessage = errorData.message;
-        } else if (typeof errorData === 'string') {
-          errorMessage = errorData;
-        }
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      toast.error(errorMessage);
+      console.error('Error adding lead:', error);
+      toast.error('Không thể thêm học viên tiềm năng. Vui lòng thử lại!');
     } finally {
       setIsSubmitting(false);
     }
@@ -162,63 +150,113 @@ const AddCategoryPage = () => {
 
   return (
     <div className={styles.container}>
+      <h1>Thêm Học viên Tiềm năng mới</h1>
       <form className={styles.form} onSubmit={handleSubmit}>
         <div className={styles.formGroup}>
-          <label>Name:</label>
+          <label>Họ tên:</label>
           <input
             type="text"
-            name="name"
-            value={formData.name}
+            name="HoTen"
+            value={formData.HoTen}
             onChange={handleChange}
-            placeholder="Enter category name"
-            className={errors['name'] ? styles.errorInput : ''}
+            placeholder="Nhập họ tên đầy đủ"
+            className={errors['HoTen'] ? styles.errorInput : ''}
           />
-          {errors['name'] && <span className={styles.errorText}>{errors['name']}</span>}
+          {errors['HoTen'] && <span className={styles.errorText}>{errors['HoTen']}</span>}
         </div>
 
         <div className={styles.formGroup}>
-          <label>Description:</label>
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            placeholder="Enter category description"
-            className={errors['description'] ? styles.errorInput : ''}
-          />
-          {errors['description'] && <span className={styles.errorText}>{errors['description']}</span>}
-        </div>
-
-        <div className={styles.formGroup}>
-          <label>Image:</label>
+          <label>Email:</label>
           <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
+            type="email"
+            name="Email"
+            value={formData.Email}
+            onChange={handleChange}
+            placeholder="Nhập địa chỉ email"
+            className={errors['Email'] ? styles.errorInput : ''}
           />
+          {errors['Email'] && <span className={styles.errorText}>{errors['Email']}</span>}
         </div>
 
         <div className={styles.formGroup}>
-          <label>Status:</label>
+          <label>Số điện thoại:</label>
+          <input
+            type="tel"
+            name="SDT"
+            value={formData.SDT}
+            onChange={handleChange}
+            placeholder="Nhập số điện thoại"
+            className={errors['SDT'] ? styles.errorInput : ''}
+          />
+          {errors['SDT'] && <span className={styles.errorText}>{errors['SDT']}</span>}
+        </div>
+
+        <div className={styles.formGroup}>
+          <label>Ngày sinh:</label>
+          <input
+            type="date"
+            name="NgaySinh"
+            value={formData.NgaySinh}
+            onChange={handleChange}
+            className={errors['NgaySinh'] ? styles.errorInput : ''}
+          />
+          {errors['NgaySinh'] && <span className={styles.errorText}>{errors['NgaySinh']}</span>}
+        </div>
+
+        <div className={styles.formGroup}>
+          <label>Giới tính:</label>
           <select
-            name="state"
-            value={formData.state}
+            name="GioiTinh"
+            value={formData.GioiTinh}
             onChange={handleChange}
           >
-            <option value="ACTIVE">ACTIVE</option>
-            <option value="INACTIVE">INACTIVE</option>
+            <option value="Nam">Nam</option>
+            <option value="Nữ">Nữ</option>
+            <option value="Khác">Khác</option>
+          </select>
+        </div>
+
+        <div className={styles.formGroup}>
+          <label>Trạng thái:</label>
+          <select
+            name="TrangThai"
+            value={formData.TrangThai}
+            onChange={handleChange}
+          >
+            <option value="INTERESTED">Quan tâm</option>
+            <option value="CONTACTED">Đã liên hệ</option>
+            <option value="QUALIFIED">Đủ điều kiện</option>
+            <option value="CONVERTED">Đã chuyển đổi</option>
+            <option value="LOST">Mất liên lạc</option>
+          </select>
+        </div>
+
+        <div className={styles.formGroup}>
+          <label>Chiến dịch:</label>
+          <select
+            name="MaCD"
+            value={formData.MaCD}
+            onChange={handleChange}
+          >
+            <option value="">Chọn chiến dịch</option>
+            {mockData.chienDich.map(campaign => (
+              <option key={campaign.MaCD} value={campaign.MaCD}>
+                {campaign.TenCD}
+              </option>
+            ))}
           </select>
         </div>
 
         <div className={styles.buttonGroup}>
           <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
-            {isSubmitting ? 'Adding...' : 'Add Category'}
+            {isSubmitting ? 'Đang thêm...' : 'Thêm Học viên Tiềm năng'}
           </button>
           <button 
             type="button" 
             className={styles.cancelButton}
             onClick={() => router.push('/admin/dashboard/category')}
           >
-            Cancel
+            Hủy
           </button>
         </div>
       </form>
@@ -226,4 +264,4 @@ const AddCategoryPage = () => {
   );
 };
 
-export default AddCategoryPage;
+export default AddLeadPage;

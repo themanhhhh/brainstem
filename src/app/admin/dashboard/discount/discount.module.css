@@ -99,6 +99,15 @@
   background-color: #bf2e2e;
 }
 
+.embed {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.embed:hover {
+  background-color: #138496;
+}
+
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -190,6 +199,52 @@
 
 .deleteButton:hover {
   background-color: #bf2e2e;
+}
+
+.embedCodeContainer {
+  margin: 20px 0;
+}
+
+.embedCode {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  background-color: #f8f9fa;
+  resize: vertical;
+}
+
+.copyButton {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.copyButton:hover {
+  background-color: #218838;
+}
+
+.previewContainer {
+  margin: 20px 0;
+}
+
+.previewContainer h3 {
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.previewFrame {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  min-height: 200px;
+  background-color: #f8f9fa;
+  padding: 10px;
 }
 
 .loading {

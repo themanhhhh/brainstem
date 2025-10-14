@@ -1,95 +1,71 @@
 import Image from "next/image";
 import MenuLink from "./menu/menuLink";
 import styles from "./sidebar.module.css";
-import {
-  MdDashboard,
-  MdSupervisedUserCircle,
-  MdShoppingBag,
-  MdAttachMoney,
-  MdWork,
-  MdAnalytics,
-  MdPeople,
-  MdOutlineSettings,
-  MdHelpCenter,
-  MdLogout,
-  MdLocalOffer,
-  
-} from "react-icons/md";
-import { RiListOrdered } from "react-icons/ri";
-import { IoFastFoodOutline } from "react-icons/io5";
-import { BiCategoryAlt } from "react-icons/bi";
-import { MdTableRestaurant } from "react-icons/md";
-import { LuSquareActivity } from "react-icons/lu";
-import { Style } from "@mui/icons-material";
-import { FaTablet } from "react-icons/fa6";
+import { BsClipboardPulse } from "react-icons/bs";
+import { FaRegIdCard } from "react-icons/fa6";
+import { PiMedal } from "react-icons/pi";
+import { CiUser } from "react-icons/ci";
+import { GrChannel } from "react-icons/gr";
+import { AiOutlineDollarCircle } from "react-icons/ai";
+import { FaChartBar } from "react-icons/fa";
+import { FaHome } from "react-icons/fa";
+import images from "../../../../img/index";
 
 
 const menuItems = [
   {
-    title: "Management",
+    title: "",
     list: [
       {
-        title: "Dashboard",
+        title: "Trang chủ",
         path: "/admin/dashboard",
-        icon: <MdDashboard />,
+        icon: <FaHome />,
       },
+              {
+                title: "QL Chiến dịch",
+                path: "/admin/dashboard/forms",
+                icon: <BsClipboardPulse />,
+              },
       {
-        title: "Users",
+        title: "QL Học viên",
         path: "/admin/dashboard/users",
-        icon: <MdSupervisedUserCircle />,
+        icon: <FaRegIdCard />,
       },
       {
-        title: "Category",
+        title: "HV Tiềm năng",
         path: "/admin/dashboard/category",
-        icon: <BiCategoryAlt />,
+        icon: <PiMedal />,
       },
       {
-        title: "Foods Management",
+        title: "QL nhân viên",
         path: "/admin/dashboard/products",
-        icon: <IoFastFoodOutline />,
+        icon: <CiUser />,
       },
       {
-        title: "Discounts",
-        path: "/admin/dashboard/discount",
-        icon: <MdLocalOffer />,
-      },
-      {
-        title: "Table",
+        title: "Kênh truyền thông",
         path: "/admin/dashboard/table",
-        icon: <MdTableRestaurant />,
+        icon: <GrChannel />,
       },
       {
-        title: "Order",
+        title: "Doanh thu",
+        path: "/admin/dashboard/revenue",
+        icon: <AiOutlineDollarCircle />,
+      },
+      {
+        title: "Báo cáo thống kê",
         path: "/admin/dashboard/order",
-        icon: <FaTablet />,
-      },
-      {
-        title: "Order Table",
-        path: "/admin/dashboard/orderTable",
-        icon: <RiListOrdered />,
+        icon: <FaChartBar />,
       },
     ],
-  },
-  {
-    title: "User",
-    list: [
-      {
-        title: "Config",
-        path: "/admin/dashboard/config",
-        icon: <MdOutlineSettings />,
-      },
-      {
-        title: "Log Activity",
-        path: "/admin/dashboard/log",
-        icon: <LuSquareActivity/>
-      }
-    ],
-  },
+  }
 ];
 
 const Sidebar = async () => {
   return (
     <div className={styles.container}>
+      <div className={styles.logo}>
+        <Image src={images.logoheader} alt="logo" width={280} height={100} />
+      </div>
       <ul >
         {menuItems.map((cat) => (
           <li key={cat.title}>

@@ -1,86 +1,67 @@
-const API_URL = 'https://dev.quyna.online/project_4/restaurant';
-
-const getToken = () => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; token=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return null;
-};
+import { mockData, mockApiResponse, paginateData, filterData } from '../../data/mockData';
 
 const ordertableService = {
   getOrderTables: async (page = 0, size = 10) => {
-    const token = getToken();
-    if (!token) throw new Error('No authentication token found');
-
-    const response = await fetch(`${API_URL}/table?page=${page}&size=${size}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      method: 'GET',
-    });
-    return response.json();
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const result = paginateData(mockData.tables, page, size);
+    return mockApiResponse(result.data, result.metadata);
   },
 
   // Get all tables with filtering
   getAllTables: async (name = '', state = null, page = 0, size = 10) => {
-    const token = getToken();
-    if (!token) throw new Error('No authentication token found');
-
-    let url = `${API_URL}/table?page=${page}&size=${size}`;
-    if (name) url += `&name=${encodeURIComponent(name)}`;
-    if (state) url += `&state=${state}`;
-
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      method: 'GET',
-    });
-    return response.json();
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    let filteredTables = [...mockData.tables];
+    
+    // Apply filters
+    if (name) {
+      filteredTables = filteredTables.filter(table => 
+        table.name.toLowerCase().includes(name.toLowerCase())
+      );
+    }
+    
+    if (state) {
+      filteredTables = filteredTables.filter(table => table.state === state);
+    }
+    
+    const result = paginateData(filteredTables, page, size);
+    return mockApiResponse(result.data, result.metadata);
   },
 
   getOrderTableById: async (id) => {
-    const token = getToken();
-    if (!token) throw new Error('No authentication token found');
-
-    const response = await fetch(`${API_URL}/table/${id}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      method: 'GET',
-    });
-    return response.json();
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const table = mockData.tables.find(t => t.id === parseInt(id));
+    if (!table) {
+      return mockApiResponse(null, null);
+    }
+    
+    return mockApiResponse(table);
   },
+  
   getOrderTableByUser: async (userId, page = 0, size = 10) => {
-    const token = getToken();
-    if (!token) throw new Error('No authentication token found');
-
-    const response = await fetch(`${API_URL}/order-table?userId=${userId}&page=${page}&size=${size}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      method: 'GET',
-    });
-    return response.json();
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const userReservations = mockData.tableReservations.filter(reservation => 
+      reservation.email === userId || reservation.fullName.toLowerCase().includes(userId.toLowerCase())
+    );
+    
+    const result = paginateData(userReservations, page, size);
+    return mockApiResponse(result.data, result.metadata);
   },
-
 
   getActiveTable: async (page = 0, size = 100) => {
-    const token = getToken();
-    if (!token) throw new Error('No authentication token found');
-
-    const response = await fetch(`${API_URL}/table/active?page=${page}&size=${size}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      method: 'GET',
-    });
-    return response.json();
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const activeTables = mockData.tables.filter(table => table.state === 'AVAILABLE');
+    const result = paginateData(activeTables, page, size);
+    return mockApiResponse(result.data, result.metadata);
   },
 
   createOrderTable: async (name, state, numberOfChair , page =0 , size = 10) => {

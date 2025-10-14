@@ -99,6 +99,8 @@ import serviceonline from "./servicesonl.jpg";
 import servicedine from "./servicedine.jpg";
 import servicedelivery from "./servicedeli.jpg";
 
+import logoheader from "./logoheader.png";
+
 export default {
   daily,
   aboutusimg1 ,
@@ -189,4 +191,5 @@ export default {
   serviceonline,
   servicedine,
   servicedelivery,
+  logoheader,
 };

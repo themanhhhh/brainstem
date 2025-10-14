@@ -1,11 +1,4 @@
-const API_URL = 'https://dev.quyna.online/project_4/restaurant';
-
-const getToken = () => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; token=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-    return null;
-};
+import { mockData, mockApiResponse, paginateData, filterData } from '../../data/mockData';
 
 // Helper functions for order ID cookie management
 export const getOrderId = () => {
@@ -52,50 +45,32 @@ export const clearCartItemsFromCookie = () => {
     document.cookie = 'cartItems=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 };
 
-// Get all orders
+// Get all orders (using students data)
 export const getOrders = async (page = 0, size = 10, status = '') => {
-    const token = getToken();
-    if (!token) throw new Error('No authentication token found');
-
-    const query = new URLSearchParams({ page, size });
-    if (status) query.append('status', status);
-
-    try {
-        const response = await fetch(`${API_URL}/customer/order?${query.toString()}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-        });
-        if (!response.ok) {
-            throw new Error('Failed to fetch orders');
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching orders:', error);
-        throw error;
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    let filteredOrders = [...mockData.users];
+    
+    if (status) {
+        filteredOrders = filteredOrders.filter(order => order.TrangThai === status);
     }
+    
+    const result = paginateData(filteredOrders, page, size);
+    return mockApiResponse(result.data, result.metadata);
 };
 
-// Get order by ID
+// Get order by ID (using students data)
 export const getOrderById = async (id) => {
-    const token = getToken();
-    if (!token) throw new Error('No authentication token found');
-    try {
-        const response = await fetch(`${API_URL}/customer/order/${id}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-        });
-        if (!response.ok) {
-            throw new Error('Failed to fetch order');
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching order:', error);
-        throw error;
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const order = mockData.users.find(o => o.MaHV === parseInt(id));
+    if (!order) {
+        return mockApiResponse(null, null);
     }
+    
+    return mockApiResponse(order);
 };
 
 export const getOrderByCustomerId = async (customerId) => {

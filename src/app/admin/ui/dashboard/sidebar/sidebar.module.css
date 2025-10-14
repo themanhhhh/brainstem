@@ -1,9 +1,9 @@
 .container {
   background-color: #0f172a;
   color: #a4b1cd;
-  padding: 15px;
-  height: 100%;
-  width: 240px;
+  padding: 0;
+  height: 150px;
+  width: 280px;
 }
 
 .container ul {
@@ -14,6 +14,7 @@
 
 .container li {
   margin-bottom: 24px;
+  
 }
 
 .cat {

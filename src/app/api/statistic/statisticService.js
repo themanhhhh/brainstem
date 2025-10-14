@@ -1,63 +1,63 @@
-const API_URL = 'https://dev.quyna.online/project_4/restaurant';
+import { mockData, mockApiResponse } from '../../data/mockData';
 
-// Helper function để lấy accessToken từ cookie
-const getToken = () => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; token=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return null;
-};
-
+// Mock service for statistics
 export const statisticService = {
     getRevenue: async (startDate, endDate) => {
-        const token = getToken();
-        if (!token) throw new Error('No authentication token found');
-
-        const response = await fetch(`${API_URL}/statistic?startDate=${startDate}&endDate=${endDate}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Filter revenue data by date range
+        let filteredData = mockData.statistics.revenueData.filter(item => {
+            const itemDate = new Date(item.date);
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            return itemDate >= start && itemDate <= end;
         });
-        return response.json();
+
+        // Nếu không có dữ liệu trong khoảng thời gian, trả về tất cả dữ liệu
+        if (filteredData.length === 0) {
+            filteredData = mockData.statistics.revenueData;
+        }
+
+        console.log('Filtered revenue data:', filteredData); // Debug log
+
+        return {
+            code: 200,
+            message: 'Success',
+            data: {
+                totalRevenue: mockData.statistics.totalRevenue,
+                totalStudents: mockData.statistics.totalStudents,
+                totalTeachers: mockData.statistics.totalTeachers,
+                totalCourses: mockData.statistics.totalCourses,
+                totalCampaigns: mockData.statistics.totalCampaigns,
+                totalPotentialStudents: mockData.statistics.totalPotentialStudents,
+                revenueData: filteredData,
+                topCourses: mockData.statistics.topCourses,
+                statisticTotal: {
+                    monthlyActiveUser: mockData.statistics.totalStudents,
+                    countOrderOffline: mockData.statistics.totalStudents,
+                    totalRevenue: mockData.statistics.totalRevenue
+                }
+            }
+        };
     },
     
-    // Hàm download file export - trả về blob để download
+    // Mock export function
     getRevenueExport: async (startDate, endDate) => {
-        const token = getToken();
-        if (!token) throw new Error('No authentication token found');
-
-        const response = await fetch(`${API_URL}/statistic/report?startDate=${startDate}&endDate=${endDate}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`
-                // Không set Content-Type để server tự định dạng
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        // Lấy blob để download file
-        const blob = await response.blob();
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Lấy tên file từ Content-Disposition header (nếu có)
-        const contentDisposition = response.headers.get('Content-Disposition');
-        let filename = `revenue_export_${startDate}_${endDate}.xlsx`; // Default filename
+        // Create mock CSV data
+        const csvData = `Date,Revenue,Orders
+${mockData.statistics.revenueData.map(item => `${item.date},${item.revenue},${item.orders}`).join('\n')}`;
         
-        if (contentDisposition) {
-            const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
-            if (matches && matches[1]) {
-                filename = matches[1].replace(/['"]/g, '');
-            }
-        }
-
+        const blob = new Blob([csvData], { type: 'text/csv' });
+        const filename = `revenue_export_${startDate}_${endDate}.csv`;
+        
         return {
             blob,
             filename,
-            type: response.headers.get('Content-Type') || 'application/octet-stream'
+            type: 'text/csv'
         };
     },
 

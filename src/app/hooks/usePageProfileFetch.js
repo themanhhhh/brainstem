@@ -24,10 +24,10 @@ export const usePageProfileFetch = (pageName = 'Unknown Page') => {
     }
     
     // Chỉ fetch nếu user đã đăng nhập
-    if (!user && !(typeof window !== 'undefined' && document.cookie.includes('token='))) {
-      console.log('⚠️ No user/token found, skipping profile fetch');
-      return;
-    }
+    // if (!user && !(typeof window !== 'undefined' && document.cookie.includes('token='))) {
+    //   console.log('⚠️ No user/token found, skipping profile fetch');
+    //   return;
+    // }
     
     // Debounce để tránh gọi quá nhiều lần khi navigation nhanh
     timeoutRef.current = setTimeout(() => {

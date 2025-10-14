@@ -1,152 +1,147 @@
-const API_URL = 'https://dev.quyna.online/project_4/restaurant';
+import { mockData, mockApiResponse, paginateData, filterData } from '../../data/mockData';
 
-const getToken = () => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; token=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return null;
-};
-
+// Mock service for foods
 export const foodService = {
     getFoods: async (page = 0, size = 10, language = 'VI') => {
-        const token = getToken();
-        if (!token) throw new Error('No authentication token found');
-
-        const response = await fetch(`${API_URL}/food/view?page=${page}&size=${size}&language=${language}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            method: 'GET',
-        });
-        return response.json();
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const result = paginateData(mockData.foods, page, size);
+        return mockApiResponse(result.data, result.metadata);
     },
+    
     getMainDishes: async (page = 0, size = 100, language = 'VI') => {
-        const response = await fetch(`${API_URL}/food/view?isMain=true&page=${page}&size=${size}&language=${language}`, {
-            headers: {
-                
-                'Content-Type': 'application/json',
-            },
-            method: 'GET',
-        });
-        return response.json();
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const mainDishes = mockData.foods.filter(food => food.categoryId === 1); // Món chính
+        const result = paginateData(mainDishes, page, size);
+        return mockApiResponse(result.data, result.metadata);
     },
 
     // Get foods with filtering
     getAllFoods: async (name = '', categoryId = null, state = null, page = 0, pageSize = 10, signal = null, language = 'VI') => {
-        const token = getToken();
-        if (!token) throw new Error('No authentication token found');
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 300));
         
-        let url = `${API_URL}/food/view?page=${page}&size=${pageSize}&language=${language}`;
-        if (name) url += `&name=${encodeURIComponent(name)}`;
-        if (categoryId) url += `&categoryId=${categoryId}`;
-        if (state) url += `&state=${state}`;
+        let filteredFoods = [...mockData.foods];
         
-        const options = {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            method: 'GET',
-        };
-        
-        // Add signal to request if provided
-        if (signal) {
-            options.signal = signal;
+        // Apply filters
+        if (name) {
+            filteredFoods = filteredFoods.filter(food => 
+                food.name.toLowerCase().includes(name.toLowerCase()) ||
+                food.description.toLowerCase().includes(name.toLowerCase())
+            );
         }
         
-        const response = await fetch(url, options);
-        return response.json();
+        if (categoryId) {
+            filteredFoods = filteredFoods.filter(food => food.categoryId === parseInt(categoryId));
+        }
+        
+        if (state) {
+            filteredFoods = filteredFoods.filter(food => food.state === state);
+        }
+        
+        const result = paginateData(filteredFoods, page, pageSize);
+        return mockApiResponse(result.data, result.metadata);
     },
 
     // Lấy thông tin một món ăn theo ID
     getFoodById: async (id, language = 'VI') => {
-        const token = getToken();
-        if (!token) throw new Error('No authentication token found');
-
-        const response = await fetch(`${API_URL}/food/view/${id}?language=${language}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            method: 'GET',
-        });
-        return response.json();
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const food = mockData.foods.find(f => f.id === parseInt(id));
+        if (!food) {
+            return mockApiResponse(null, null);
+        }
+        
+        return mockApiResponse(food);
     },
 
     // Thêm món ăn mới
-    addFood: async (name, description, price, imgUrl, categoryId, state, quantity)  => {
-        const token = getToken();
-        if (!token) throw new Error('No authentication token found');
-
-        const response = await fetch(`${API_URL}/food`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                name,
-                description,
-                price,
-                imgUrl,
-                categoryId,
-                state,
-                quantity
-            }),
-        });
-        return response.json();
+    addFood: async (name, description, price, imgUrl, categoryId, state, quantity) => {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const category = mockData.categories.find(c => c.id === parseInt(categoryId));
+        const newFood = {
+            id: mockData.foods.length + 1,
+            name,
+            description,
+            price: parseInt(price),
+            imgUrl,
+            categoryId: parseInt(categoryId),
+            categoryName: category ? category.name : 'Unknown',
+            state,
+            quantity: parseInt(quantity),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        mockData.foods.push(newFood);
+        return mockApiResponse(newFood);
     },
 
     // Cập nhật thông tin món ăn
     updateFood: async (id, name, description, price, imgUrl, categoryId, state, quantity, language = 'VI') => {
-        const token = getToken();
-        if (!token) throw new Error('No authentication token found');
-
-        const response = await fetch(`${API_URL}/food/${id}?language=${language}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                name,
-                description,
-                price,
-                imgUrl,
-                categoryId,
-                state,
-                quantity
-            }),
-        });
-        return response.json();
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const foodIndex = mockData.foods.findIndex(f => f.id === parseInt(id));
+        if (foodIndex === -1) {
+            throw new Error('Food not found');
+        }
+        
+        const category = mockData.categories.find(c => c.id === parseInt(categoryId));
+        mockData.foods[foodIndex] = {
+            ...mockData.foods[foodIndex],
+            name,
+            description,
+            price: parseInt(price),
+            imgUrl,
+            categoryId: parseInt(categoryId),
+            categoryName: category ? category.name : 'Unknown',
+            state,
+            quantity: parseInt(quantity),
+            updatedAt: new Date().toISOString()
+        };
+        
+        return mockApiResponse(mockData.foods[foodIndex]);
     },
 
     // Xóa món ăn
     deleteFood: async (id) => {
-        const token = getToken();
-        if (!token) throw new Error('No authentication token found');
-
-        const response = await fetch(`${API_URL}/food/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        return response.json();
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const foodIndex = mockData.foods.findIndex(f => f.id === parseInt(id));
+        if (foodIndex === -1) {
+            throw new Error('Food not found');
+        }
+        
+        const deletedFood = mockData.foods.splice(foodIndex, 1)[0];
+        return mockApiResponse(deletedFood);
     },
 
-    getFoodView: async (size = 100 , language = 'VI') => {
-        const response = await fetch(`${API_URL}/food/view?size=${size}&state=AVAILABLE&language=${language}`, {
-            method: 'GET',
-        }); 
-        return response.json();
+    getFoodView: async (size = 100, language = 'VI') => {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const availableFoods = mockData.foods.filter(food => food.state === 'AVAILABLE');
+        const result = paginateData(availableFoods, 0, size);
+        return mockApiResponse(result.data, result.metadata);
     },
 
     getFoodByIdView: async (id) => {
-        const response = await fetch(`${API_URL}/food/view/${id}?language=EN`, {
-            method: 'GET',
-        });
-        return response.json(); 
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const food = mockData.foods.find(f => f.id === parseInt(id));
+        if (!food) {
+            return mockApiResponse(null, null);
+        }
+        
+        return mockApiResponse(food);
     }
 };

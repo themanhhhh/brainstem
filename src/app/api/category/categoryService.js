@@ -1,129 +1,115 @@
-const API_URL = 'https://dev.quyna.online/project_4/restaurant';
+import { mockData, mockApiResponse, paginateData, filterData } from '../../data/mockData';
 
-const getToken = () => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; token=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return null;
-};
-
+// Mock service for categories
 export const categoryService = {
   getCategories: async (page = 0, pageSize = 10, language = 'VI') => {
-    const token = getToken();
-    if (!token) throw new Error('No authentication token found');
-
-    const response = await fetch(`${API_URL}/category/view?page=${page}&size=${pageSize}&language=${language}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      method: 'GET',
-    });
-
-    return response.json();
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const result = paginateData(mockData.categories, page, pageSize);
+    return mockApiResponse(result.data, result.metadata);
   },
 
   // Get categories with filter options
   getAllCategories: async (name = '', state = null, page = 0, pageSize = 10, language = 'VI') => {
-    const token = getToken();
-    if (!token) throw new Error('No authentication token found');
-
-    let url = `${API_URL}/category/view?page=${page}&size=${pageSize}&language=${language}`;
-    if (name) url += `&name=${encodeURIComponent(name)}`;
-    if (state) url += `&state=${state}`;
-
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      method: 'GET',
-    });
-
-    return response.json();
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    let filteredCategories = [...mockData.categories];
+    
+    // Apply filters
+    if (name) {
+      filteredCategories = filteredCategories.filter(category => 
+        category.name.toLowerCase().includes(name.toLowerCase()) ||
+        category.description.toLowerCase().includes(name.toLowerCase())
+      );
+    }
+    
+    if (state) {
+      filteredCategories = filteredCategories.filter(category => category.state === state);
+    }
+    
+    const result = paginateData(filteredCategories, page, pageSize);
+    return mockApiResponse(result.data, result.metadata);
   },
 
   getCategoryById: async (id, language = 'VI') => {
-    const token = getToken();
-    if (!token) throw new Error('No authentication token found');
-
-    const response = await fetch(`${API_URL}/category/view/${id}?language=${language}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      method: 'GET',
-    });
-
-    return response.json(); 
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const category = mockData.categories.find(c => c.id === parseInt(id));
+    if (!category) {
+      return mockApiResponse(null, null);
+    }
+    
+    return mockApiResponse(category);
   },
 
   addCategory: async (category) => {
-    const token = getToken();
-    if (!token) throw new Error('No authentication token found');
-
-    const response = await fetch(`${API_URL}/category`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      method: 'POST',
-      body: JSON.stringify(category),
-    });
-
-    return response.json();
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const newCategory = {
+      id: mockData.categories.length + 1,
+      name: category.name,
+      description: category.description,
+      state: category.state || 'ACTIVE',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    mockData.categories.push(newCategory);
+    return mockApiResponse(newCategory);
   },
 
-  updateCategory: async (id, category , language = 'VI') => {
-    const token = getToken();
-    if (!token) throw new Error('No authentication token found');
-
-    const response = await fetch(`${API_URL}/category/${id}?language=${language}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      method: 'PUT',
-      body: JSON.stringify(category),
-    });
-
-    return response.json(); 
+  updateCategory: async (id, category, language = 'VI') => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const categoryIndex = mockData.categories.findIndex(c => c.id === parseInt(id));
+    if (categoryIndex === -1) {
+      throw new Error('Category not found');
+    }
+    
+    mockData.categories[categoryIndex] = {
+      ...mockData.categories[categoryIndex],
+      name: category.name,
+      description: category.description,
+      state: category.state,
+      updatedAt: new Date().toISOString()
+    };
+    
+    return mockApiResponse(mockData.categories[categoryIndex]);
   },
 
   deleteCategory: async (id) => {
-    const token = getToken();
-    if (!token) throw new Error('No authentication token found');       
-
-    const response = await fetch(`${API_URL}/category/${id}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      method: 'DELETE',
-    });
-
-    return response.json();
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const categoryIndex = mockData.categories.findIndex(c => c.id === parseInt(id));
+    if (categoryIndex === -1) {
+      throw new Error('Category not found');
+    }
+    
+    const deletedCategory = mockData.categories.splice(categoryIndex, 1)[0];
+    return mockApiResponse(deletedCategory);
   },
 
   getActiveCategories: async () => {
-    const token = getToken();
-    if (!token) throw new Error('No authentication token found');
-
-    const response = await fetch(`${API_URL}/category/active`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      method: 'GET',
-    });
-
-    return response.json();
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const activeCategories = mockData.categories.filter(category => category.state === 'ACTIVE');
+    return mockApiResponse(activeCategories);
   },
-  getCategoryView: async (size = 100 , language = 'VI') => {
-    const response = await fetch(`${API_URL}/category/view?state=ACTIVE&size=${size}&language=${language}`, {
-      method: 'GET',  
-    });
-    return response.json();
+  
+  getCategoryView: async (size = 100, language = 'VI') => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const activeCategories = mockData.categories.filter(category => category.state === 'ACTIVE');
+    const result = paginateData(activeCategories, 0, size);
+    return mockApiResponse(result.data, result.metadata);
   },
 };
 

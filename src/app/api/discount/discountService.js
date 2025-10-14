@@ -1,46 +1,35 @@
-const API_URL = 'https://dev.quyna.online/project_4/restaurant';
-
-const getToken = () => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; token=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return null;
-};
+import { mockData, mockApiResponse, paginateData, filterData } from '../../data/mockData';
 
 export const discountService = {
   getDiscounts: async (page = 0, size = 10) => {
-    const token = getToken();
-    if (!token) throw new Error('No authentication token found');
-
-    const response = await fetch(`${API_URL}/discount/view?page=${page}&size=${size}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      method: 'GET',
-    });
-
-    return response.json();
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const result = paginateData(mockData.discounts, page, size);
+    return mockApiResponse(result.data, result.metadata);
   },
 
   // Get discounts with filtering
   getAllDiscounts: async (name = '', status = null, page = 0, size = 10) => {
-    const token = getToken();
-    if (!token) throw new Error('No authentication token found');
-
-    let url = `${API_URL}/discount/view?page=${page}&size=${size}`;
-    if (name) url += `&name=${encodeURIComponent(name)}`;
-    if (status) url += `&status=${status}`;
-
-    const response = await fetch(`${url}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      method: 'GET',
-    });
-
-    return response.json();
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    let filteredDiscounts = [...mockData.discounts];
+    
+    // Apply filters
+    if (name) {
+      filteredDiscounts = filteredDiscounts.filter(discount => 
+        discount.name.toLowerCase().includes(name.toLowerCase()) ||
+        discount.description.toLowerCase().includes(name.toLowerCase())
+      );
+    }
+    
+    if (status) {
+      filteredDiscounts = filteredDiscounts.filter(discount => discount.status === status);
+    }
+    
+    const result = paginateData(filteredDiscounts, page, size);
+    return mockApiResponse(result.data, result.metadata);
   },
 
   getDiscountByPrice: async (price) => {

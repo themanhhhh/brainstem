@@ -24,7 +24,6 @@ export const config = {
   matcher: [
     '/',
     '/login',
-    '/admin/:path*',
     '/manager/:path*',
     '/profile/:path*',
     '/menu',

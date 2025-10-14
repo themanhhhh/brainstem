@@ -5,6 +5,7 @@ import { useLanguageService } from "../../../hooks/useLanguageService";
 import { Pagination, FilterableSearch } from "../../ui/dashboard/dashboardindex";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useCart } from "../../../context/CartContext";
+import { mockData } from "../../../data/mockData";
 import Image from "next/image";
 import LogoutButton from "@/app/components/LogoutButton/LogoutButton";
 import Link from "next/link";
@@ -42,8 +43,7 @@ const Page = () => {
     // Fallback to default message
     return defaultMessage;
   };
-  const [categories, setCategories] = useState([]);
-  const [activeCategories, setActiveCategories] = useState([]);
+  const [leads, setLeads] = useState([]);
   const [metadata, setMetadata] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -51,16 +51,19 @@ const Page = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [showConvertModal, setShowConvertModal] = useState(false);
+  const [selectedLead, setSelectedLead] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    image: null,
-    imgUrl: '',
-    state: ''
+    HoTen: '',
+    Email: '',
+    SDT: '',
+    NgaySinh: '',
+    GioiTinh: '',
+    TrangThai: '',
+    MaCD: ''
   });
   const { uploadToPinata, error: uploadError, openError } = useCart();
   
@@ -78,14 +81,8 @@ const Page = () => {
 
   // Effect khi trang hoặc bộ lọc thay đổi, gọi API để lấy dữ liệu
   useEffect(() => {
-    fetchCategories(currentPage, itemsPerPage, nameFilter, statusFilter);
+    fetchLeads(currentPage, itemsPerPage, nameFilter, statusFilter);
   }, [currentPage, itemsPerPage, nameFilter, statusFilter]);
-
-  // Effect để gọi lại API khi ngôn ngữ thay đổi
-  useEffect(() => {
-    fetchCategories(currentPage, itemsPerPage, nameFilter, statusFilter);
-    fetchActiveCategories();
-  }, [language]); // Thêm language vào dependency
 
   useEffect(() => {
     const timerId = setTimeout(() => {
@@ -120,41 +117,44 @@ const Page = () => {
     replace(`${pathname}?${params}`);
   };
 
-  const fetchCategories = async (page, pageSize, name = "", state = "") => {
+  const fetchLeads = async (page, pageSize, name = "", state = "") => {
     try {
       setLoading(true);
-      const response = await categoryService.getAllCategories(name, state, page, pageSize);
       
-      console.log("API Response (Categories):", response); // Debug thông tin API trả về
+      // Sử dụng dữ liệu học viên tiềm năng từ mockData
+      let filteredLeads = [...mockData.hocVienTiemNang];
       
-      // Kiểm tra và xử lý dữ liệu từ API
-      if (response.data && Array.isArray(response.data)) {
-        setCategories(response.data);
-        
-        // Lưu metadata để sử dụng cho phân trang
-        if (response.metadata) {
-          console.log("Pagination Metadata (Categories):", response.metadata); // Debug metadata
-          setMetadata(response.metadata);
-        } else {
-          console.warn("No metadata found in Categories API response");
-        }
-        
-        // Hiển thị thông báo load thành công nếu không phải search
-        
-      } else {
-        console.error("Unexpected API response format:", response);
-        setCategories([]);
-        toast.error("Dữ liệu trả về không đúng định dạng", {
-          duration: 3000,
-          position: "top-center"
-        });
+      // Lọc theo tên
+      if (name) {
+        filteredLeads = filteredLeads.filter(lead => 
+          lead.HoTen.toLowerCase().includes(name.toLowerCase()) ||
+          lead.Email.toLowerCase().includes(name.toLowerCase())
+        );
       }
+      
+      // Lọc theo trạng thái
+      if (state) {
+        filteredLeads = filteredLeads.filter(lead => lead.TrangThai === state);
+      }
+      
+      // Phân trang
+      const startIndex = page * pageSize;
+      const endIndex = startIndex + pageSize;
+      const paginatedLeads = filteredLeads.slice(startIndex, endIndex);
+      
+      setLeads(paginatedLeads);
+      setMetadata({
+        page: page,
+        totalPages: Math.ceil(filteredLeads.length / pageSize),
+        count: paginatedLeads.length,
+        totalElements: filteredLeads.length
+      });
       
       setError(null);
     } catch (err) {
-      console.error("Error fetching categories:", err);
-      setCategories([]);
-      const errorMessage = getErrorMessage(err, "Không thể tải danh sách danh mục. Vui lòng thử lại!");
+      console.error("Error fetching leads:", err);
+      setLeads([]);
+      const errorMessage = getErrorMessage(err, "Không thể tải danh sách học viên tiềm năng. Vui lòng thử lại!");
       toast.error(errorMessage, {
         duration: 4000,
         position: "top-center"
@@ -164,34 +164,6 @@ const Page = () => {
     }
   };
 
-  const fetchActiveCategories = async () => {
-    try {
-      const response = await categoryService.getActiveCategories();
-      console.log("Active Categories:", response);
-      
-      // Check if response is an array or has data property
-      if (Array.isArray(response)) {
-        setActiveCategories(response);
-      } else if (response.data && Array.isArray(response.data)) {
-        setActiveCategories(response.data);
-      } else {
-        console.warn("Unexpected active categories response format");
-        setActiveCategories([]);
-        toast.error("Không thể tải danh sách danh mục active", {
-          duration: 3000,
-          position: "top-center"
-        });
-      }
-    } catch (err) {
-      console.error("Error fetching active categories:", err);
-      setActiveCategories([]);
-      const errorMessage = getErrorMessage(err, "Lỗi khi tải danh mục active");
-      toast.error(errorMessage, {
-        duration: 3000,
-        position: "top-center"
-      });
-    }
-  };
 
   const handleSearch = (value) => {
     setSearchTerm(value);
@@ -203,32 +175,21 @@ const Page = () => {
   };
 
 
-  const handleEdit = async (category) => {
+  const handleEdit = async (lead) => {
     try {
-      // Set loading state
-      setLoading(true);
-      
-      // Fetch the active categories
-      await fetchActiveCategories();
-      
-      // Get the detailed info of the selected category
-      const categoryDetail = await categoryService.getCategoryById(category.id);
-      
-      // Set the selected category
-      setSelectedCategory(categoryDetail);
-      // Initialize the form data
+      setSelectedLead(lead);
       setFormData({
-        name: categoryDetail.name || '',
-        description: categoryDetail.description || '',
-        image: null,
-        imgUrl: categoryDetail.imgUrl || '',
-        state: categoryDetail.state || 'ACTIVE'
+        HoTen: lead.HoTen || '',
+        Email: lead.Email || '',
+        SDT: lead.SDT || '',
+        NgaySinh: lead.NgaySinh || '',
+        GioiTinh: lead.GioiTinh || '',
+        TrangThai: lead.TrangThai || 'INTERESTED',
+        MaCD: lead.MaCD || ''
       });
-      
-      // Show the edit modal
       setShowEditModal(true);
       
-      toast.success(`Đang chỉnh sửa danh mục: ${categoryDetail.name}`, {
+      toast.success(`Đang chỉnh sửa học viên tiềm năng: ${lead.HoTen}`, {
         duration: 2000,
         position: "top-right"
       });
@@ -239,28 +200,48 @@ const Page = () => {
         duration: 4000,
         position: "top-center"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleDelete = (category) => {
-    setSelectedCategory(category);
+  const handleDelete = (lead) => {
+    setSelectedLead(lead);
     setShowDeleteModal(true);
   };
 
-  const handleView = async (category) => {
+  const handleView = async (lead) => {
     try {
-      const categoryDetail = await categoryService.getCategoryById(category.id);
-      setSelectedCategory(categoryDetail);
+      setSelectedLead(lead);
       setShowViewModal(true);
     } catch (err) {
-      console.error("Error fetching category details:", err);
-      const errorMessage = getErrorMessage(err, "Không thể tải chi tiết danh mục. Vui lòng thử lại!");
+      console.error("Error fetching lead details:", err);
+      const errorMessage = getErrorMessage(err, "Không thể tải chi tiết học viên tiềm năng. Vui lòng thử lại!");
       toast.error(errorMessage, {
         duration: 4000,
         position: "top-center"
       });
+    }
+  };
+
+  const handleConvert = (lead) => {
+    setSelectedLead(lead);
+    setShowConvertModal(true);
+  };
+
+  // Function để lấy class CSS cho trạng thái
+  const getStatusClass = (status) => {
+    switch (status) {
+      case 'INTERESTED':
+        return Style.interested;
+      case 'CONTACTED':
+        return Style.contacted;
+      case 'QUALIFIED':
+        return Style.qualified;
+      case 'CONVERTED':
+        return Style.converted;
+      case 'LOST':
+        return Style.lost;
+      default:
+        return Style.default;
     }
   };
 
@@ -278,15 +259,15 @@ const Page = () => {
     e.preventDefault();
     
     // Validation
-    if (!formData.name.trim()) {
-      toast.error("Tên danh mục không được để trống!", {
+    if (!formData.HoTen.trim()) {
+      toast.error("Họ tên không được để trống!", {
         duration: 3000,
         position: "top-center"
       });
       return;
     }
-    if (!formData.description.trim()) {
-      toast.error("Mô tả danh mục không được để trống!", {
+    if (!formData.Email.trim()) {
+      toast.error("Email không được để trống!", {
         duration: 3000,
         position: "top-center"
       });
@@ -294,51 +275,24 @@ const Page = () => {
     }
     
     try {
-      toast.loading("Đang cập nhật danh mục...", { id: "edit-category" });
+      toast.loading("Đang cập nhật học viên tiềm năng...", { id: "edit-lead" });
       
-      let categoryData = {
-        name: formData.name,
-        description: formData.description,
-        state: formData.state
-      };
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Upload new image if selected
-      if (formData.image) {
-        const imgUrl = await uploadToPinata(formData.image);
-        categoryData.imgUrl = imgUrl;
-      } else if (formData.imgUrl) {
-        categoryData.imgUrl = formData.imgUrl;
-      }
-      
-      const response = await categoryService.updateCategory(selectedCategory.id, categoryData, language);
-      
-      // Debug log to see what response we get
-      console.log("Update category response:", response);
-      
-      // Check if response indicates an error
-      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
-        const errorMessage = getErrorMessage(response, "Không thể cập nhật danh mục. Vui lòng thử lại!");
-        toast.error(errorMessage, {
-          id: "edit-category",
-          duration: 4000,
-          position: "top-center"
-        });
-        return;
-      }
-      
-      toast.success(`Đã cập nhật danh mục "${formData.name}" thành công!`, {
-        id: "edit-category",
+      toast.success(`Đã cập nhật học viên tiềm năng "${formData.HoTen}" thành công!`, {
+        id: "edit-lead",
         duration: 3000,
         position: "top-center"
       });
       
       setShowEditModal(false);
-      fetchCategories(currentPage, itemsPerPage);
+      fetchLeads(currentPage, itemsPerPage, nameFilter, statusFilter);
     } catch (err) {
-      console.error("Error updating category:", err);
-      const errorMessage = getErrorMessage(err, "Không thể cập nhật danh mục. Vui lòng thử lại!");
+      console.error("Error updating lead:", err);
+      const errorMessage = getErrorMessage(err, "Không thể cập nhật học viên tiềm năng. Vui lòng thử lại!");
       toast.error(errorMessage, {
-        id: "edit-category",
+        id: "edit-lead",
         duration: 4000,
         position: "top-center"
       });
@@ -347,38 +301,24 @@ const Page = () => {
 
   const handleDeleteConfirm = async () => {
     try {
-      toast.loading("Đang xóa danh mục...", { id: "delete-category" });
+      toast.loading("Đang xóa học viên tiềm năng...", { id: "delete-lead" });
       
-      const response = await categoryService.deleteCategory(selectedCategory.id);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Debug log to see what response we get
-      console.log("Delete category response:", response);
-      
-      // Check if response indicates an error (even if it doesn't throw)
-      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
-        // Handle API error response
-        const errorMessage = getErrorMessage(response, "Không thể xóa danh mục. Vui lòng thử lại!");
-        toast.error(errorMessage, {
-          id: "delete-category",
-          duration: 4000,
-          position: "top-center"
-        });
-        return;
-      }
-      
-      toast.success(`Đã xóa danh mục "${selectedCategory.name}" thành công!`, {
-        id: "delete-category",
+      toast.success(`Đã xóa học viên tiềm năng "${selectedLead?.HoTen}" thành công!`, {
+        id: "delete-lead",
         duration: 3000,
         position: "top-center"
       });
       
       setShowDeleteModal(false);
-      fetchCategories(currentPage, itemsPerPage);
+      fetchLeads(currentPage, itemsPerPage, nameFilter, statusFilter);
     } catch (err) {
-      console.error("Error deleting category:", err);
-      const errorMessage = getErrorMessage(err, "Không thể xóa danh mục. Vui lòng thử lại!");
+      console.error("Error deleting lead:", err);
+      const errorMessage = getErrorMessage(err, "Không thể xóa học viên tiềm năng. Vui lòng thử lại!");
       toast.error(errorMessage, {
-        id: "delete-category",
+        id: "delete-lead",
         duration: 4000,
         position: "top-center"
       });
@@ -392,23 +332,26 @@ const Page = () => {
       
       <div className={Style.container}>
       <div className={Style.top}>
-        <h1>Categories Management</h1>
+        <h1>Quản lý Học viên Tiềm năng (Leads)</h1>
         <div className={Style.topRight}>
           <FilterableSearch 
-            placeholder="Tìm kiếm theo tên danh mục..." 
+            placeholder="Tìm kiếm theo tên hoặc email..." 
             onChange={handleSearch}
             onSearch={handleSearch}
             value={searchTerm}
             statusFilter={selectedStatus}
             onStatusChange={handleStatusChange}
             statusOptions={[
-              { value: '', label: 'All Statuses' },
-              { value: 'ACTIVE', label: 'Active' },
-              { value: 'INACTIVE', label: 'Inactive' }
+              { value: '', label: 'Tất cả trạng thái' },
+              { value: 'INTERESTED', label: 'Quan tâm' },
+              { value: 'CONTACTED', label: 'Đã liên hệ' },
+              { value: 'QUALIFIED', label: 'Đủ điều kiện' },
+              { value: 'CONVERTED', label: 'Đã chuyển đổi' },
+              { value: 'LOST', label: 'Mất liên lạc' }
             ]}
           />
           <Link href="/admin/dashboard/category/add" className={Style.addButton}>
-            Add New Category
+            Thêm Lead mới
           </Link>
         </div>
       </div>
@@ -417,7 +360,7 @@ const Page = () => {
       {searchTerm && (
         <div className={Style.searchInfo}>
           Kết quả tìm kiếm cho: <strong>{searchTerm}</strong> | 
-          Tìm thấy: <strong>{categories.length}</strong> danh mục
+          Tìm thấy: <strong>{leads.length}</strong> học viên tiềm năng
           {selectedStatus && (
             <span> | Trạng thái: <strong>{selectedStatus}</strong></span>
           )}
@@ -427,63 +370,68 @@ const Page = () => {
       <table className={Style.table}>
         <thead>
           <tr>
-            <td>Image</td>
-            <td>Name</td>
-            <td>Description</td>
-            <td>Status</td>
-            <td>Action</td>
+            <td>Họ tên</td>
+            <td>Email</td>
+            <td>Số điện thoại</td>
+            <td>Ngày sinh</td>
+            <td>Giới tính</td>
+            <td>Trạng thái</td>
+            <td>Chiến dịch</td>
+            <td>Thao tác</td>
           </tr>
         </thead>
         <tbody>
-          {categories.map((category) => (
-            <tr key={category.id}>
-              <td>
-                  <div className={Style.imageContainer}>
-                    <Image 
-                      src={category.imgUrl}
-                      alt={category.name}
-                      width={50}
-                      height={50}
-                      className={Style.categoryImage}
-                    />
+          {leads.map((lead) => {
+            const campaign = mockData.chienDich.find(c => c.MaCD === lead.MaCD);
+            return (
+              <tr key={lead.MaHVTN}>
+                <td>{lead.HoTen}</td>
+                <td>{lead.Email}</td>
+                <td>{lead.SDT}</td>
+                <td>{new Date(lead.NgaySinh).toLocaleDateString('vi-VN')}</td>
+                <td>{lead.GioiTinh}</td>
+                <td>
+                  <span className={`${Style.status} ${getStatusClass(lead.TrangThai)}`}>
+                    {lead.TrangThai}
+                  </span>
+                </td>
+                <td>{campaign?.TenCD || 'N/A'}</td>
+                <td>
+                  <div className={Style.buttons}>
+                    <button 
+                      className={`${Style.button} ${Style.view}`}
+                      onClick={() => handleView(lead)}
+                    >
+                      Xem
+                    </button>
+                    <button 
+                      className={`${Style.button} ${Style.edit}`}
+                      onClick={() => handleEdit(lead)}
+                    >
+                      Sửa
+                    </button>
+                    <button 
+                      className={`${Style.button} ${Style.convert}`}
+                      onClick={() => handleConvert(lead)}
+                    >
+                      Chuyển đổi
+                    </button>
+                    <button 
+                      className={`${Style.button} ${Style.delete}`}
+                      onClick={() => handleDelete(lead)}
+                    >
+                      Xóa
+                    </button>
                   </div>
-              </td>
-              <td>{category.name}</td>
-              <td>{category.description}</td>
-              <td>
-                <span className={`${Style.status} ${category.state === 'ACTIVE' ? Style.active : Style.inactive}`}>
-                  {category.state || 'ACTIVE'}
-                </span>
-              </td>
-              <td>
-                <div className={Style.buttons}>
-                  <button 
-                    className={`${Style.button} ${Style.view}`}
-                    onClick={() => handleView(category)}
-                  >
-                    View
-                  </button>
-                  <button 
-                    className={`${Style.button} ${Style.edit}`}
-                    onClick={() => handleEdit(category)}
-                  >
-                    Edit
-                  </button>
-                  <button 
-                    className={`${Style.button} ${Style.delete}`}
-                    onClick={() => handleDelete(category)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 
       <div className={Style.darkBg}>
-        <Pagination metadata={metadata || { page: 0, totalPages: 1, count: categories.length, totalElements: categories.length }} />
+        <Pagination metadata={metadata || { page: 0, totalPages: 1, count: leads.length, totalElements: leads.length }} />
       </div>
 
       {/* Add Modal */}
@@ -493,74 +441,91 @@ const Page = () => {
       {showEditModal && (
         <div className={Style.modalOverlay}>
           <div className={Style.modal}>
-            <h2>Edit Category</h2>
+            <h2>Chỉnh sửa Học viên Tiềm năng</h2>
             <form onSubmit={handleEditSubmit}>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-                <LanguageSelector />
-              </div>
               <div className={Style.formGroup}>
-                <label>Name:</label>
+                <label>Họ tên:</label>
                 <input
                   type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  value={formData.HoTen}
+                  onChange={(e) => setFormData({...formData, HoTen: e.target.value})}
                   required
                 />
               </div>
               <div className={Style.formGroup}>
-                <label>Description:</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  required
-                />
-              </div>
-              <div className={Style.formGroup}>
-                <label>Current Image:</label>
-                {formData.imgUrl && (
-                  <div className={Style.currentImage}>
-                    <Image 
-                      src={formData.imgUrl}
-                      alt={formData.name}
-                      width={100}
-                      height={100}
-                      className={Style.categoryImagePreview}
-                    />
-                  </div>
-                )}
-              </div>
-              <div className={Style.formGroup}>
-                <label>Upload New Image:</label>
+                <label>Email:</label>
                 <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
+                  type="email"
+                  value={formData.Email}
+                  onChange={(e) => setFormData({...formData, Email: e.target.value})}
+                  required
                 />
-                <small>Leave empty to keep current image</small>
               </div>
               <div className={Style.formGroup}>
-                <label>Status:</label>
+                <label>Số điện thoại:</label>
+                <input
+                  type="tel"
+                  value={formData.SDT}
+                  onChange={(e) => setFormData({...formData, SDT: e.target.value})}
+                />
+              </div>
+              <div className={Style.formGroup}>
+                <label>Ngày sinh:</label>
+                <input
+                  type="date"
+                  value={formData.NgaySinh}
+                  onChange={(e) => setFormData({...formData, NgaySinh: e.target.value})}
+                />
+              </div>
+              <div className={Style.formGroup}>
+                <label>Giới tính:</label>
                 <select 
-                  className={`${Style.statusSelect}`}
-                  value={formData.state}
-                  onChange={(e) => setFormData({...formData, state: e.target.value})}
+                  value={formData.GioiTinh}
+                  onChange={(e) => setFormData({...formData, GioiTinh: e.target.value})}
                 >
-                  <option value="ACTIVE">ACTIVE</option>
-                  <option value="INACTIVE">INACTIVE</option>
+                  <option value="Nam">Nam</option>
+                  <option value="Nữ">Nữ</option>
+                  <option value="Khác">Khác</option>
+                </select>
+              </div>
+              <div className={Style.formGroup}>
+                <label>Trạng thái:</label>
+                <select 
+                  value={formData.TrangThai}
+                  onChange={(e) => setFormData({...formData, TrangThai: e.target.value})}
+                >
+                  <option value="INTERESTED">Quan tâm</option>
+                  <option value="CONTACTED">Đã liên hệ</option>
+                  <option value="QUALIFIED">Đủ điều kiện</option>
+                  <option value="CONVERTED">Đã chuyển đổi</option>
+                  <option value="LOST">Mất liên lạc</option>
+                </select>
+              </div>
+              <div className={Style.formGroup}>
+                <label>Chiến dịch:</label>
+                <select 
+                  value={formData.MaCD}
+                  onChange={(e) => setFormData({...formData, MaCD: e.target.value})}
+                >
+                  <option value="">Chọn chiến dịch</option>
+                  {mockData.chienDich.map(campaign => (
+                    <option key={campaign.MaCD} value={campaign.MaCD}>
+                      {campaign.TenCD}
+                    </option>
+                  ))}
                 </select>
               </div>
               
               <div className={Style.modalButtons}>
-                <button type="submit" className={Style.saveButton}>Save Changes</button>
+                <button type="submit" className={Style.saveButton}>Lưu thay đổi</button>
                 <button 
                   type="button" 
                   className={Style.cancelButton}
                   onClick={() => setShowEditModal(false)}
                 >
-                  Cancel
+                  Hủy
                 </button>
               </div>
-              {openError && <div className={Style.error}>{uploadError}</div>}
             </form>
           </div>
         </div>
@@ -570,20 +535,20 @@ const Page = () => {
       {showDeleteModal && (
         <div className={Style.modalOverlay}>
           <div className={Style.modal}>
-            <h2>Delete Category</h2>
-            <p>Are you sure you want to delete {selectedCategory?.name}?</p>
+            <h2>Xóa Học viên Tiềm năng</h2>
+            <p>Bạn có chắc chắn muốn xóa {selectedLead?.HoTen}?</p>
             <div className={Style.modalButtons}>
               <button 
                 className={Style.deleteButton}
                 onClick={handleDeleteConfirm}
               >
-                Delete
+                Xóa
               </button>
               <button 
                 className={Style.cancelButton}
                 onClick={() => setShowDeleteModal(false)}
               >
-                Cancel
+                Hủy
               </button>
             </div>
           </div>
@@ -594,40 +559,41 @@ const Page = () => {
       {showViewModal && (
         <div className={Style.modalOverlay}>
           <div className={Style.modal}>
-            <h2>Category Details</h2>
+            <h2>Chi tiết Học viên Tiềm năng</h2>
             <div className={Style.detailContent}>
-              {selectedCategory?.imgUrl && (
-                <div className={Style.detailImage}>
-                  <Image 
-                    src={selectedCategory.imgUrl}
-                    alt={selectedCategory.name}
-                    width={200}
-                    height={200}
-                    className={Style.categoryImage}
-                  />
-                </div>
-              )}
               <div className={Style.detailItem}>
-                <label>Name:</label>
-                <span>{selectedCategory?.name}</span>
+                <label>Họ tên:</label>
+                <span>{selectedLead?.HoTen}</span>
               </div>
               <div className={Style.detailItem}>
-                <label>Description:</label>
-                <span>{selectedCategory?.description}</span>
+                <label>Email:</label>
+                <span>{selectedLead?.Email}</span>
               </div>
               <div className={Style.detailItem}>
-                <label>Status:</label>
-                <span className={`${Style.status} ${selectedCategory?.state === 'ACTIVE' ? Style.active : Style.inactive}`}>
-                  {selectedCategory?.state || 'ACTIVE'}
+                <label>Số điện thoại:</label>
+                <span>{selectedLead?.SDT}</span>
+              </div>
+              <div className={Style.detailItem}>
+                <label>Ngày sinh:</label>
+                <span>{new Date(selectedLead?.NgaySinh).toLocaleDateString('vi-VN')}</span>
+              </div>
+              <div className={Style.detailItem}>
+                <label>Giới tính:</label>
+                <span>{selectedLead?.GioiTinh}</span>
+              </div>
+              <div className={Style.detailItem}>
+                <label>Trạng thái:</label>
+                <span className={`${Style.status} ${getStatusClass(selectedLead?.TrangThai)}`}>
+                  {selectedLead?.TrangThai}
                 </span>
               </div>
               <div className={Style.detailItem}>
-                <label>Created At:</label>
-                <span>{new Date(selectedCategory?.createdAt).toLocaleString()}</span>
+                <label>Chiến dịch:</label>
+                <span>{mockData.chienDich.find(c => c.MaCD === selectedLead?.MaCD)?.TenCD || 'N/A'}</span>
               </div>
               <div className={Style.detailItem}>
-                <label>Updated At:</label>
-                <span>{new Date(selectedCategory?.updatedAt).toLocaleString()}</span>
+                <label>Ngày đăng ký:</label>
+                <span>{new Date(selectedLead?.NgayDangKy).toLocaleString('vi-VN')}</span>
               </div>
             </div>
             <div className={Style.modalButtons}>
@@ -635,7 +601,36 @@ const Page = () => {
                 className={Style.cancelButton}
                 onClick={() => setShowViewModal(false)}
               >
-                Close
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Convert Modal */}
+      {showConvertModal && (
+        <div className={Style.modalOverlay}>
+          <div className={Style.modal}>
+            <h2>Chuyển đổi thành Học viên</h2>
+            <p>Bạn có chắc chắn muốn chuyển đổi {selectedLead?.HoTen} thành học viên chính thức?</p>
+            <div className={Style.modalButtons}>
+              <button 
+                className={Style.convertButton}
+                onClick={() => {
+                  // Logic chuyển đổi lead thành học viên
+                  toast.success(`Đã chuyển đổi ${selectedLead?.HoTen} thành học viên chính thức!`);
+                  setShowConvertModal(false);
+                  fetchLeads(currentPage, itemsPerPage, nameFilter, statusFilter);
+                }}
+              >
+                Chuyển đổi
+              </button>
+              <button 
+                className={Style.cancelButton}
+                onClick={() => setShowConvertModal(false)}
+              >
+                Hủy
               </button>
             </div>
           </div>

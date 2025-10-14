@@ -5,6 +5,7 @@ import styles from "./order.module.css";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { Pagination, FilterableSearch } from "../../ui/dashboard/dashboardindex";
 import { useLanguageService } from "../../../hooks/useLanguageService";
+import { mockData } from "../../../data/mockData";
 import toast from "react-hot-toast";
 
 const OrderPage = () => {
@@ -172,9 +173,9 @@ const OrderPage = () => {
     return (
         <div className={styles.container}>
             <div className={styles.top}>
-                <h1>Quản lý đơn hàng</h1>
+                <h1>Báo cáo Thống kê Đăng ký</h1>
                 <FilterableSearch
-                    placeholder="Tìm kiếm theo tên đơn hàng hoặc số điện thoại..."
+                    placeholder="Tìm kiếm theo tên học viên hoặc email..."
                     onChange={handleSearch}
                     onSearch={handleSearch}
                     value={searchTerm}
@@ -182,12 +183,10 @@ const OrderPage = () => {
                     onStatusChange={handleStatusChange}
                     statusOptions={[
                         { value: "", label: "Tất cả trạng thái" },
-                        { value: "HOLD", label: "Tạm giữ" },
-                        { value: "PROCESSING", label: "Chờ xử lý" },
-                        { value: "PAID", label: "Đã thanh toán" },
-                        { value: "DONE", label: "Hoàn thành" },
+                        { value: "PENDING", label: "Chờ xử lý" },
+                        { value: "CONFIRMED", label: "Đã xác nhận" },
+                        { value: "COMPLETED", label: "Hoàn thành" },
                         { value: "CANCELLED", label: "Đã hủy" },
-                        { value: "FAILED", label: "Thất bại" },
                     ]}
                 />
             </div>
@@ -196,14 +195,14 @@ const OrderPage = () => {
                 <thead>
                 <tr>
                     <td>ID</td>
-                    <td>Tên đơn hàng</td>
-                    <td>Khách hàng</td>
+                    <td>Tên học viên</td>
+                    <td>Email</td>
                     <td>Số điện thoại</td>
-                    <td>Loại đơn</td>
+                    <td>Khóa học</td>
                     <td>Trạng thái</td>
-                    <td>Phương thức lấy hàng</td>
-                    <td>Tổng tiền</td>
-                    <td>Số món</td>
+                    <td>Chiến dịch</td>
+                    <td>Học phí</td>
+                    <td>Ngày đăng ký</td>
                     <td>Thao tác</td>
                 </tr>
                 </thead>
@@ -215,48 +214,46 @@ const OrderPage = () => {
                         </td>
                     </tr>
                 ) : (
-                    orders.map((order) => (
-                        <tr key={order.id}>
-                            <td>#{order.id}</td>
-                            <td className={styles.orderName}>
-                                {order.name}
-                                {order.description && (
-                                    <div className={styles.orderDescription}>
-                                        {order.description}
-                                    </div>
-                                )}
-                            </td>
-                            <td>User ID: {order.userId}</td>
-                            <td>{order.phoneNumber || "Chưa có"}</td>
-                            <td>
-                                <p className={styles.orderType}>
-                                    {order.orderType || "N/A"}
-                                </p>
-                            </td>
-                            <td>
-                  <p className={`${styles.status} ${getStatusClass(order.orderState)}`}>
-                    {order.orderState}
-                  </p>
-                            </td>
-                            <td>{getTakingMethodText(order.takingMethod)}</td>
-                            <td className={styles.price}>
-                                {formatCurrency(order.totalPriceAfterDiscount)}
-                            </td>
-                            <td>
-                                <p className={styles.foodCount}>
-                                    {order.foodInfos?.length || 0} món
-                                </p>
-                            </td>
-                            <td>
-                                <button
-                                    className={styles.viewButton}
-                                    onClick={() => handleView(order.id)}
-                                >
-                                    Chi tiết
-                                </button>
-                            </td>
-                        </tr>
-                    ))
+                    orders.map((order) => {
+                        const campaign = mockData.chienDich.find(c => c.MaCD === order.MaCD);
+                        return (
+                            <tr key={order.MaHV}>
+                                <td>#{order.MaHV}</td>
+                                <td className={styles.orderName}>
+                                    {order.HoTen}
+                                </td>
+                                <td>{order.Email}</td>
+                                <td>{order.SDT || "Chưa có"}</td>
+                                <td>
+                                    <p className={styles.orderType}>
+                                        Khóa học ID: {order.MaCD}
+                                    </p>
+                                </td>
+                                <td>
+                                    <p className={`${styles.status} ${getStatusClass(order.TrangThai)}`}>
+                                        {order.TrangThai}
+                                    </p>
+                                </td>
+                                <td>{campaign?.TenCD || "N/A"}</td>
+                                <td className={styles.price}>
+                                    {formatCurrency(3000000)} {/* Giá khóa học mẫu */}
+                                </td>
+                                <td>
+                                    <p className={styles.foodCount}>
+                                        {new Date(order.NgayDangKy).toLocaleDateString('vi-VN')}
+                                    </p>
+                                </td>
+                                <td>
+                                    <button
+                                        className={styles.viewButton}
+                                        onClick={() => handleView(order.MaHV)}
+                                    >
+                                        Chi tiết
+                                    </button>
+                                </td>
+                            </tr>
+                        );
+                    })
                 )}
                 </tbody>
             </table>

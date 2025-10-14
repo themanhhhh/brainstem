@@ -174,6 +174,20 @@
   backdrop-filter: blur(10px);
 }
 
+.debugInfo {
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+  color: #B8860B;
+}
+
+.debugInfo p {
+  margin: 5px 0;
+}
+
 .chartCard h2 {
   color: var(--icons-color);
   font-size: 1.3rem;

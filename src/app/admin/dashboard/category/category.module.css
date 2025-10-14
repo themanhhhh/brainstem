@@ -416,6 +416,67 @@
   border: 1px solid red;
 }
 
+/* Lead status styles */
+.interested {
+  background-color: rgba(255, 193, 7, 0.1);
+  color: #B8860B;
+  border: 1px solid #B8860B;
+}
+
+.contacted {
+  background-color: rgba(33, 150, 243, 0.1);
+  color: #000080;
+  border: 1px solid #000080;
+}
+
+.qualified {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #006400;
+  border: 1px solid #006400;
+}
+
+.converted {
+  background-color: rgba(0, 128, 0, 0.1);
+  color: green;
+  border: 1px solid green;
+}
+
+.lost {
+  background-color: rgba(255, 0, 0, 0.1);
+  color: red;
+  border: 1px solid red;
+}
+
+.default {
+  background-color: rgba(158, 158, 158, 0.1);
+  color: #696969;
+  border: 1px solid #696969;
+}
+
+/* Convert button style */
+.convert {
+  background-color: #32CD32;
+  color: white;
+}
+
+.convert:hover {
+  background-color: #228B22;
+}
+
+.convertButton {
+  background-color: #32CD32;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.convertButton:hover {
+  background-color: #228B22;
+}
+
 .imageContainer {
   width: 50px;
   height: 50px;

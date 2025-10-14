@@ -158,13 +158,13 @@ const Page = () => {
   const handleEdit = (user) => {
     setSelectedUser(user);
     setEditForm({
-      fullName: user.fullName || '',
-      username: user.username || '',
+      fullName: user.HoTen || '',
+      username: user.Email || '',
       password: '',
-      phoneNumber: user.phoneNumber || '',
-      email: user.email || '',
-      role: user.role || '',
-      state: user.state || ''
+      phoneNumber: user.SDT || '',
+      email: user.Email || '',
+      role: 'STUDENT',
+      state: user.TrangThai || ''
     });
     setShowEditModal(true);
   };
@@ -211,7 +211,7 @@ const Page = () => {
       toast.loading("Đang cập nhật người dùng...", { id: "edit-user" });
       
       const response = await userService.updateUser(
-        selectedUser.id,
+        selectedUser.MaHV,
         editForm.fullName,
         editForm.username,
         editForm.password,
@@ -260,7 +260,7 @@ const Page = () => {
     try {
       toast.loading("Đang xóa người dùng...", { id: "delete-user" });
       
-      const response = await userService.deleteUser(selectedUser.id);
+      const response = await userService.deleteUser(selectedUser.MaHV);
       
       // Kiểm tra lỗi từ response
       if (response && (response.code >= 400 || response.error || response.status >= 400)) {
@@ -273,7 +273,7 @@ const Page = () => {
         return;
       }
       
-      toast.success(`Đã xóa người dùng "${selectedUser.fullName}" thành công!`, {
+      toast.success(`Đã xóa người dùng "${selectedUser.HoTen}" thành công!`, {
         id: "delete-user",
         duration: 3000,
         position: "top-center"
@@ -294,7 +294,7 @@ const Page = () => {
 
   const handleView = async (user) => {
     try {
-      const userDetail = await userService.getUserById(user.id);
+      const userDetail = await userService.getUserById(user.MaHV);
       
       // Kiểm tra lỗi từ response
       if (userDetail && (userDetail.code >= 400 || userDetail.error || userDetail.status >= 400)) {
@@ -359,30 +359,30 @@ const Page = () => {
         <table className={Style.table}>
           <thead>
             <tr>
-              <td>Name</td>
+              <td>Họ tên</td>
               <td>Email</td>
-              <td>Username</td>
-              <td>Phone</td>
-              <td>Role</td>
-              <td>Status</td>
-              <td>Action</td>
+              <td>Số điện thoại</td>
+              <td>Giới tính</td>
+              <td>Ngày sinh</td>
+              <td>Trạng thái</td>
+              <td>Hành động</td>
             </tr>
           </thead>
           <tbody>
             {users.map((user) => (
-              <tr key={user.id}>
+              <tr key={user.MaHV}>
                 <td>
                   <div className={Style.user}>
-                    {user.fullName}
+                    {user.HoTen}
                   </div>
                 </td>
-                <td>{user.email}</td>
-                <td>{user.username}</td>
-                <td>{user.phoneNumber}</td>
-                <td>{user.role}</td>
+                <td>{user.Email}</td>
+                <td>{user.SDT}</td>
+                <td>{user.GioiTinh}</td>
+                <td>{user.NgaySinh}</td>
                 <td>
-                  <span className={`${Style.status} ${user.state === 'ACTIVE' ? Style.active : Style.inactive}`}>
-                    {user.state}
+                  <span className={`${Style.status} ${user.TrangThai === 'ACTIVE' ? Style.active : Style.inactive}`}>
+                    {user.TrangThai}
                   </span>
                 </td>
                 <td>
@@ -510,7 +510,7 @@ const Page = () => {
           <div className={Style.modalOverlay}>
             <div className={Style.modal}>
               <h2>Delete User</h2>
-              <p>Are you sure you want to delete user {selectedUser?.fullName}?</p>
+              <p>Are you sure you want to delete user {selectedUser?.HoTen}?</p>
               <div className={Style.modalButtons}>
                 <button 
                   className={Style.deleteButton}
@@ -537,7 +537,7 @@ const Page = () => {
               <div className={Style.detailContent}>
                 <div className={Style.detailItem}>
                   <label>Full Name:</label>
-                  <span>{selectedUser?.fullName}</span>
+                  <span>{selectedUser?.HoTen}</span>
                 </div>
                 <div className={Style.detailItem}>
                   <label>Username:</label>
@@ -545,11 +545,11 @@ const Page = () => {
                 </div>
                 <div className={Style.detailItem}>
                   <label>Email:</label>
-                  <span>{selectedUser?.email}</span>
+                  <span>{selectedUser?.Email}</span>
                 </div>
                 <div className={Style.detailItem}>
                   <label>Phone Number:</label>
-                  <span>{selectedUser?.phoneNumber}</span>
+                  <span>{selectedUser?.SDT}</span>
                 </div>
                 <div className={Style.detailItem}>
                   <label>Role:</label>
