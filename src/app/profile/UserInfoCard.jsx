@@ -8,7 +8,11 @@ const UserInfoCard = ({ profile }) => {
   const formatDate = (timestamp) => {
     if (!timestamp) return 'N/A';
     const date = new Date(timestamp);
+<<<<<<< HEAD
     return date.toLocaleDateString('vi-VN', {
+=======
+    return date.toLocaleDateString('en-US', {
+>>>>>>> 9d277b48c159f9883915c8f6dd946a0b464e3f01
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
