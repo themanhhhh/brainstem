@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import styles from './profile.module.css';
 import { authService } from '@/app/api/auth/authService';
-import { useCart } from '../context/CartContext';
-import toast from 'react-hot-toast';
+import { useCart } from '../../../context/CartContext';
+import toast from "react-hot-toast";
+
+// Utility function để extract error message
+const getErrorMessage = (error, defaultMessage) => {
+  if (error?.response?.data?.message) return error.response.data.message;
+  if (error?.message) return error.message;
+  if (error?.code >= 400 || error?.status >= 400) return error.message || `Lỗi ${error.code || error.status}`;
+  if (typeof error === 'string') return error;
+  return defaultMessage;
+};
 
 const UpdateProfile = ({ profile, onProfileUpdated }) => {
   const [formData, setFormData] = useState({
@@ -15,12 +24,6 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
   const [imagePreview, setImagePreview] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({
-    fullName: '',
-    phoneNumber: '',
-    email: '',
-    imgUrl: ''
-  });
 
   const { uploadToPinata } = useCart();
 
@@ -42,62 +45,6 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
       ...prev,
       [name]: value
     }));
-    
-    // Validate field immediately
-    validateField(name, value);
-  };
-
-  const validateField = (fieldName, value) => {
-    let error = '';
-
-    switch (fieldName) {
-      case 'fullName':
-        if (!value.trim()) {
-          error = 'Họ tên là bắt buộc';
-        } else if (value.trim().split(' ').length < 2) {
-          error = 'Vui lòng nhập đầy đủ họ và tên';
-        } else if (/[\d!@#$%^&*(),.?":{}|<>]/.test(value)) {
-          error = 'Họ tên không được chứa số hoặc ký tự đặc biệt';
-        }
-        break;
-
-      case 'email':
-        const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-        if (!value.trim()) {
-          error = 'Email là bắt buộc';
-        } else if (!emailRegex.test(value)) {
-          error = 'Email không hợp lệ';
-        }
-        break;
-
-      case 'phoneNumber':
-        if (value.trim()) {
-          const phoneRegex = /^(0|\+84)([1-9][0-9]{8}|[1-9][0-9]{8})$/;
-          if (!phoneRegex.test(value)) {
-            error = 'Số điện thoại không hợp lệ (VD: 0912345678 hoặc +84912345678)';
-          }
-        }
-        break;
-
-      default:
-        break;
-    }
-
-    setErrors(prev => ({
-      ...prev,
-      [fieldName]: error
-    }));
-
-    return !error;
-  };
-
-  const validateForm = () => {
-    // Validate all fields
-    const isFullNameValid = validateField('fullName', formData.fullName);
-    const isEmailValid = validateField('email', formData.email);
-    const isPhoneValid = validateField('phoneNumber', formData.phoneNumber);
-
-    return isFullNameValid && isEmailValid && isPhoneValid;
   };
 
   const handleImageChange = (e) => {
@@ -105,7 +52,7 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        toast.error('Please select a valid image file', {
+        toast.error('Vui lòng chọn file ảnh hợp lệ', {
           duration: 3000,
           position: "top-center"
         });
@@ -114,7 +61,7 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
       
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        toast.error('Image size must not exceed 5MB', {
+        toast.error('Kích thước ảnh không được vượt quá 5MB', {
           duration: 3000,
           position: "top-center"
         });
@@ -133,7 +80,7 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
       };
       reader.readAsDataURL(file);
       
-      toast.success('Image selected successfully!', {
+      toast.success('Ảnh đã được chọn thành công!', {
         duration: 2000,
         position: "top-right"
       });
@@ -145,21 +92,23 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
 
     setUploadingImage(true);
     try {
-      toast.loading('Uploading image...', { id: 'upload-image' });
+      toast.loading("Đang upload ảnh...", { id: "upload-image" });
       
       const imageUrl = await uploadToPinata(selectedImage);
       setFormData(prev => ({ ...prev, imgUrl: imageUrl }));
       
-      toast.success('Image uploaded successfully!', {
-        id: 'upload-image',
+      toast.success("Upload ảnh thành công!", {
+        id: "upload-image",
         duration: 2000,
         position: "top-right"
       });
       
       return imageUrl;
     } catch (error) {
-      toast.error('Failed to upload image. Please try again.', {
-        id: 'upload-image',
+      console.error("Error uploading image:", error);
+      const errorMessage = getErrorMessage(error, 'Không thể upload ảnh. Vui lòng thử lại!');
+      toast.error(errorMessage, {
+        id: "upload-image",
         duration: 4000,
         position: "top-center"
       });
@@ -172,19 +121,37 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate form before submission
-    if (!validateForm()) {
-      toast.error('Vui lòng kiểm tra lại thông tin!', {
+    // Validation
+    if (!formData.fullName.trim()) {
+      toast.error('Vui lòng nhập họ tên!', {
         duration: 3000,
         position: "top-center"
       });
       return;
     }
-
+    
+    if (!formData.email.trim()) {
+      toast.error('Vui lòng nhập email!', {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error('Email không đúng định dạng!', {
+        duration: 3000,
+        position: "top-center"
+      });
+      return;
+    }
+    
     setLoading(true);
     
     try {
-      toast.loading('Đang cập nhật thông tin...', { id: 'update-profile' });
+      toast.loading("Đang cập nhật thông tin...", { id: "update-profile" });
       
       let imageUrl = formData.imgUrl;
       
@@ -194,10 +161,21 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
       }
 
       const { fullName, phoneNumber, email } = formData;
-      await authService.updateProfile(fullName, phoneNumber, email, imageUrl);
+      const response = await authService.updateProfile(fullName, phoneNumber, email, imageUrl);
       
-      toast.success('Cập nhật thông tin thành công!', {
-        id: 'update-profile',
+      // Kiểm tra lỗi từ response
+      if (response && (response.code >= 400 || response.error || response.status >= 400)) {
+        const errorMessage = getErrorMessage(response, "Không thể cập nhật thông tin");
+        toast.error(errorMessage, {
+          id: "update-profile",
+          duration: 4000,
+          position: "top-center"
+        });
+        return;
+      }
+      
+      toast.success('Thông tin đã được cập nhật thành công!', {
+        id: "update-profile",
         duration: 3000,
         position: "top-center"
       });
@@ -205,17 +183,19 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
       setSelectedImage(null);
       
       if (onProfileUpdated) {
-        onProfileUpdated();
+        onProfileUpdated(); // Để fetch lại profile mới từ server
       }
     } catch (err) {
-      console.error('Error updating profile:', err);
-      toast.error(err.message || 'Cập nhật thông tin thất bại. Vui lòng thử lại sau.', {
-        id: 'update-profile',
+      console.error("Error updating profile:", err);
+      const errorMessage = getErrorMessage(err, 'Không thể cập nhật thông tin. Vui lòng thử lại!');
+      toast.error(errorMessage, {
+        id: "update-profile",
         duration: 4000,
         position: "top-center"
       });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const resetForm = () => {
@@ -227,9 +207,8 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
     });
     setSelectedImage(null);
     setImagePreview(profile.imgUrl || '');
-    toast.dismiss(); // Dismiss any active toasts
     
-    toast.success('Form reset successfully', {
+    toast.success('Form đã được reset!', {
       duration: 2000,
       position: "top-right"
     });
@@ -237,18 +216,18 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
 
   return (
     <div className={styles.card}>
-      <div className={styles.cardTitle}>Cập nhật thông tin</div>
+      <div className={styles.cardTitle}>Update Your Profile</div>
       <form className={styles.form} onSubmit={handleSubmit}>
         {/* Avatar Upload Section */}
         <div className={styles.formGroup}>
-          <label>Ảnh đại diện</label>
+          <label>Profile Avatar</label>
           <div className={styles.avatarUpload}>
             <div className={styles.avatarPreview}>
               {imagePreview ? (
                 <img src={imagePreview} alt="Profile Preview" className={styles.avatarImage} />
               ) : (
                 <div className={styles.avatarPlaceholder}>
-                  <span>Chưa có ảnh</span>
+                  <span>No Image</span>
                 </div>
               )}
             </div>
@@ -261,73 +240,54 @@ const UpdateProfile = ({ profile, onProfileUpdated }) => {
                 className={styles.fileInput}
               />
               <label htmlFor="avatar" className={styles.uploadBtn}>
-                Chọn ảnh
+                Choose Image
               </label>
               {selectedImage && (
                 <span className={styles.fileName}>{selectedImage.name}</span>
               )}
             </div>
           </div>
-          {errors.imgUrl && <span className={styles.errorMessage}>{errors.imgUrl}</span>}
         </div>
 
         <div className={styles.formGroup}>
-          <label>Họ và tên *</label>
+          <label>Full Name</label>
           <input
             type="text"
             name="fullName"
             value={formData.fullName}
             onChange={handleChange}
-            onBlur={(e) => validateField('fullName', e.target.value)}
             required
-            placeholder="Nhập họ và tên"
-            className={errors.fullName ? styles.errorInput : ''}
+            placeholder="Enter your full name"
           />
-          {errors.fullName && <span className={styles.errorMessage}>{errors.fullName}</span>}
         </div>
-
         <div className={styles.formGroup}>
-          <label>Email *</label>
+          <label>Email</label>
           <input
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
-            onBlur={(e) => validateField('email', e.target.value)}
             required
-            placeholder="Nhập địa chỉ email"
-            className={errors.email ? styles.errorInput : ''}
+            placeholder="Enter your email"
           />
-          {errors.email && <span className={styles.errorMessage}>{errors.email}</span>}
         </div>
-
         <div className={styles.formGroup}>
-          <label>Số điện thoại</label>
+          <label>Phone Number</label>
           <input
             type="text"
             name="phoneNumber"
             value={formData.phoneNumber}
             onChange={handleChange}
-            onBlur={(e) => validateField('phoneNumber', e.target.value)}
-            placeholder="Nhập số điện thoại"
-            className={errors.phoneNumber ? styles.errorInput : ''}
+            placeholder="Enter your phone number"
           />
-          {errors.phoneNumber && <span className={styles.errorMessage}>{errors.phoneNumber}</span>}
-          {!errors.phoneNumber && formData.phoneNumber && (
-            <span className={styles.successMessage}>✓ Số điện thoại hợp lệ</span>
-          )}
         </div>
-        
+
         <div className={styles.formActions}>
           <button type="button" className={styles.cancelBtn} onClick={resetForm}>
-            Hủy
+            Cancel
           </button>
-          <button 
-            type="submit" 
-            className={styles.saveBtn} 
-            disabled={loading || uploadingImage || Object.values(errors).some(error => error !== '')}
-          >
-            {loading ? 'Đang lưu...' : uploadingImage ? 'Đang tải ảnh...' : 'Lưu thay đổi'}
+          <button type="submit" className={styles.saveBtn} disabled={loading || uploadingImage}>
+            {loading ? 'Saving...' : uploadingImage ? 'Uploading...' : 'Save'}
           </button>
         </div>
       </form>

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './profile.module.css';
 import { authService } from '@/app/api/auth/authService';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/app/context/AuthContext';
 import toast from 'react-hot-toast';
 
 const ChangePassword = () => {
@@ -284,7 +284,7 @@ const ChangePassword = () => {
           {errors.next && <span className={styles.errorMessage}>{errors.next}</span>}
           {!errors.next && next && (
             <span className={styles.inputHint}>
-              💡 Tối thiểu 8 ký tự, tối đa 30 ký tự
+              💡 Tối thiểu 8 ký tự, không được vượt quá 30 ký tự
             </span>
           )}
         </div>
