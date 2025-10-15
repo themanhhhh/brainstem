@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { statisticService } from '../../../api/statistic/statisticService';
-import { mockData } from '../../../data/mockData';
+import { statisticService } from '../api/statistic/statisticService';
+import { mockData } from '../data/mockData';
 import styles from './statistics.module.css';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import toast from "react-hot-toast";
@@ -243,7 +243,7 @@ const StatisticsPage = () => {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {studentDistribution.length > 0 ? studentDistribution : fallbackStudentDistribution}.map((entry, index) => (
+                  {(studentDistribution.length > 0 ? studentDistribution : fallbackStudentDistribution).map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>

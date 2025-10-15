@@ -1,3 +1,4 @@
+"use client";
 import Image from "next/image";
 import MenuLink from "./menu/menuLink";
 import styles from "./sidebar.module.css";
@@ -28,22 +29,22 @@ const menuItems = [
       },
       {
         title: "QL Học viên",
-        path: "/users",
+        path: "/hocvien",
         icon: <FaRegIdCard />,
       },
       {
         title: "HV Tiềm năng",
-        path: "/category",
+        path: "/hvtiemnang",
         icon: <PiMedal />,
       },
       {
         title: "QL nhân viên",
-        path: "/products",
+        path: "/nhanvien",
         icon: <CiUser />,
       },
       {
         title: "Kênh truyền thông",
-        path: "/table",
+        path: "/media",
         icon: <GrChannel />,
       },
       {
@@ -53,14 +54,14 @@ const menuItems = [
       },
       {
         title: "Báo cáo thống kê",
-        path: "/order",
+        path: "/report",
         icon: <FaChartBar />,
       },
     ],
   }
 ];
 
-const Sidebar = async () => {
+const Sidebar = () => {
   return (
     <div className={styles.container}>
       <div className={styles.logo}>
